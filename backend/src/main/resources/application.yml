@@ -1,0 +1,31 @@
+server:
+  port: 9000
+
+# database setting
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:3306/banthing
+    username: root
+    password: mariadb
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    # DBMS dialect setting
+    database-platform: org.hibernate.dialect.MariaDB106Dialect
+    hibernate:
+      # ddl
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true # SQL log
+    database: mysql
+
+# log level setting
+logging:
+  level:
+    root: info
+    com.study.event: debug
+    org.hibernate.SQL: debug
+
+
+
+
