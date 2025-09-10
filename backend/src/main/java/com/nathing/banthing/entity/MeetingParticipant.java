@@ -1,0 +1,67 @@
+package com.nathing.banthing.entity;
+
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "meeting_participants")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class MeetingParticipant {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "participant_id")
+    private Long participantId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "meeting_id", nullable = false)
+    private Meeting meeting;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "participant_type", nullable = false)
+    private ParticipantType participantType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "application_status")
+    private ApplicationStatus applicationStatus = ApplicationStatus.APPROVED;
+
+    @CreationTimestamp
+    @Column(name = "joined_at")
+    private LocalDateTime joinedAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    public enum ParticipantType {
+        HOST, PARTICIPANT
+    }
+
+    public enum ApplicationStatus {
+        PENDING, APPROVED, REJECTED
+    }
+
+    // 비즈니스 메서드
+    public boolean isHost() {
+        return participantType == ParticipantType.HOST;
+    }
+
+    public boolean isApproved() {
+        return applicationStatus == ApplicationStatus.APPROVED;
+    }
+}
+
+
