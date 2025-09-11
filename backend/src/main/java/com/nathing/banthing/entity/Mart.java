@@ -57,4 +57,3 @@ public class Mart {
         COSTCO, TRADERS, LOTTE_MART
     }
 }
-

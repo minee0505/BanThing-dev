@@ -54,4 +54,3 @@ public class ChatbotConversation {
         MEETING_SEARCH, SERVICE_GUIDE, GENERAL
     }
 }
-

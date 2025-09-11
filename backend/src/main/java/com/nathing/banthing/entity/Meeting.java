@@ -93,4 +93,3 @@ public class Meeting {
         return currentParticipants >= maxParticipants;
     }
 }
-

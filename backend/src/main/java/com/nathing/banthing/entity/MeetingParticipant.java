@@ -11,7 +11,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "meeting_participants")
+@Table(name = "meeting_participants",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"meeting_id", "user_id"}))
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -36,7 +37,7 @@ public class MeetingParticipant {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "application_status")
-    private ApplicationStatus applicationStatus = ApplicationStatus.APPROVED;
+    private ApplicationStatus applicationStatus = ApplicationStatus.PENDING;
 
     @CreationTimestamp
     @Column(name = "joined_at")
@@ -63,5 +64,3 @@ public class MeetingParticipant {
         return applicationStatus == ApplicationStatus.APPROVED;
     }
 }
-
-
