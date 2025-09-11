@@ -1,0 +1,5 @@
+- backend/dto/request 디렉토리를 생성했습니다.
+- 이 폴더는 클라이언트의 요청(Request) 데이터를 담는 DTO 클래스를 보관하기 위한 공간입니다.
+  (예: MeetingCreateRequestDto, UserUpdateRequestDto 등)
+- Controller가 클라이언트로부터 받은 데이터를 Service 계층으로 전달할 때 사용됩니다.
+- 현재는 구조 유지를 위해 .gitkeep 파일을 추가했습니다.
