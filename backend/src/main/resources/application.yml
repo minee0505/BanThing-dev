@@ -36,7 +36,7 @@ spring:
 logging:
   level:
     root: info
-    com.study.event: debug
+    com.nathing.banthing: debug
     org.hibernate.SQL: debug
     org.springframework.jdbc.datasource.init: debug  # SQL 초기화 로그 추가
 
@@ -45,6 +45,5 @@ jwt:
   secret: ${JWT_SECRET}
   access-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
   refresh-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
-
 
 

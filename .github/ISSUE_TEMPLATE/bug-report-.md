@@ -1,9 +1,10 @@
 ---
-name: "버그 리포트 (Bug report)"
-about: "재현 가능한 정보를 포함하여 버그를 보고합니다."
+name: 버그 리포트 (Bug report)
+about: 재현 가능한 정보를 포함하여 버그를 보고합니다.
 title: "[Bug] "
-labels: ["bug"]
-assignees: ""
+labels: bug
+assignees: ''
+
 ---
 
 ## 버그 요약 (Summary)

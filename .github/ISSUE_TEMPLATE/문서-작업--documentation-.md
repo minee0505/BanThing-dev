@@ -1,9 +1,10 @@
 ---
-name: "문서 작업 (Documentation)"
-about: "문서의 생성, 수정, 삭제 등 모든 관련 작업을 요청합니다."
+name: 문서 작업 (Documentation)
+about: 문서의 생성, 수정, 삭제 등 모든 관련 작업을 요청합니다.
 title: "[Docs] "
-labels: ["docs"]
-assignees: ""
+labels: documentation
+assignees: ''
+
 ---
 
 ## 작업 종류 (Type of Request)
