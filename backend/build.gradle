@@ -33,6 +33,9 @@ dependencies {
 //	implementation 'org.springframework.boot:spring-boot-starter-security'
 //	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+	// Dotenv (.env 자동 로딩)
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
 	// WebSocket
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 

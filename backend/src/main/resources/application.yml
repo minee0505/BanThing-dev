@@ -1,5 +1,5 @@
 server:
-  port: 9000
+  port: ${SERVER_PORT}
 
 # database setting
 spring:
@@ -23,9 +23,13 @@ spring:
 logging:
   level:
     root: info
-    com.study.event: debug
+    com.nathing.banthing: debug
     org.hibernate.SQL: debug
 
-
+# 공통 설정
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+  refresh-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
 
 
