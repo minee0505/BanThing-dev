@@ -1,0 +1,5 @@
+- backend/repository/custom 디렉토리를 생성했습니다.
+- 이 폴더는 재사용 가능한 커스텀 예외(Custom Exception) 클래스들을 모아두는 데 사용됩니다.
+- 이 레포지토리에서는 애플리케이션 전반에서 발생하는 특정 오류 상황(예: 데이터 없음, 권한 부족 등)을 명확하게 처리하고 통일된 응답을 제공하기 위해 **커스텀 예외 클래스**를 보관합니다.
+- 예를 들어, `UserNotFoundException`이나 `UnauthorizedAccessException`과 같은 클래스가 이 폴더에 위치하게 됩니다.
+- 현재는 프로젝트의 구조를 유지하기 위해 `.gitkeep` 파일을 추가했습니다.
