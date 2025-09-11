@@ -3,17 +3,30 @@ server:
 
 # database setting
 spring:
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
+      continue-on-error: false  # false로 변경해서 오류 확인
+      separator: ";"
+      encoding: UTF-8
+
+
+
   datasource:
     url: jdbc:mariadb://localhost:3306/banthing
     username: root
     password: mariadb
     driver-class-name: org.mariadb.jdbc.Driver
+
   jpa:
+    defer-datasource-initialization: true
+
     # DBMS dialect setting
     database-platform: org.hibernate.dialect.MariaDB106Dialect
     hibernate:
       # ddl
-      ddl-auto: create
+      ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: true # SQL log
@@ -25,6 +38,7 @@ logging:
     root: info
     com.nathing.banthing: debug
     org.hibernate.SQL: debug
+    org.springframework.jdbc.datasource.init: debug  # SQL 초기화 로그 추가
 
 # 공통 설정
 jwt:

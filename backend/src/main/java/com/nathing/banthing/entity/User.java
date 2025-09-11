@@ -24,7 +24,7 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "nickname", nullable = false, unique = true, length = 50)
+    @Column(name = "nickname", nullable = false, length = 50)
     private String nickname;
 
     @Column(name = "profile_image_url", length = 255)
@@ -88,4 +88,3 @@ public class User {
         return deletedAt != null;
     }
 }
-

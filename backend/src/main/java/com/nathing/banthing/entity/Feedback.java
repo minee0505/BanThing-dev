@@ -11,7 +11,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "feedbacks")
+@Table(name = "feedbacks",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"giver_user_id", "receiver_user_id", "meeting_id"}))
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
