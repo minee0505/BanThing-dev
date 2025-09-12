@@ -16,6 +16,17 @@ import java.util.Arrays;
 @EnableWebSecurity  // 커스텀 시큐리티 설정파일이라는 의미
 public class SecurityConfig {
 
+    // 허용할 엔드포인트 목록을 배열로 따로 관리
+    private static final String[] PUBLIC_ENDPOINTS = {
+            "/**", // 프로젝트 초기 설정이므로 임시로 모든 엔드포인트 허용, 이후에 조정 필요
+            "/",
+            "/health",
+            "/h2-console/**",
+            "/auth/**",
+            "/api/some-public-data"
+            // 앞으로 추가될 퍼블릭 엔드포인트를 여기에 나열합니다.
+    };
+
     // 시큐리티 필터체인 빈을 등록
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -35,7 +46,8 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 // 엔드포인트 권한 정책: 퍼블릭 → 허용, 나머지 → 인증 필요
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/health", "/", "/h2-console/**").permitAll()
+                        // 배열에 담긴 엔드포인트에 대해 접근을 허용
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
                 )
                 // 인증 실패 시 401 Unauthorized 반환
