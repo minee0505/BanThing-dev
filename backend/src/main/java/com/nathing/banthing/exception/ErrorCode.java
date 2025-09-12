@@ -41,8 +41,8 @@ public enum ErrorCode {
     // 데이터베이스 관련 에러 코드
     DATA_INTEGRITY_VIOLATION("DATA_INTEGRITY_VIOLATION", "데이터 무결성 제약 조건을 위반했습니다.", 400),
 
-    // 여행 관련 에러 코드
-    TRIP_NOT_FOUND("TRIP_NOT_FOUND", "여행을 찾을 수 없습니다.", 404),
+    // 마트 관련 에러 코드
+    MART_NOT_FOUND("MART_NOT_FOUND", "마트를 찾을 수 없습니다.", 404),
     TRIP_TITLE_ALREADY_EXISTS("TRIP_TITLE_ALREADY_EXISTS", "이미 존재하는 여행 제목입니다.", 409),
     TRIP_ACCESS_DENIED("TRIP_ACCESS_DENIED", "해당 여행에 접근할 권한이 없습니다.", 403),
 
