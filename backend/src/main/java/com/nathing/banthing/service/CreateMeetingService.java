@@ -21,7 +21,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class MeetingService {
+
+
+public class CreateMeetingService {
+
+    /**
+     * MartsRepository를 통해 마트 관련 데이터에 접근하고 조작하는 저장소 객체입니다.
+     * 이 객체는 데이터베이스에서 마트 정보를 조회하거나 저장하는 데 사용됩니다.
+     *
+     * 주요 역할:
+     * 1. 주어진 마트 ID로 특정 마트를 조회합니다.
+     * 2. 마트 데이터의 CRUD 작업을 처리합니다.
+     *
+     * 이 객체는 CreateMeetingService 클래스에서 마트를 조회하거나
+     * 필요한 비즈니스 로직 실행 시 사용됩니다.
+     * 예를 들어, 새로운 모임을 생성할 때 요청으로 전달된 마트 ID를 기반으로 마트를 조회합니다.
+     * @author - 고동현
+     * @Since - 2025-09-12
+     */
 
     private final MartsRepository martsRepository;
     private final UsersRepository usersRepository;
