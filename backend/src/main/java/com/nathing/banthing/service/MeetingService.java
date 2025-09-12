@@ -1,0 +1,87 @@
+package com.nathing.banthing.service;
+
+import com.nathing.banthing.dto.request.MeetingCreateRequest;
+import com.nathing.banthing.entity.Mart;
+import com.nathing.banthing.entity.Meeting;
+import com.nathing.banthing.entity.MeetingParticipant;
+import com.nathing.banthing.entity.User;
+import com.nathing.banthing.exception.BusinessException;
+import com.nathing.banthing.exception.ErrorCode;
+import com.nathing.banthing.repository.MartsRepository;
+import com.nathing.banthing.repository.MeetingParticipantsRepository;
+import com.nathing.banthing.repository.MeetingsRepository;
+import com.nathing.banthing.repository.UsersRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+@Slf4j
+public class MeetingService {
+
+    private final MartsRepository martsRepository;
+    private final UsersRepository usersRepository;
+    private final MeetingsRepository meetingsRepository;
+    private final MeetingParticipantsRepository meetingParticipantsRepository;
+
+    /**
+     * 모임 생성 비즈니스 로직
+     * @param request 모임 생성에 필요한 데이터 DTO
+     * @param userId 현재 로그인하여 모임을 생성하는 사용자 ID
+     * @return 생성된 Meeting 엔티티 정보
+     */
+    public Meeting createMeeting(MeetingCreateRequest request, Long userId) {
+
+        // 사용자 정보 조회
+        User hostUser = usersRepository.findById(userId).orElseThrow(
+                ()->new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        // 마트 정보 조회
+        Mart mart = martsRepository.findById(request.getMartId()).orElseThrow(
+                () -> new BusinessException(ErrorCode.MART_NOT_FOUND)
+        );
+
+        // 3. Meeting 엔티티 생성
+        // Builder 패턴을 사용해 DTO와 조회된 엔티티 정보로 새로운 Meeting 객체를 만듭니다.
+        // currentParticipants와 status는 서버에서 직접 값을 지정해 안정성을 높입니다.
+        Meeting newMeeting = Meeting.builder()
+                .hostUser(hostUser)
+                .mart(mart)
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .meetingDate(request.getMeetingDate())
+                .maxParticipants(request.getMaxParticipants())
+                .thumbnailImageUrl(request.getThumbnailImageUrl())
+                .currentParticipants(1) // 모임 생성 시, 참여 인원은 항상 1명(호스트)으로 시작
+                .status(Meeting.MeetingStatus.RECRUITING) // 모임 상태는 '모집중'으로 시작
+                .build();
+
+        // 4. 생성된 모임을 DB에 저장
+        Meeting savedMeeting = meetingsRepository.save(newMeeting);
+
+        // 5. 모임 생성자를 HOST로 참여자 목록에 추가
+        MeetingParticipant hostParticipant = MeetingParticipant.builder()
+                .meeting(savedMeeting)
+                .user(hostUser)
+                .participantType(MeetingParticipant.ParticipantType.HOST)
+                .applicationStatus(MeetingParticipant.ApplicationStatus.APPROVED)
+                .build();
+
+        meetingParticipantsRepository.save(hostParticipant);
+
+        // 로그를 남겨서 서버 동작을 쉽게 추적할 수 있도록 합니다.
+        log.info("새로운 모임이 생성되었습니다. meetingId: {}, hostId: {}", savedMeeting.getMeetingId(), hostUser.getUserId());
+
+        // 6. 저장된 Meeting 엔티티 반환
+        return savedMeeting;
+
+    }
+
+
+
+
+}
