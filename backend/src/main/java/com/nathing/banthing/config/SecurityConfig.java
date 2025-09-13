@@ -1,5 +1,7 @@
 package com.nathing.banthing.config;
 
+import com.nathing.banthing.service.CustomOAuth2UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,7 +17,10 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity  // 커스텀 시큐리티 설정파일이라는 의미
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     // 허용할 엔드포인트 목록을 배열로 따로 관리
     private static final String[] PUBLIC_ENDPOINTS = {
@@ -53,8 +58,8 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
                 )
-                // OAuth2 로그인 활성화
-                .oauth2Login(oauth -> {})
+                // OAuth2 로그인 활성화 및 사용자 정보 서비스 연결
+                .oauth2Login(oauth -> oauth.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService)))
                 // 인증 실패 시 401 Unauthorized 반환
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> res.sendError(401))
