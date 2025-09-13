@@ -46,4 +46,14 @@ jwt:
   access-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
   refresh-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
 
+cookie:
+  domain: localhost
+  secure: false
+  http-only: true
+  same-site: Lax
+  access-token-name: ACCESS_TOKEN
+  refresh-token-name: REFRESH_TOKEN
+  access-max-age: ${COOKIE_ACCESS_TOKEN_MAX_AGE}
+  refresh-max-age: ${COOKIE_REFRESH_TOKEN_MAX_AGE}
+
 
