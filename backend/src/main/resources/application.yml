@@ -74,4 +74,6 @@ cookie:
   access-max-age: ${COOKIE_ACCESS_TOKEN_MAX_AGE}
   refresh-max-age: ${COOKIE_REFRESH_TOKEN_MAX_AGE}
 
-
+app:
+  oauth2-success-redirect-url: http://localhost:5173
+  oauth2-failure-redirect-url: http://localhost:5173/login?from=oauth2
