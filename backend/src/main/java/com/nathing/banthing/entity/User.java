@@ -1,10 +1,7 @@
 package com.nathing.banthing.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -18,12 +15,21 @@ import java.util.List;
  *
  * @author 김경민
  * @since 2025-09-10
- * @version 1.0.0
+ *
+ * @author 강관주
+ * @since 2025-09-13
+ * @version 1.0.1
  */
 @Entity
-@Table(name = "users")
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_provider_id", columnNames = {"provider", "provider_id"})
+        }
+)
 @Getter
-@Setter
+@ToString(exclude = {"hostedMeetings", "participations", "conversations", "givenFeedbacks", "receivedFeedbacks"})
+@EqualsAndHashCode(of = "userId")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 
