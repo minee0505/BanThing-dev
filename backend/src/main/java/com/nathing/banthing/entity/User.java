@@ -25,7 +25,6 @@ import java.util.List;
  * @author 송민재
  * @since 2025-09-13
  * - 점수를 업데이트, 반환하는 메서드를 추가했습니다.
- * @version 1.0.1
  */
 @Entity
 @Table(
@@ -110,7 +109,7 @@ public class User {
     /**
      * 점수를 업데이트하는 메서드
      * @param event 노쇼, 모임 생성/참가 등의 이벤트 처리
-     * @auther 송민재
+     * @author 송민재
      * @since 2025-09-13
      */
     public void updateTrustScore(ScoreEvent event) {
@@ -138,7 +137,8 @@ public class User {
      * @param noShowCount 사용자의 노쇼(미참석) 횟수 (기본값: 0)
      * @param agree 약관 동의 여부 (기본값: false)
      *
-     * @since v1.0.1 (2025-09-13) - 초기 작성, @author 강관주
+     * @author 강관주
+     * @since 2025-09-13
      */
     @Builder
     public User(
@@ -168,5 +168,23 @@ public class User {
     // 논리적 삭제 여부 확인
     public boolean isDeleted() {
         return deletedAt != null;
+    }
+
+    /**
+     * 사용자 프로필 정보를 업데이트합니다.
+     * - 닉네임: null이 아닌 경우에만 변경됩니다.
+     * - 프로필 이미지 URL: 전달된 값으로 그대로 설정됩니다(Null 허용).
+     *
+     * @param nickname          변경할 닉네임(Null이면 기존 값 유지)
+     * @param profileImageUrl   변경할 프로필 이미지 URL(Null 가능)
+     *
+     * @author 강관주
+     * @since 2025-09-13
+     */
+    public void updateProfile(String nickname, String profileImageUrl) {
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+        this.profileImageUrl = profileImageUrl;
     }
 }
