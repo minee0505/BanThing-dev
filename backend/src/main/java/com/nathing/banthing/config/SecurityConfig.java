@@ -24,6 +24,8 @@ public class SecurityConfig {
             "/health",
             "/h2-console/**",
             "/api/auth/**",
+            "/oauth2/**",
+            "/login/oauth2/**",
             "/api/some-public-data"
             // 앞으로 추가될 퍼블릭 엔드포인트를 여기에 나열합니다.
     };
@@ -51,6 +53,8 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
                 )
+                // OAuth2 로그인 활성화
+                .oauth2Login(oauth -> {})
                 // 인증 실패 시 401 Unauthorized 반환
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> res.sendError(401))
