@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -22,14 +23,14 @@ public class SecurityConfig {
             "/",
             "/health",
             "/h2-console/**",
-            "/auth/**",
+            "/api/auth/**",
             "/api/some-public-data"
             // 앞으로 추가될 퍼블릭 엔드포인트를 여기에 나열합니다.
     };
 
     // 시큐리티 필터체인 빈을 등록
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
 
         // 커스텀 보안 설정
         http
@@ -53,7 +54,10 @@ public class SecurityConfig {
                 // 인증 실패 시 401 Unauthorized 반환
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> res.sendError(401))
-                );
+                )
+                // UsernamePasswordAuthenticationFilter 전에 JWT 필터 동작
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
 
