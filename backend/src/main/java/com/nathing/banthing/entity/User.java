@@ -83,6 +83,24 @@ public class User {
         WARNING, BASIC, GOOD
     }
 
+
+    //
+
+    /**
+     점수를 업데이트하는 메서드
+     * @param event 노쇼, 모임 생성/참가 등의 이벤트 처리
+     * @auther 송민재
+     *
+     */
+    public void updateTrustScore(ScoreEvent event) {
+        this.trustScore += event.getValue();
+    }
+
+    // 현재 누적 점수를 반환하는 메서드
+    public int getTrustScore() {
+        return this.trustScore;
+    }
+
     // 논리적 삭제 여부 확인
     public boolean isDeleted() {
         return deletedAt != null;

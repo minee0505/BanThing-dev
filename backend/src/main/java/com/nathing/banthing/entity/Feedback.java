@@ -50,8 +50,4 @@ public class Feedback {
     public boolean isPositive() {
         return Boolean.TRUE.equals(isPositive);
     }
-
-    public int getScoreValue() {
-        return isPositive() ? 3 : -3;
-    }
 }
