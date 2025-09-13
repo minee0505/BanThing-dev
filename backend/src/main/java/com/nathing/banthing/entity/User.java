@@ -18,6 +18,9 @@ import java.util.List;
  *
  * @author 강관주
  * @since 2025-09-13
+ * - {@code provider}와 {@code providerId} 컬럼 조합에 대해 고유성(unique) 제약 조건인 {@code uk_provider_id}를 추가했습니다.
+ * - {@link lombok.ToString}과 {@link lombok.EqualsAndHashCode} 애너테이션을 추가하여 객체의 상태를 문자열로 표현하고 비교할 수 있도록 했습니다.
+ * - 객체 생성 편의성과 무결성 확보를 위해 빌더 패턴 기반 생성자를 추가했습니다.
  * @version 1.0.1
  */
 @Entity
@@ -95,6 +98,49 @@ public class User {
 
     public enum TrustGrade {
         WARNING, BASIC, GOOD
+    }
+
+
+    /**
+     * User 객체를 빌더 패턴을 사용하여 생성하는 생성자.
+     * 사용자 정보를 초기화하며 입력값이 null인 경우 기본값을 설정합니다.
+     * 객체를 생성할 때, 기본값이 설정된 항목을 패턴에 기재하지 않으면 자동으로 기본값이 설정됩니다.
+     *
+     * @param nickname 사용자의 닉네임
+     * @param profileImageUrl 사용자의 프로필 이미지 URL
+     * @param selfIntroduction 사용자의 자기소개
+     * @param provider 사용자가 가입한 OAuth 제공자 (예: Google, Facebook 등)
+     * @param providerId OAuth 제공자에서 부여한 사용자 ID
+     * @param trustScore 사용자의 신뢰도 점수 (기본값: 300)
+     * @param trustGrade 사용자의 신뢰도 등급 (기본값: BASIC)
+     * @param noShowCount 사용자의 노쇼(미참석) 횟수 (기본값: 0)
+     * @param agree 약관 동의 여부 (기본값: false)
+     *
+     * @since v1.0.1 (2025-09-13) - 초기 작성, @author 강관주
+     */
+    @Builder
+    public User(
+            String nickname
+            , String profileImageUrl
+            , String selfIntroduction
+            , String provider
+            , String providerId
+            , Integer trustScore
+            , TrustGrade trustGrade
+            , Integer noShowCount
+            , Boolean agree
+    ) {
+        this.nickname = nickname;
+        this.profileImageUrl = profileImageUrl;
+        this.selfIntroduction = selfIntroduction;
+        this.provider = provider;
+        this.providerId = providerId;
+
+        // 값이 null일 경우 기본값으로 대체
+        this.trustScore = trustScore != null ? trustScore : 300;
+        this.trustGrade = trustGrade != null ? trustGrade : TrustGrade.BASIC;
+        this.noShowCount = noShowCount != null ? noShowCount : 0;
+        this.agree = agree != null ? agree : false;
     }
 
     // 논리적 삭제 여부 확인
