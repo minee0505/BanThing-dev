@@ -61,4 +61,21 @@ public class AuthController {
         log.info("[AuthController] Access token reissued for subject={}", subject);
         return ResponseEntity.noContent().build(); // 204 No Content 반환
     }
+
+    /**
+     * 로그아웃: Access/Refresh 쿠키를 삭제합니다.
+     *
+     * @param response 서버 응답 객체로, 삭제된 쿠키 정보를 클라이언트에 전달합니다.
+     * @return 204 No Content 상태를 포함한 응답을 반환합니다.
+     *
+     * @author 강관주
+     * @since 2025-09-13
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        cookieUtil.deleteAccessTokenCookie(response);
+        cookieUtil.deleteRefreshTokenCookie(response);
+        log.info("[AuthController] Logged out: cleared auth cookies");
+        return ResponseEntity.noContent().build();
+    }
 }
