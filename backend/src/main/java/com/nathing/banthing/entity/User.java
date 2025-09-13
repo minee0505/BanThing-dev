@@ -21,6 +21,10 @@ import java.util.List;
  * - {@code provider}와 {@code providerId} 컬럼 조합에 대해 고유성(unique) 제약 조건인 {@code uk_provider_id}를 추가했습니다.
  * - {@link lombok.ToString}과 {@link lombok.EqualsAndHashCode} 애너테이션을 추가하여 객체의 상태를 문자열로 표현하고 비교할 수 있도록 했습니다.
  * - 객체 생성 편의성과 무결성 확보를 위해 빌더 패턴 기반 생성자를 추가했습니다.
+ *
+ * @author 송민재
+ * @since 2025-09-13
+ * - 점수를 업데이트, 반환하는 메서드를 추가했습니다.
  * @version 1.0.1
  */
 @Entity
@@ -98,6 +102,24 @@ public class User {
 
     public enum TrustGrade {
         WARNING, BASIC, GOOD
+    }
+
+
+    //
+
+    /**
+     * 점수를 업데이트하는 메서드
+     * @param event 노쇼, 모임 생성/참가 등의 이벤트 처리
+     * @auther 송민재
+     * @since 2025-09-13
+     */
+    public void updateTrustScore(ScoreEvent event) {
+        this.trustScore += event.getValue();
+    }
+
+    // 현재 누적 점수를 반환하는 메서드
+    public int getTrustScore() {
+        return this.trustScore;
     }
 
 
