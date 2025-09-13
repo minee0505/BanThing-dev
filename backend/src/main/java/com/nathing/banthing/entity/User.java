@@ -12,6 +12,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 사용자 정보를 담는 엔티티 클래스.
+ * 소분 소모임 플랫폼의 핵심 주체로서 다양한 활동에 참여합니다.
+ *
+ * @author 김경민
+ * @since 2025-09-10
+ * @version 1.0.0
+ */
 @Entity
 @Table(name = "users")
 @Getter
