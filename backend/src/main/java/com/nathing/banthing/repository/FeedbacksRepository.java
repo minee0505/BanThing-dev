@@ -13,4 +13,6 @@ public interface FeedbacksRepository extends JpaRepository<Feedback, Long> {
     boolean existsByMeetingAndGiverUserAndReceiverUser(Meeting meeting, User giverUser, User receiverUser);
 
     List<Feedback> findByReceiverUser_UserId(Long receiverId);
+
+    List<Feedback> findByGiverUser_UserId(Long giverId);
 }

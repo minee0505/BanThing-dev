@@ -24,7 +24,6 @@ public class FeedbackConrtoller {
     /**
      * 피드백 생성 API
      * @param request 피드백 생성 요청 DTO
-     * @param giverId 피드백을 주는 사용자의 ID (현재 로그인 사용자)
      * @return 성공 시 HTTP 201 Created 응답
      */
     @PostMapping
@@ -49,10 +48,19 @@ public class FeedbackConrtoller {
      * @param userId 피드백을 조회할 사용자 ID
      * @return 피드백 리스트와 함께 HTTP 200 OK 응답
      */
-    @GetMapping("/users/{userId}")
+    @GetMapping("/users/{userId}/received")
     public ResponseEntity<List<FeedbackResponse>> getFeedbacksByUserId(@PathVariable Long userId) {
         // 서비스 메서드를 호출하여 피드백 리스트를 가져옴
         List<FeedbackResponse> feedbacks = feedbackService.getFeedbacksByReceiverId(userId);
+
+        // HTTP 200 OK와 함께 피드백 리스트 반환
+        return ResponseEntity.ok(feedbacks);
+    }
+
+    @GetMapping("/users/{userId}/given")
+    public ResponseEntity<List<FeedbackResponse>> getGivenFeedbacksByUserId(@PathVariable Long userId) {
+        // 서비스 메서드를 호출하여 피드백 리스트를 가져옴
+        List<FeedbackResponse> feedbacks = feedbackService.getFeedbacksByGiverId(userId);
 
         // HTTP 200 OK와 함께 피드백 리스트 반환
         return ResponseEntity.ok(feedbacks);

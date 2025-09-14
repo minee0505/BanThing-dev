@@ -80,10 +80,10 @@ public class FeedbackService {
 
 
     /**
-     * 특정 사용자가 받은 피드백 리스트를 조회합니다.
-     *
-     * @param userId 피드백을 조회할 사용자 ID
-     * @return FeedbackResponse 리스트
+     특정 사용자가 받은 피드백 리스트를 조회합니다.
+
+     @param userId 피드백을 조회할 사용자 ID
+     @return FeedbackResponse 리스트
      */
     public List<FeedbackResponse> getFeedbacksByReceiverId(Long userId) {
         // userId 유효성 검사 (사용자 존재 여부 확인)
@@ -92,6 +92,22 @@ public class FeedbackService {
 
         // 해당 사용자가 받은 모든 피드백을 조회
         List<Feedback> feedbacks = feedbacksRepository.findByReceiverUser_UserId(userId);
+
+        // Feedback 엔티티 리스트를 FeedbackResponse DTO 리스트로 변환
+        return feedbacks.stream()
+                .map(FeedbackResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    public List<FeedbackResponse> getFeedbacksByGiverId(Long userId) {
+        // userId 유효성 검사 (사용자 존재 여부 확인)
+        boolean userExists = usersRepository.existsById(userId);
+        if (!userExists) {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+
+        // 해당 사용자가 준 모든 피드백을 조회
+        List<Feedback> feedbacks = feedbacksRepository.findByGiverUser_UserId(userId);
 
         // Feedback 엔티티 리스트를 FeedbackResponse DTO 리스트로 변환
         return feedbacks.stream()
