@@ -1,0 +1,70 @@
+package com.nathing.banthing.service;
+
+import com.nathing.banthing.dto.response.MeetingDetailResponse;
+import com.nathing.banthing.dto.response.MeetingSimpleResponse;
+import com.nathing.banthing.entity.Meeting;
+import com.nathing.banthing.exception.BusinessException;
+import com.nathing.banthing.exception.ErrorCode;
+import com.nathing.banthing.repository.MeetingsRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * FindMeetingService 클래스는 모임(meeting)과 관련된 데이터 조회 기능을 제공하는 서비스 클래스입니다.
+ * 해당 클래스는 주로 모임의 목록 조회와 특정 모임의 상세 정보를 제공하는 역할을 담당합니다.
+ * <p>
+ * 이 클래스는 Spring Framework의 서비스(Service) 계층에 속하며, 데이터의 읽기 전용성을 보장하기 위해
+ *
+ * @author - 고동현
+ * @Transactional(readOnly = true) 어노테이션을 사용합니다. 생성자는 @RequiredArgsConstructor 어노테이션을 통해
+ * 의존성을 명시적으로 주입받습니다.
+ * <p>
+ * 주요 기능:
+ * 1. 전체 모임 목록 조회
+ * 2. 특정 모임 ID를 기반으로 상세 정보 조회
+ * <p>
+ * 사용된 의존성:
+ * - MeetingsRepository: 모임 데이터에 접근하기 위한 JPA 리포지토리 인터페이스입니다.
+ * - MeetingSimpleResponse: 모임의 간략한 정보를 포함하는 DTO 클래스입니다.
+ * - MeetingDetailResponse: 특정 모임의 상세 정보를 포함하는 DTO 클래스입니다.
+ * - BusinessException 및 ErrorCode: 예외 처리 및 에러 코드 정의를 위한 클래스입니다.
+ * <p>
+ * 스레드 안전성:
+ * 이 클래스는 상태를 가지지 않으므로 스레드에 대해 안전하게 사용할 수 있습니다.
+ * @since - 2025-09-15
+ */
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+
+public class FindMeetingService {
+    private final MeetingsRepository meetingsRepository;
+
+    /**
+     * 전체 모임 목록 조회
+     *
+     * @return 전체 모임의 핵심 정보 리스트
+     */
+    public List<MeetingSimpleResponse> findAllMeetings() {
+        return meetingsRepository.findAll().stream()
+                .map(MeetingSimpleResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 특정 모임 상세 조회
+     *
+     * @param meetingId 조회할 모임의 ID
+     * @return 모임의 상세 정보
+     */
+    public MeetingDetailResponse findMeetingById(Long meetingId) {
+        Meeting meeting = meetingsRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        return new MeetingDetailResponse(meeting);
+    }
+}
