@@ -107,7 +107,7 @@ public class FeedbackService {
         }
 
         // 해당 사용자가 준 모든 피드백을 조회
-        List<Feedback> feedbacks = feedbacksRepository.findByGiverUser_UserId(userId);
+        List<Feedback> feedbacks = feedbacksRepository.findByReceiverUser_UserId(userId);
 
         // Feedback 엔티티 리스트를 FeedbackResponse DTO 리스트로 변환
         return feedbacks.stream()
