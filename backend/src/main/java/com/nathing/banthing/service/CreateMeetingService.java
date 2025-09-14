@@ -71,7 +71,7 @@ public class CreateMeetingService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .meetingDate(request.getMeetingDate())
-                .maxParticipants(request.getMaxParticipants())
+                .maxParticipants(5)
                 .thumbnailImageUrl(request.getThumbnailImageUrl())
                 .currentParticipants(1) // 모임 생성 시, 참여 인원은 항상 1명(호스트)으로 시작
                 .status(Meeting.MeetingStatus.RECRUITING) // 모임 상태는 '모집중'으로 시작

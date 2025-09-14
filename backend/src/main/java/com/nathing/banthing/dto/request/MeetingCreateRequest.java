@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
  * - title: 모임 제목. 필수 값이며, 최대 100자까지 입력 가능합니다.
  * - description: 모임의 본문 설명. 필수 값입니다.
  * - meetingDate: 모임의 시작 날짜와 시간. 필수 값이며, 현재 시간 이후여야 합니다.
- * - maxParticipants: 모임의 최대 참여자 수. 필수 값입니다.
  * - thumbnailImageUrl: 모임의 썸네일 이미지 URL. 선택적 값입니다.
  * <p>
  * 유효성 검증:
@@ -30,7 +29,6 @@ import java.time.LocalDateTime;
  * - title은 공백일 수 없으며, 최대 100자를 초과할 수 없습니다.
  * - description은 공백일 수 없습니다.
  * - meetingDate는 null이어서는 안 되며, 반드시 현재 시간 이후여야 합니다.
- * - maxParticipants는 null이어서는 안 됩니다.
  *
  * @author - 고동현
  *  @Since - 2025-09-15
@@ -52,9 +50,6 @@ public class MeetingCreateRequest {
     @NotNull(message = "모임 시간은 필수입니다.")
     @Future(message = "모임 시간은 현재 시간 이후로 설정해야 합니다.")
     private LocalDateTime meetingDate;
-
-    @NotNull(message = "최대 참여 인원은 필수입니다.")
-    private Integer maxParticipants;
 
     private String thumbnailImageUrl;
 
