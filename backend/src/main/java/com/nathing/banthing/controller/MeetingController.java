@@ -10,6 +10,7 @@ import com.nathing.banthing.dto.response.MeetingUpdateResponse;
 import com.nathing.banthing.entity.Meeting;
 import com.nathing.banthing.repository.MeetingsRepository;
 import com.nathing.banthing.service.CreateMeetingService;
+import com.nathing.banthing.service.DeleteMeetingService;
 import com.nathing.banthing.service.FindMeetingService;
 import com.nathing.banthing.service.UpdateMeetingService;
 import jakarta.validation.Valid;
@@ -29,6 +30,7 @@ public class MeetingController {
     private final FindMeetingService findMeetingService;
     private final MeetingsRepository meetingsRepository;
     private final UpdateMeetingService updateMeetingService;
+    private final DeleteMeetingService deleteMeetingService;
 
     /**
      * 모임 생성 API
@@ -93,7 +95,7 @@ public class MeetingController {
             @PathVariable Long meetingId,
             @Valid @RequestBody MeetingUpdateRequest request) {
 
-        // TODO: 인증 로직 추가 후 currentUserId룰 실제 토큰에서 가져오도록 수정해야 합니다.
+        // TODO: 인증 로직 추가 후 userId를 실제 토큰에서 가져오도록 수정해야 합니다.
         Long currentUserId = 1L;
 
 
@@ -102,6 +104,25 @@ public class MeetingController {
         // 6. 전용 응답 DTO로 변환하여 반환
         MeetingUpdateResponse responseDto = new MeetingUpdateResponse(updatedMeeting);
         ApiResponse<MeetingUpdateResponse> apiResponse = ApiResponse.success("모임 정보가 성공적으로 수정되었습니다.", responseDto);
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+
+    /**
+     * 모임 삭제 API
+     * @param meetingId 삭제할 모임의 ID
+     * @return 성공 응답
+     */
+    @DeleteMapping("/delete/{meetingId}")
+    public ResponseEntity<ApiResponse<Void>> deleteMeeting(@PathVariable Long meetingId) {
+        // TODO: 인증 로직이 완성되면 실제 토큰에서 userId를 가져와야 합니다.
+        Long currentUserId = 1L; // 임시 사용자 ID (호스트라고 가정)
+
+        deleteMeetingService.deleteMeeting(meetingId, currentUserId);
+
+        // 삭제 후에는 별도 데이터 없이 성공 메시지만 반환합니다.
+        ApiResponse<Void> apiResponse = ApiResponse.success("모임이 성공적으로 삭제되었습니다.", null);
 
         return ResponseEntity.ok(apiResponse);
     }

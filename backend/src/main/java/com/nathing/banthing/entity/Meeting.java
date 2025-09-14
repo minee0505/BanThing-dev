@@ -4,7 +4,9 @@ import com.nathing.banthing.dto.request.MeetingUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE meetings SET deleted_at = NOW() WHERE meeting_id = ?")
+@Where(clause = "deleted_at IS NULL")
 public class Meeting {
 
     @Id
