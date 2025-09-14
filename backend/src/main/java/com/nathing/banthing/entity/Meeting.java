@@ -1,12 +1,12 @@
 package com.nathing.banthing.entity;
 
+import com.nathing.banthing.dto.request.MeetingUpdateRequest;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,6 +17,10 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@SQLDelete(sql = "UPDATE meetings SET deleted_at = NOW() WHERE meeting_id = ?")
+@Where(clause = "deleted_at IS NULL")
 public class Meeting {
 
     @Id
@@ -91,5 +95,14 @@ public class Meeting {
 
     public boolean isFull() {
         return currentParticipants >= maxParticipants;
+    }
+
+    //  업데이트 로직을 위한 메서드 추가
+    public void update(MeetingUpdateRequest request, Mart newMart) {
+        this.mart = newMart;
+        this.title = request.getTitle();
+        this.description = request.getDescription();
+        this.meetingDate = request.getMeetingDate();
+        this.thumbnailImageUrl = request.getThumbnailImageUrl();
     }
 }
