@@ -3,36 +3,26 @@ package com.nathing.banthing.controller;
 import com.nathing.banthing.dto.common.ApiResponse;
 import com.nathing.banthing.dto.request.MeetingCreateRequest;
 import com.nathing.banthing.dto.response.MeetingCreateResponse;
+import com.nathing.banthing.dto.response.MeetingDetailResponse;
+import com.nathing.banthing.dto.response.MeetingSimpleResponse;
 import com.nathing.banthing.entity.Meeting;
 import com.nathing.banthing.service.CreateMeetingService;
+import com.nathing.banthing.service.FindMeetingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/meetings")
 @RequiredArgsConstructor
-public class CreateMeetingController {
-    /**
-     * CreateMeetingService는 모임 생성 비즈니스 로직을 담당하는 서비스 클래스입니다.
-     * 이 변수는 CreateMeetingController에서 사용되며, 모임 생성 요청을 처리하는 데 사용됩니다.
-     *
-     * 주요 역할:
-     * 1. 모임 생성 요청 데이터를 검증하고, 관련 비즈니스 로직을 실행합니다.
-     * 2. 사용자, 마트 등의 관련 정보를 조회하고, 이를 기반으로 새로운 모임 엔티티를 생성합니다.
-     * 3. 생성된 모임 데이터를 데이터베이스에 저장하고, 필요한 경우 추가 작업(예: 호스트를 모임 참가자로 추가)을 수행합니다.
-     *
-     * @TODO - 인증 로직 추가 후 userId를 실제 토큰에서 가져오도록 수정해야 합니다.
-     * @author - 고동현
-     * @Since - 2025-09-15
-     */
+public class MeetingController {
 
     private final CreateMeetingService createMeetingService;
+    private final FindMeetingService findMeetingService;
 
     /**
      * 모임 생성 API
@@ -51,4 +41,26 @@ public class CreateMeetingController {
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
 
+    /**
+     * 전체 모임 목록 조회 API
+     * @return 전체 모임 목록
+     */
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<MeetingSimpleResponse>>> getAllMeetings() {
+        List<MeetingSimpleResponse> meetings = findMeetingService.findAllMeetings();
+        ApiResponse<List<MeetingSimpleResponse>> apiResponse = ApiResponse.success("전체 모임 목록이 성공적으로 조회되었습니다.", meetings);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    /**
+     * 모임 상세 조회 API
+     * @param meetingId 조회할 모임의 ID
+     * @return 모임 상세 정보
+     */
+    @GetMapping("/search/{meetingId}")
+    public ResponseEntity<ApiResponse<MeetingDetailResponse>> getMeetingById(@PathVariable Long meetingId) {
+        MeetingDetailResponse meetingDetail = findMeetingService.findMeetingById(meetingId);
+        ApiResponse<MeetingDetailResponse> apiResponse = ApiResponse.success("모임 상세 정보가 성공적으로 조회되었습니다.", meetingDetail);
+        return ResponseEntity.ok(apiResponse);
+    }
 }
