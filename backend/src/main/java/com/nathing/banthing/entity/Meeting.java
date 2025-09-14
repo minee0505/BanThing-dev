@@ -100,4 +100,5 @@ public class Meeting {
         this.description = request.getDescription();
         this.meetingDate = request.getMeetingDate();
         this.thumbnailImageUrl = request.getThumbnailImageUrl();
+    }
 }
