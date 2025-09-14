@@ -45,6 +45,7 @@ public enum ErrorCode {
     MART_NOT_FOUND("MART_NOT_FOUND", "마트를 찾을 수 없습니다.", 404),
     TRIP_TITLE_ALREADY_EXISTS("TRIP_TITLE_ALREADY_EXISTS", "이미 존재하는 여행 제목입니다.", 409),
     TRIP_ACCESS_DENIED("TRIP_ACCESS_DENIED", "해당 여행에 접근할 권한이 없습니다.", 403),
+    MEETING_NOT_FOUND("MEETING_NOT_FOUND", "모임을 찾을 수 없습니다.", 404),
 
     // 여행일지 관련 에러 코드
     TRAVEL_LOG_NOT_FOUND("TRAVEL_LOG_NOT_FOUND", "여행일지를 찾을 수 없습니다.", 404),
