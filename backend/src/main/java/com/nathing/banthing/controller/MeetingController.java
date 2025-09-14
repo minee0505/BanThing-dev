@@ -21,6 +21,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * 모임 관리와 관련된 REST API를 제공하는 컨트롤러 클래스.
+ * API 엔드포인트를 통해 모임 생성, 조회, 수정, 삭제 작업을 수행.
+ * @author 고동현
+ * @since - 2025-09-15
+ */
 @RestController
 @RequestMapping("/api/meetings")
 @RequiredArgsConstructor
