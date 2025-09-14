@@ -38,22 +38,23 @@ INSERT INTO users (nickname, provider, provider_id, trust_score, trust_grade, ag
 -- 모임 데이터 삽입
 -- ============================================
 
-INSERT INTO meetings (host_user_id, mart_id, title, description, meeting_date, max_participants, created_at, updated_at) VALUES
+-- status 컬럼 추가 및 기본값 'RECRUITING' 설정
+INSERT INTO meetings (host_user_id, mart_id, title, description, meeting_date, max_participants, status, created_at, updated_at) VALUES
 -- 양재 코스트코 모임들
-(1, 1, '코스트코 견과류 소분해요!', '아몬드, 호두 등 견과류를 4명이서 나눠 가져요. 개인 용기 꼭 가져오세요!', '2025-09-15 14:00:00', 4, NOW(), NOW()),
-(2, 1, '세제 대용량 소분 모임', '다우니 4L를 3명이서 나누어 가져가실 분!', '2025-09-16 16:00:00', 3, NOW(), NOW()),
-(4, 1, '베이커리 빵 소분', '코스트코 머핀과 베이글을 함께 나눠요', '2025-09-18 10:00:00', 5, NOW(), NOW()),
+(1, 1, '코스트코 견과류 소분해요!', '아몬드, 호두 등 견과류를 4명이서 나눠 가져요. 개인 용기 꼭 가져오세요!', '2025-09-15 14:00:00', 4, 'RECRUITING', NOW(), NOW()),
+(2, 1, '세제 대용량 소분 모임', '다우니 4L를 3명이서 나누어 가져가실 분!', '2025-09-16 16:00:00', 3, 'RECRUITING', NOW(), NOW()),
+(4, 1, '베이커리 빵 소분', '코스트코 머핀과 베이글을 함께 나눠요', '2025-09-18 10:00:00', 5, 'RECRUITING', NOW(), NOW()),
 
 -- 상봉 코스트코 모임들
-(3, 2, '상봉 코스트코 냉동식품 소분', '냉동만두와 냉동과일을 함께 소분해요. 아이스박스 준비됩니다.', '2025-09-17 11:00:00', 4, NOW(), NOW()),
-(5, 2, '육류 소분 모임', '소고기, 돼지고기 대용량 소분합니다', '2025-09-19 15:00:00', 5, NOW(), NOW()),
+(3, 2, '상봉 코스트코 냉동식품 소분', '냉동만두와 냉동과일을 함께 소분해요. 아이스박스 준비됩니다.', '2025-09-17 11:00:00', 4, 'RECRUITING', NOW(), NOW()),
+(5, 2, '육류 소분 모임', '소고기, 돼지고기 대용량 소분합니다', '2025-09-19 15:00:00', 5, 'RECRUITING', NOW(), NOW()),
 
 -- 트레이더스 모임들
-(6, 6, '트레이더스 생활용품 소분', '화장지, 세제 등 생활용품 함께 구매해요', '2025-09-20 13:00:00', 4, NOW(), NOW()),
-(7, 7, '킨텍스 트레이더스 과일 소분', '사과, 배 등 과일 박스 소분', '2025-09-21 16:00:00', 3, NOW(), NOW()),
+(6, 6, '트레이더스 생활용품 소분', '화장지, 세제 등 생활용품 함께 구매해요', '2025-09-20 13:00:00', 4, 'RECRUITING', NOW(), NOW()),
+(7, 7, '킨텍스 트레이더스 과일 소분', '사과, 배 등 과일 박스 소분', '2025-09-21 16:00:00', 3, 'RECRUITING', NOW(), NOW()),
 
 -- 종료된 모임 (피드백 테스트용)
-(1, 1, '완료된 모임 - 쌀 소분', '20kg 쌀을 5명이서 나눠가졌습니다', '2025-09-10 14:00:00', 5, NOW(), NOW());
+(1, 1, '완료된 모임 - 쌀 소분', '20kg 쌀을 5명이서 나눠가졌습니다', '2025-09-10 14:00:00', 5, 'RECRUITING', NOW(), NOW());
 
 -- 마지막 모임 상태를 COMPLETED로 변경
 UPDATE meetings SET status = 'COMPLETED' WHERE meeting_id = 8;
@@ -115,22 +116,22 @@ INSERT INTO chatbot_meeting_suggestions (conversation_id, meeting_id, suggestion
 -- 피드백 데이터 삽입 (완료된 모임 기준)
 -- ============================================
 
-INSERT INTO feedbacks (giver_user_id, receiver_user_id, meeting_id, is_positive, created_at, updated_at) VALUES
+INSERT INTO feedbacks (giver_user_id, receiver_user_id, meeting_id, feedback_type, created_at, updated_at) VALUES
 -- 모임 8에서의 상호 피드백들 (호스트: 1번, 참여자: 2,3,4,5번)
-(1, 2, 8, TRUE, NOW(), NOW()),   -- 호스트 -> 참여자2 긍정
-(1, 3, 8, TRUE, NOW(), NOW()),   -- 호스트 -> 참여자3 긍정
-(1, 4, 8, FALSE, NOW(), NOW()),  -- 호스트 -> 참여자4 부정 (노쇼)
-(1, 5, 8, TRUE, NOW(), NOW()),   -- 호스트 -> 참여자5 긍정
+(1, 2, 8, 'POSITIVE', NOW(), NOW()),   -- 호스트 -> 참여자2 긍정
+(1, 3, 8, 'POSITIVE', NOW(), NOW()),   -- 호스트 -> 참여자3 긍정
+(1, 4, 8, 'NEGATIVE', NOW(), NOW()),  -- 호스트 -> 참여자4 부정 (노쇼)
+(1, 5, 8, 'POSITIVE', NOW(), NOW()),   -- 호스트 -> 참여자5 긍정
 
-(2, 1, 8, TRUE, NOW(), NOW()),   -- 참여자2 -> 호스트 긍정
-(3, 1, 8, TRUE, NOW(), NOW()),   -- 참여자3 -> 호스트 긍정
-(5, 1, 8, TRUE, NOW(), NOW()),   -- 참여자5 -> 호스트 긍정
+(2, 1, 8, 'POSITIVE', NOW(), NOW()),   -- 참여자2 -> 호스트 긍정
+(3, 1, 8, 'POSITIVE', NOW(), NOW()),   -- 참여자3 -> 호스트 긍정
+(5, 1, 8, 'POSITIVE', NOW(), NOW()),   -- 참여자5 -> 호스트 긍정
 
 -- 참여자들 간 상호 피드백
-(2, 3, 8, TRUE, NOW(), NOW()),   -- 참여자2 -> 참여자3 긍정
-(3, 2, 8, TRUE, NOW(), NOW()),   -- 참여자3 -> 참여자2 긍정
-(2, 5, 8, TRUE, NOW(), NOW()),   -- 참여자2 -> 참여자5 긍정
-(5, 2, 8, TRUE, NOW(), NOW());   -- 참여자5 -> 참여자2 긍정
+(2, 3, 8, 'POSITIVE', NOW(), NOW()),   -- 참여자2 -> 참여자3 긍정
+(3, 2, 8, 'POSITIVE', NOW(), NOW()),   -- 참여자3 -> 참여자2 긍정
+(2, 5, 8, 'POSITIVE', NOW(), NOW()),   -- 참여자2 -> 참여자5 긍정
+(5, 2, 8, 'POSITIVE', NOW(), NOW());   -- 참여자5 -> 참여자2 긍정
 
 -- ============================================
 -- 현재 참여자 수 업데이트

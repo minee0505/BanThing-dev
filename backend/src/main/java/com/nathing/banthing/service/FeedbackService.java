@@ -1,10 +1,7 @@
 package com.nathing.banthing.service;
 
 import com.nathing.banthing.dto.request.FeedbackCreateRequest;
-import com.nathing.banthing.entity.Feedback;
-import com.nathing.banthing.entity.Meeting;
-import com.nathing.banthing.entity.MeetingParticipant;
-import com.nathing.banthing.entity.User;
+import com.nathing.banthing.entity.*;
 import com.nathing.banthing.repository.FeedbacksRepository;
 import com.nathing.banthing.repository.MeetingParticipantsRepository; // 가정: 이 리포지토리가 존재합니다.
 import com.nathing.banthing.repository.MeetingsRepository;
@@ -52,18 +49,28 @@ public class FeedbackService {
             throw new IllegalArgumentException("이미 해당 모임에서 해당 사용자에게 피드백을 주셨습니다.");
         }
 
-        // 4. 위에 과정을 통과했다면, 피드백의 종류에 따라 점수를 부여하고 피드백을 생성
+        /// 피드백 타입에 따라 점수 이벤트 매핑
+        ScoreEvent event;
+        if ("POSITIVE".equals(dto.getFeedbackType())) {
+            event = ScoreEvent.POSITIVE;
+        } else if ("NEGATIVE".equals(dto.getFeedbackType())) {
+            event = ScoreEvent.NEGATIVE;
+        } else {
+            throw new IllegalArgumentException("Invalid feedback type: " + dto.getFeedbackType());
+        }
+
+        // Feedback 엔티티에 저장
+        // feedbackType 필드를 사용하여 피드백을 생성
         Feedback feedback = Feedback.builder()
                 .meeting(meeting)
                 .giverUser(giverUser)
                 .receiverUser(receiverUser)
-                .isPositive(dto.getIsPositive())
+                .feedbackType(FeedbackType.valueOf(dto.getFeedbackType())) // 새로운 필드를 사용
                 .build();
         feedbacksRepository.save(feedback);
 
         // 받는 사용자의 신뢰도 점수 업데이트
-        int scoreChange = dto.getIsPositive() ? dto.getScoreValue() : -dto.getScoreValue();
-        receiverUser.setTrustScore(receiverUser.getTrustScore() + scoreChange);
+        receiverUser.updateTrustScore(event);
         usersRepository.save(receiverUser);
     }
 }
