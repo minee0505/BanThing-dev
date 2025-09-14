@@ -1,6 +1,7 @@
 package com.nathing.banthing.service;
 
 import com.nathing.banthing.dto.request.FeedbackCreateRequest;
+import com.nathing.banthing.dto.response.FeedbackResponse;
 import com.nathing.banthing.entity.*;
 import com.nathing.banthing.repository.FeedbacksRepository;
 import com.nathing.banthing.repository.MeetingParticipantsRepository; // 가정: 이 리포지토리가 존재합니다.
@@ -9,6 +10,9 @@ import com.nathing.banthing.repository.UsersRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -72,5 +76,26 @@ public class FeedbackService {
         // 받는 사용자의 신뢰도 점수 업데이트
         receiverUser.updateTrustScore(event);
         usersRepository.save(receiverUser);
+    }
+
+
+    /**
+     * 특정 사용자가 받은 피드백 리스트를 조회합니다.
+     *
+     * @param userId 피드백을 조회할 사용자 ID
+     * @return FeedbackResponse 리스트
+     */
+    public List<FeedbackResponse> getFeedbacksByReceiverId(Long userId) {
+        // userId 유효성 검사 (사용자 존재 여부 확인)
+        User user = usersRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+
+        // 해당 사용자가 받은 모든 피드백을 조회
+        List<Feedback> feedbacks = feedbacksRepository.findByReceiverUser_UserId(userId);
+
+        // Feedback 엔티티 리스트를 FeedbackResponse DTO 리스트로 변환
+        return feedbacks.stream()
+                .map(FeedbackResponse::from)
+                .collect(Collectors.toList());
     }
 }
