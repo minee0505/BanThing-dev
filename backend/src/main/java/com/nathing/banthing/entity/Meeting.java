@@ -1,5 +1,6 @@
 package com.nathing.banthing.entity;
 
+import com.nathing.banthing.dto.request.MeetingUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -91,4 +92,12 @@ public class Meeting {
     public boolean isFull() {
         return currentParticipants >= maxParticipants;
     }
+
+    //  업데이트 로직을 위한 메서드 추가
+    public void update(MeetingUpdateRequest request, Mart newMart) {
+        this.mart = newMart;
+        this.title = request.getTitle();
+        this.description = request.getDescription();
+        this.meetingDate = request.getMeetingDate();
+        this.thumbnailImageUrl = request.getThumbnailImageUrl();
 }
