@@ -99,6 +99,10 @@ public class User {
     @OneToMany(mappedBy = "receiverUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Feedback> receivedFeedbacks = new ArrayList<>();
 
+    // 송민재 작성, comments테이블과 연관관계
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
     public enum TrustGrade {
         WARNING, BASIC, GOOD
     }
