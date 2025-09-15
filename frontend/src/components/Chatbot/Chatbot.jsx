@@ -7,13 +7,17 @@ const Chatbot = () => {
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(true); // 🚀 항상 true로 설정 (로그인 없이도 사용 가능)
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
     useEffect(() => {
+        // 로그인 체크 비활성화 - 누구나 챗봇 사용 가능 (추후에 수정하기)
+        // const authStatus = isUserAuthenticated();
+        // setIsAuthenticated(authStatus);
+
+        // 로그인한 사용자만 히스토리 로드
         const authStatus = isUserAuthenticated();
-        setIsAuthenticated(authStatus);
         if (authStatus) {
             loadChatHistory();
         }
@@ -53,6 +57,8 @@ const Chatbot = () => {
             }
         } catch (error) {
             console.error('대화 기록 로드 실패:', error);
+            // 로그인하지 않은 사용자는 환영 메시지만 표시
+            console.log('로그인하지 않은 사용자 - 히스토리 없이 시작');
         }
     };
 
@@ -86,9 +92,12 @@ const Chatbot = () => {
         } catch (error) {
             console.error('메시지 전송 실패:', error);
 
+            // 로그인하지 않은 사용자도 기본 응답 제공
             const errorMessage = {
                 type: 'bot',
-                content: '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+                content: isUserAuthenticated()
+                    ? '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+                    : '현재 AI 서버에 연결할 수 없습니다. 로그인 후 이용하시면 더 정확한 답변을 받으실 수 있어요! 😊',
                 timestamp: new Date(),
                 isError: true
             };
@@ -110,10 +119,11 @@ const Chatbot = () => {
     };
 
     const toggleChatbot = () => {
-        if (!isAuthenticated) {
-            alert('로그인 후 이용해주세요.');
-            return;
-        }
+        // 로그인 체크 제거 - 누구나 챗봇 사용 가능 (추후에 수정하기)
+        // if (!isAuthenticated) {
+        //     alert('로그인 후 이용해주세요.');
+        //     return;
+        // }
         setIsOpen(!isOpen);
     };
 
@@ -126,19 +136,20 @@ const Chatbot = () => {
         ));
     };
 
-    if (!isAuthenticated) {
-        return (
-            <div className="chatbot-container">
-                <button
-                    className="chatbot-trigger chatbot-trigger--disabled"
-                    onClick={toggleChatbot}
-                    aria-label="AI 도우미 (로그인 필요)"
-                >
-                    <span className="chatbot-icon">🤖</span>
-                </button>
-            </div>
-        );
-    }
+    // 로그인 안 한 사용자도 챗봇 사용 가능 - 조건부 렌더링 제거 (추후에 수정하기)
+    // if (!isAuthenticated) {
+    //     return (
+    //         <div className="chatbot-container">
+    //             <button
+    //                 className="chatbot-trigger chatbot-trigger--disabled"
+    //                 onClick={toggleChatbot}
+    //                 aria-label="AI 도우미 (로그인 필요)"
+    //             >
+    //                 <span className="chatbot-icon">🤖</span>
+    //             </button>
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="chatbot-container">
@@ -147,9 +158,9 @@ const Chatbot = () => {
                 onClick={toggleChatbot}
                 aria-label="AI 도우미"
             >
-        <span className="chatbot-icon">
-          {isOpen ? '✕' : '🤖'}
-        </span>
+                <span className="chatbot-icon">
+                    {isOpen ? '✕' : '🤖'}
+                </span>
             </button>
 
             {isOpen && (
@@ -176,6 +187,16 @@ const Chatbot = () => {
                                     안녕하세요! 반띵 AI 도우미입니다.<br />
                                     소분 모임 찾기, 이용 방법 등을<br />
                                     도와드릴 수 있어요!
+                                    {/* 🚀 로그인 안 한 사용자를 위한 추가 안내 */}
+                                    {!isUserAuthenticated() && (
+                                        <>
+                                            <br /><br />
+                                            <span style={{ fontSize: '12px', opacity: '0.7' }}>
+                                                💡 로그인하시면 대화 기록이 저장되고<br />
+                                                더 정확한 답변을 받으실 수 있어요!
+                                            </span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         ) : (
@@ -214,25 +235,25 @@ const Chatbot = () => {
 
                     <div className="chatbot-input">
                         <div className="chatbot-input__wrapper">
-              <textarea
-                  ref={inputRef}
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="메시지를 입력하세요..."
-                  className="chatbot-input__field"
-                  rows="1"
-                  disabled={isLoading}
-              />
+                            <textarea
+                                ref={inputRef}
+                                value={inputMessage}
+                                onChange={(e) => setInputMessage(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder="메시지를 입력하세요..."
+                                className="chatbot-input__field"
+                                rows="1"
+                                disabled={isLoading}
+                            />
                             <button
                                 onClick={sendMessage}
                                 disabled={!inputMessage.trim() || isLoading}
                                 className="chatbot-input__send"
                                 aria-label="전송"
                             >
-                <span className="chatbot-input__send-icon">
-                  {isLoading ? '⏳' : '📤'}
-                </span>
+                                <span className="chatbot-input__send-icon">
+                                    {isLoading ? '⏳' : '📤'}
+                                </span>
                             </button>
                         </div>
                     </div>

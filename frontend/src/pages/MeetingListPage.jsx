@@ -1,7 +1,7 @@
 import React from 'react';
 import KakaoMap from "../components/Meeting/KakaoMap.jsx";
 import MeetingList from "../components/Meeting/MeetingList.jsx";
-import AIChatBot from "../components/ChatBot/AIChatBot.jsx";
+import ChatBot from "../components/ChatBot/ChatBot.jsx";
 
 const MeetingListPage = () => {
     return (
@@ -11,7 +11,7 @@ const MeetingListPage = () => {
             <button>모임 생성</button>
             <KakaoMap />
             <MeetingList />
-            <AIChatBot />
+            <ChatBot />
         </>
     );
 };
