@@ -12,7 +12,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author 김경민
  * @since 2025-09-12
- * Google Gemini AI 챗봇을 위한 설정 클래스
+ * Google Gemini AI 챗봇을 위한 설정 클래스 (최신 SDK용)
  */
 @Slf4j
 @Configuration
