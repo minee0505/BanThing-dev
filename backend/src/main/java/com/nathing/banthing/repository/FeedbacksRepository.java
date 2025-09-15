@@ -13,5 +13,5 @@ public interface FeedbacksRepository extends JpaRepository<Feedback, Long> {
      * @author 송민재
      * @since 2025.09.12
      */
-    boolean existsByMeetingIdAndSenderId(Long meetingId, Long senderId);
+//    boolean existsByMeetingIdAndSenderId(Long meetingId, Long senderId);
 }
