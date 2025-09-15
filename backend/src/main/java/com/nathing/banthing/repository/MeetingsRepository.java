@@ -2,6 +2,38 @@ package com.nathing.banthing.repository;
 
 import com.nathing.banthing.entity.Meeting;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
+
+    /**
+     * 상태별 모임 조회 (삭제되지 않은 모임만)
+     */
+    List<Meeting> findByStatusAndDeletedAtIsNull(Meeting.MeetingStatus status);
+
+    /**
+     * 제목이나 설명에 키워드가 포함된 모임 검색
+     */
+    @Query("SELECT m FROM Meeting m WHERE " +
+            "(LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(m.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+            "m.status = 'RECRUITING' AND m.deletedAt IS NULL")
+    List<Meeting> findByKeywordAndRecruiting(@Param("keyword") String keyword);
+
+    /**
+     * 마트 지점별 모집중인 모임 조회
+     */
+    List<Meeting> findByMartMartIdAndStatusAndDeletedAtIsNull(
+            Long martId, Meeting.MeetingStatus status);
+
+    /**
+     * 지역(마트 주소) 기반 모임 검색
+     */
+    @Query("SELECT m FROM Meeting m JOIN m.mart mart WHERE " +
+            "LOWER(mart.address) LIKE LOWER(CONCAT('%', :location, '%')) AND " +
+            "m.status = 'RECRUITING' AND m.deletedAt IS NULL")
+    List<Meeting> findByLocationAndRecruiting(@Param("location") String location);
 }
