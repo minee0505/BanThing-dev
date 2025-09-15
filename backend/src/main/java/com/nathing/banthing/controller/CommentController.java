@@ -21,7 +21,6 @@ public class CommentController {
     /**
      * 특정 모임의 댓글 목록을 조회합니다.
      * @param meetingId 모임 ID
-     * @param userDetails 현재 로그인한 사용자 정보 (스프링 시큐리티)
      * @return 댓글 목록 DTO와 HTTP 상태 코드
      */
     @GetMapping
@@ -41,7 +40,6 @@ public class CommentController {
      * 특정 모임에 새로운 댓글을 작성합니다.
      * @param meetingId 모임 ID
      * @param createDto 댓글 생성 요청 DTO
-     * @param userDetails 현재 로그인한 사용자 정보 (스프링 시큐리티)
      * @return 생성된 댓글 DTO와 HTTP 상태 코드
      */
     @PostMapping
@@ -57,7 +55,26 @@ public class CommentController {
         // 실제 애플리케이션에서는 UserDetails에서 사용자 ID를 추출하는 로직 필요
 //        Long currentUserId = Long.valueOf(userDetails.getUsername());
 
-        CommentReadDto newComment = commentService.createComment(meetingId, currentUserId, createDto);
+        CommentReadDto newComment = commentService.createComment(meetingId, currentUserId, createDto.getContent());
         return ResponseEntity.status(HttpStatus.CREATED).body(newComment);
+    }
+
+    /**
+     * 특정 댓글을 수정합니다.
+     * @param commentId 수정할 댓글 ID
+     * @param updateDto 댓글 수정 요청 DTO
+     * @return 수정된 댓글 DTO와 HTTP 상태 코드
+     */
+    @PutMapping("/{commentId}")
+    public ResponseEntity<CommentReadDto> updateComment(
+            @PathVariable Long commentId,
+            @RequestBody CommentUpdateDto updateDto
+    ) {
+        // ⚠️ 경고: 임시 개발용으로 하드코딩된 사용자 ID
+        Long currentUserId = 2L;
+
+        CommentReadDto updatedComment = commentService.updateComment(commentId, currentUserId, updateDto.getContent());
+
+        return ResponseEntity.status(HttpStatus.OK).body(updatedComment);
     }
 }
