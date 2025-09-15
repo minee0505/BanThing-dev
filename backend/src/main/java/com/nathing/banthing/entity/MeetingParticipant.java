@@ -46,6 +46,7 @@ public class MeetingParticipant {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+
     public enum ParticipantType {
         HOST, PARTICIPANT
     }
@@ -61,5 +62,14 @@ public class MeetingParticipant {
 
     public boolean isApproved() {
         return applicationStatus == ApplicationStatus.APPROVED;
+    }
+
+
+    // 참가 신청을 승인하는 비즈니스 메서드 추가
+    public void approve() {
+        // 이미 승인된 상태가 아닌, '대기중'일 때만 상태를 변경
+        if (this.applicationStatus == ApplicationStatus.PENDING) {
+            this.applicationStatus = ApplicationStatus.APPROVED;
+        }
     }
 }

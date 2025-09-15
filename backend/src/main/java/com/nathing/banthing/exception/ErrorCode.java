@@ -9,17 +9,37 @@ import lombok.Getter;
  * @since 2025-09-11
  * 애플리케이션에서 발생하는 에러 코드들을 정의 하는 열거체
  * 에러상태코드, 에러메시지, 에러 이름 함께 관리합니다.
- *
+ * <p>
  * 에러 코드 추가 시 이름 및 에러 코드 목적 작성 부탁드립니다.
  * ex) code: INTERNAL_SERVER_ERROR, 목적 : 서버 내부 오류 메시지용  - 이름
- *
- *  MEETING_NOT_FOUND("MEETING_NOT_FOUND", "모임을 찾을 수 없습니다.", 404) - 고동현
- *  AUTHENTICATION_NOT_FOUND("AUTHENTICATION_NOT_FOUND", "인증 정보를 찾을 수 없습니다.", 401) - 고동현
- *  INVALID_USER_ID_FORMAT("INVALID_USER_ID_FORMAT", "사용자 ID 형식이 올바르지 않습니다.", 400) - 고동현
+ * <p>
+ * MEETING_NOT_FOUND("MEETING_NOT_FOUND", "모임을 찾을 수 없습니다.", 404) - 고동현
+ * AUTHENTICATION_NOT_FOUND("AUTHENTICATION_NOT_FOUND", "인증 정보를 찾을 수 없습니다.", 401) - 고동현
+ * INVALID_USER_ID_FORMAT("INVALID_USER_ID_FORMAT", "사용자 ID 형식이 올바르지 않습니다.", 400) - 고동현
+ * PARTICIPANT_NOT_FOUND("PARTICIPANT_NOT_FOUND", "참가자를 찾을 수 없습니다.", 404) - 고동현
+ * MEETING_IS_NOT_RECRUITING("MEETING_IS_NOT_RECRUITING", "모집 중인 모임이 아닙니다.", 400) - 고동현
+ * ALREADY_PARTICIPATED("ALREADY_PARTICIPATED", "이미 참여했거나 신청한 모임입니다.", 409) - 고동현
+ * CANNOT_JOIN_AS_HOST("CANNOT_JOIN_AS_HOST", "모임 호스트는 참가 신청할 수 없습니다.", 400) - 고동현
+ * PARTICIPANT_APPLICATION_STATUS_INVALID("PARTICIPANT_APPLICATION_STATUS_INVALID", "참가 신청 상태가 올바르지 않습니다.", 400)- 고동현
+ * MEETING_IS_FULL("MEETING_IS_FULL", "모임 정원이 다 찼습니다.", 400) - 고동현
  */
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
+
+    // 참가자 관련 에러 코드
+    PARTICIPANT_NOT_FOUND("PARTICIPANT_NOT_FOUND", "참가자를 찾을 수 없습니다.", 404),
+    MEETING_IS_NOT_RECRUITING("MEETING_IS_NOT_RECRUITING", "모집 중인 모임이 아닙니다.", 400),
+    ALREADY_PARTICIPATED("ALREADY_PARTICIPATED", "이미 참여했거나 신청한 모임입니다.", 409),
+    CANNOT_JOIN_AS_HOST("CANNOT_JOIN_AS_HOST", "모임 호스트는 참가 신청할 수 없습니다.", 400),
+    PARTICIPANT_APPLICATION_STATUS_INVALID("PARTICIPANT_APPLICATION_STATUS_INVALID", "참가 신청 상태가 올바르지 않습니다.", 400),
+    MEETING_IS_FULL("MEETING_IS_FULL", "모임 정원이 다 찼습니다.", 400),
+
+    // 모임 관련 에러코드
+    INVALID_MEETING_STATUS("INVALID_MEETING_STATUS", "잘못된 모임 상태입니다.", 400),
+    MEETING_FULL("MEETING_FULL", "모임 정원이 초과되었습니다.", 400),
+    NOT_MEETING_HOST("NOT_MEETING_HOST", "모임 호스트가 아닙니다.", 403),
+
 
     // 기본 에러 코드
     INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다.", 500),
@@ -49,19 +69,10 @@ public enum ErrorCode {
 
     // 마트 관련 에러 코드
     MART_NOT_FOUND("MART_NOT_FOUND", "마트를 찾을 수 없습니다.", 404),
-    TRIP_TITLE_ALREADY_EXISTS("TRIP_TITLE_ALREADY_EXISTS", "이미 존재하는 여행 제목입니다.", 409),
-    TRIP_ACCESS_DENIED("TRIP_ACCESS_DENIED", "해당 여행에 접근할 권한이 없습니다.", 403),
     MEETING_NOT_FOUND("MEETING_NOT_FOUND", "모임을 찾을 수 없습니다.", 404),
 
-    // 여행일지 관련 에러 코드
-    TRAVEL_LOG_NOT_FOUND("TRAVEL_LOG_NOT_FOUND", "여행일지를 찾을 수 없습니다.", 404),
-    TRAVEL_LOG_ACCESS_DENIED("TRAVEL_LOG_ACCESS_DENIED", "해당 여행일지에 접근할 권한이 없습니다.", 403),
-    TRAVEL_LOG_TITLE_ALREADY_EXISTS("TRAVEL_LOG_TITLE_ALREADY_EXISTS", "이미 존재하는 여행일지 제목입니다.", 409),
-
     // 태그 관련 에러 코드
-    HASHTAG_EXISTS("HASHTAG_EXISTS", "이미 존재하는 해시태그입니다.", 409)
-
-    ;
+    HASHTAG_EXISTS("HASHTAG_EXISTS", "이미 존재하는 해시태그입니다.", 409);
 
     private final String code;
     private final String message;
