@@ -32,6 +32,24 @@ spring:
         format_sql: true # SQL log
     database: mysql
 
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            scope: [ profile_nickname, profile_image ]
+            redirect-uri: 'http://localhost:9000/login/oauth2/code/kakao'
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
 # log level setting
 logging:
   level:
@@ -39,3 +57,23 @@ logging:
     com.study.event: debug
     org.hibernate.SQL: debug
     org.springframework.jdbc.datasource.init: debug  # SQL 초기화 로그 추가
+
+# 공통 설정
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+  refresh-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
+
+cookie:
+  domain: localhost
+  secure: false
+  http-only: true
+  same-site: Lax
+  access-token-name: ACCESS_TOKEN
+  refresh-token-name: REFRESH_TOKEN
+  access-max-age: ${COOKIE_ACCESS_TOKEN_MAX_AGE}
+  refresh-max-age: ${COOKIE_REFRESH_TOKEN_MAX_AGE}
+
+app:
+  oauth2-success-redirect-url: http://localhost:5173
+  oauth2-failure-redirect-url: http://localhost:5173/login?from=oauth2
