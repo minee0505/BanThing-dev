@@ -7,7 +7,13 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
+
+    // 특정 상태이면서 모임 시간이 지난 모임들 조회
+    List<Meeting> findByStatusAndMeetingDateBefore(Meeting.MeetingStatus status, LocalDateTime dateTime);
 
     /**
      * 상태별 모임 조회 (삭제되지 않은 모임만)

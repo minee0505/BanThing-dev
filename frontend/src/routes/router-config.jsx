@@ -9,21 +9,21 @@ import AgreementPage from "../pages/AgreementPage.jsx";
 
 // 라우터 설정
 export const router = createBrowserRouter([
-    {
-        path: '/',
-        element: <AppLayout />,
-        errorElement: <ErrorPage />,
-        children: [
-            { index: true, element: <MeetingListPage /> },
-            { path: 'meetings/:id', element: <MeetingDetailPage /> },
-            { path: 'meetings/:id/comments', element: <CommentPage /> },
-            { path: 'login', element: <LoginPage /> },
-        ],
-    },
-    {
-        path: '/agreement',
-        element: <AgreementPage />
-    }
+  {
+    path: '/',
+    element: <AppLayout />,
+    errorElement: <ErrorPage />,
+    children: [
+      { index: true, element: <MeetingListPage /> },
+      { path: 'meetings/:id', element: <MeetingDetailPage /> },
+      { path: 'meetings/:id/comments', element: <CommentPage /> },
+      { path: 'login', element: <LoginPage /> },
+    ],
+  },
+  {
+    path: '/agreement',
+    element: <AgreementPage />
+  }
 ]);
 
 export default router;

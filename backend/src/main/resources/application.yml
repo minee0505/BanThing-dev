@@ -11,6 +11,12 @@ spring:
       separator: ";"
       encoding: UTF-8
 
+  task:
+    scheduling:
+      pool:
+        size: 5
+      thread-name-prefix: meeting-scheduler-
+
 
 
   datasource:
@@ -85,3 +91,4 @@ google:
     model: ${GOOGLE_AI_MODEL:gemini-1.5-flash}
     temperature: ${GOOGLE_AI_TEMPERATURE:0.7}
     max-tokens: ${GOOGLE_AI_MAX_TOKENS:1000}
+
