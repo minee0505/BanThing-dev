@@ -136,4 +136,20 @@ public class CommentServiceImpl implements CommentService {
         // 4. DTO로 변환하여 반환
         return convertToDto(comment);
     }
+
+    @Override
+    @Transactional
+    public void deleteComment(Long commentId, Long currentUserId) {
+        // 1. 댓글 존재 여부 확인 및 엔티티 조회
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글입니다."));
+
+        // 2. 현재 사용자가 댓글의 작성자인지 확인
+        if (!comment.getUser().getUserId().equals(currentUserId)) {
+            throw new IllegalArgumentException("댓글을 삭제할 권한이 없습니다. 작성자만 삭제할 수 있습니다.");
+        }
+
+        // 3. 댓글 삭제
+        commentRepository.delete(comment);
+    }
 }

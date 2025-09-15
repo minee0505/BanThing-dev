@@ -30,4 +30,11 @@ public interface CommentService {
      * @return 수정된 댓글 DTO (CommentReadDto)
      */
     CommentReadDto updateComment(Long commentId, Long currentUserId, String content);
+
+    /**
+     * 댓글을 삭제합니다.
+     * @param commentId 삭제할 댓글 ID
+     * @param currentUserId 현재 로그인한 사용자 ID
+     */
+    void deleteComment(Long commentId, Long currentUserId);
 }

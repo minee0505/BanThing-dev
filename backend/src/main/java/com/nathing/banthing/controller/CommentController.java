@@ -1,6 +1,7 @@
 package com.nathing.banthing.controller;
 
 import com.nathing.banthing.dto.request.CommentCreateDto;
+import com.nathing.banthing.dto.request.CommentUpdateDto;
 import com.nathing.banthing.dto.response.CommentListDto;
 import com.nathing.banthing.dto.response.CommentReadDto;
 import com.nathing.banthing.service.CommentService;
@@ -76,5 +77,22 @@ public class CommentController {
         CommentReadDto updatedComment = commentService.updateComment(commentId, currentUserId, updateDto.getContent());
 
         return ResponseEntity.status(HttpStatus.OK).body(updatedComment);
+    }
+
+    /**
+     * 특정 댓글을 삭제합니다.
+     * @param commentId 삭제할 댓글 ID
+     * @return HTTP 상태 코드 (204 No Content)
+     */
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long commentId
+    ) {
+        // ⚠️ 경고: 임시 개발용으로 하드코딩된 사용자 ID
+        Long currentUserId = 2L;
+
+        commentService.deleteComment(commentId, currentUserId);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
