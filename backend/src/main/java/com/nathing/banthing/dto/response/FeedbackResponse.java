@@ -11,14 +11,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class FeedbackResponse {
     private Long feedbackId;
-    private GiverUserResponse giverUser;
+    private UserResponse giverUser;
+    private UserResponse receiverUser;
     private String feedbackType;
     private LocalDateTime createdAt;
 
     public static FeedbackResponse from(Feedback feedback) {
         return new FeedbackResponse(
                 feedback.getFeedbackId(),
-                GiverUserResponse.from(feedback.getGiverUser()),
+                UserResponse.from(feedback.getGiverUser()),
+                UserResponse.from(feedback.getReceiverUser()),
                 feedback.getFeedbackType().name(), // FeedbackType 열거형을 문자열로 변환
                 feedback.getCreatedAt()
         );

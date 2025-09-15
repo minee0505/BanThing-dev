@@ -5,16 +5,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ @author user
+ @since 25. 9. 15. */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GiverUserResponse {
+public class UserResponse {
     private Long userId;
     private String nickname;
 
-    // User 엔티티를 GiverUserResponse DTO로 변환하는 정적 팩토리 메서드
-    public static GiverUserResponse from(User user) {
-        return new GiverUserResponse(
+    public static UserResponse from(User user) {
+        return new UserResponse(
                 user.getUserId(),
                 user.getNickname()
         );

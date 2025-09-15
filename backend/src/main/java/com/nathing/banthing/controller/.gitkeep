@@ -1,4 +1,0 @@
-- `backend/controller` 디렉토리를 생성했습니다.
-- 이 폴더는 Spring MVC의 Controller 클래스를 보관하기 위한 공간입니다.
-  (예: `UserController`, `MeetingController`, `AuthController` 등)
-- 현재는 구조 유지를 위해 .gitkeep 파일을 추가했습니다.

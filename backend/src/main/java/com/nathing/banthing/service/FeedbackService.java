@@ -1,5 +1,6 @@
 package com.nathing.banthing.service;
 
+import com.nathing.banthing.dto.enums.FeedbackSearchType;
 import com.nathing.banthing.dto.request.FeedbackCreateRequest;
 import com.nathing.banthing.dto.response.FeedbackResponse;
 import com.nathing.banthing.entity.*;
@@ -7,9 +8,10 @@ import com.nathing.banthing.repository.FeedbacksRepository;
 import com.nathing.banthing.repository.MeetingParticipantsRepository; // 가정: 이 리포지토리가 존재합니다.
 import com.nathing.banthing.repository.MeetingsRepository;
 import com.nathing.banthing.repository.UsersRepository;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -79,39 +81,26 @@ public class FeedbackService {
     }
 
 
-    /**
-     특정 사용자가 받은 피드백 리스트를 조회합니다.
-
-     @param userId 피드백을 조회할 사용자 ID
-     @return FeedbackResponse 리스트
-     */
-    public List<FeedbackResponse> getFeedbacksByReceiverId(Long userId) {
-        // userId 유효성 검사 (사용자 존재 여부 확인)
-        User user = usersRepository.findById(userId)
+    @Transactional(readOnly = true)
+    public List<FeedbackResponse> getFeedbacksByUserAndType(Long userId, FeedbackSearchType searchType) {
+        // userId 유효성 검사
+        usersRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
 
-        // 해당 사용자가 받은 모든 피드백을 조회
-        List<Feedback> feedbacks = feedbacksRepository.findByReceiverUser_UserId(userId);
-
-        // Feedback 엔티티 리스트를 FeedbackResponse DTO 리스트로 변환
-        return feedbacks.stream()
-                .map(FeedbackResponse::from)
-                .collect(Collectors.toList());
-    }
-
-    public List<FeedbackResponse> getFeedbacksByGiverId(Long userId) {
-        // userId 유효성 검사 (사용자 존재 여부 확인)
-        boolean userExists = usersRepository.existsById(userId);
-        if (!userExists) {
-            throw new IllegalArgumentException("User not found with ID: " + userId);
+        List<Feedback> feedbacks;
+        if (searchType == FeedbackSearchType.RECEIVED) {
+            feedbacks = feedbacksRepository.findByReceiverUser_UserId(userId);
+        } else if (searchType == FeedbackSearchType.GIVEN) {
+            feedbacks = feedbacksRepository.findByGiverUser_UserId(userId);
+        } else {
+            throw new IllegalArgumentException("Invalid feedback search type");
         }
 
-        // 해당 사용자가 준 모든 피드백을 조회
-        List<Feedback> feedbacks = feedbacksRepository.findByReceiverUser_UserId(userId);
-
         // Feedback 엔티티 리스트를 FeedbackResponse DTO 리스트로 변환
         return feedbacks.stream()
                 .map(FeedbackResponse::from)
                 .collect(Collectors.toList());
     }
+
+
 }
