@@ -12,6 +12,10 @@ import lombok.Getter;
  *
  * 에러 코드 추가 시 이름 및 에러 코드 목적 작성 부탁드립니다.
  * ex) code: INTERNAL_SERVER_ERROR, 목적 : 서버 내부 오류 메시지용  - 이름
+ *
+ *  MEETING_NOT_FOUND("MEETING_NOT_FOUND", "모임을 찾을 수 없습니다.", 404) - 고동현
+ *  AUTHENTICATION_NOT_FOUND("AUTHENTICATION_NOT_FOUND", "인증 정보를 찾을 수 없습니다.", 401) - 고동현
+ *  INVALID_USER_ID_FORMAT("INVALID_USER_ID_FORMAT", "사용자 ID 형식이 올바르지 않습니다.", 400) - 고동현
  */
 @Getter
 @AllArgsConstructor
@@ -34,6 +38,8 @@ public enum ErrorCode {
     DUPLICATE_USERNAME("DUPLICATE_USERNAME", "이미 사용 중인 사용자명입니다.", 409),
     DUPLICATE_EMAIL("DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다.", 409),
     INVALID_PASSWORD("INVALID_PASSWORD", "비밀번호가 올바르지 않습니다.", 401),
+    AUTHENTICATION_NOT_FOUND("AUTHENTICATION_NOT_FOUND", "인증 정보를 찾을 수 없습니다.", 401),
+    INVALID_USER_ID_FORMAT("INVALID_USER_ID_FORMAT", "사용자 ID 형식이 올바르지 않습니다.", 400),
 
     // 파일 관련 에러 코드
     FILE_SIZE_EXCEEDED("FILE_SIZE_EXCEEDED", "파일 크기가 제한을 초과했습니다.", 400),
