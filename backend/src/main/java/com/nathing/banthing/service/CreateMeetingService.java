@@ -53,6 +53,11 @@ public class CreateMeetingService {
      */
     public Meeting createMeeting(MeetingCreateRequest request, Long userId) {
 
+        // userId가 null인지 검증
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.AUTHENTICATION_NOT_FOUND);
+        }
+
         // 사용자 정보 조회
         User hostUser = usersRepository.findById(userId).orElseThrow(
                 ()->new BusinessException(ErrorCode.USER_NOT_FOUND));
