@@ -25,7 +25,7 @@ public class FeedbackService {
     private final MeetingParticipantsRepository meetingParticipantsRepository; // 추가
 
     @Transactional
-    public void createFeedback(FeedbackCreateRequest dto, Long giverId) {
+    public User createFeedback(FeedbackCreateRequest dto, Long giverId) {
         // meetingId 유효성 검사
         Meeting meeting = meetingsRepository.findById(dto.getMeetingId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid meetingID: " + dto.getMeetingId()));
@@ -78,6 +78,9 @@ public class FeedbackService {
         // 받는 사용자의 신뢰도 점수 업데이트
         receiverUser.updateTrustScore(event);
         usersRepository.save(receiverUser);
+
+        // 업데이트된 User 엔티티를 반환합니다.
+        return receiverUser;
     }
 
 

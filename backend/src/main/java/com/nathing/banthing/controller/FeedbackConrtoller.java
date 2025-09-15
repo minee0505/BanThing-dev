@@ -4,12 +4,15 @@ import com.nathing.banthing.dto.enums.FeedbackSearchType;
 import com.nathing.banthing.dto.request.FeedbackCreateRequest;
 import com.nathing.banthing.dto.response.CommonResponse;
 import com.nathing.banthing.dto.response.FeedbackResponse;
+import com.nathing.banthing.dto.response.FeedbackScoreResponse;
+import com.nathing.banthing.entity.User;
+import com.nathing.banthing.service.FeedbackScoreService;
 import com.nathing.banthing.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal; // Spring Security를 사용한다고 가정
+
 
 import java.util.List;
 
@@ -22,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FeedbackConrtoller {
     private final FeedbackService feedbackService;
+    private final FeedbackScoreService feedbackScoreService;
 
     /**
      * 피드백 생성 API
@@ -30,7 +34,7 @@ public class FeedbackConrtoller {
      */
     // POST /api/feedbacks
     @PostMapping
-    public ResponseEntity<CommonResponse<Void>> createFeedback(@RequestBody FeedbackCreateRequest request) {
+    public ResponseEntity<CommonResponse<FeedbackScoreResponse>> createFeedback(@RequestBody FeedbackCreateRequest request) {
 
         // DTO에서 giverId를 직접 가져와서 사용
         Long giverId = request.getGiverId();
@@ -40,11 +44,21 @@ public class FeedbackConrtoller {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // 서비스 레이어의 비즈니스 로직 호출
-        feedbackService.createFeedback(request, giverId);
+        // 서비스를 호출하고, 업데이트된 User 객체를 받습니다.
+        User updatedReceiver = feedbackService.createFeedback(request, giverId);
 
-        // 성공 응답 메시지 생성
-        CommonResponse<Void> response = CommonResponse.success("피드백이 성공적으로 등록되었습니다.");
+        // 업데이트된 유저의 점수를 담는 DTO를 생성합니다.
+        FeedbackScoreResponse scoreResponse = new FeedbackScoreResponse(
+                updatedReceiver.getUserId(),
+                updatedReceiver.getTrustScore(),
+                updatedReceiver.getTrustGrade()
+        );
+
+        // CommonResponse를 사용하여 성공 메시지와 점수 데이터를 함께 반환합니다.
+        CommonResponse<FeedbackScoreResponse> response = CommonResponse.success(
+                "피드백이 성공적으로 등록되었습니다.",
+                scoreResponse
+        );
 
         // HTTP 201 Created와 함께 응답 본문에 JSON 포함
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -64,5 +78,18 @@ public class FeedbackConrtoller {
         CommonResponse<List<FeedbackResponse>> response = CommonResponse.success(message, feedbacks);
         // HTTP 200 OK와 함께 응답 반환
         return ResponseEntity.ok(response); // 2. response 객체 반환
+    }
+
+    // 새로운 API: GET /api/feedbacks/users/{userId}/score
+    @GetMapping("/users/{userId}/score")
+    public ResponseEntity<CommonResponse<FeedbackScoreResponse>> getUserScore(@PathVariable Long userId) {
+        FeedbackScoreResponse scoreResponse = feedbackScoreService.getUserScore(userId);
+
+        CommonResponse<FeedbackScoreResponse> response = CommonResponse.success(
+                "사용자 신뢰 점수 조회 성공",
+                scoreResponse
+        );
+
+        return ResponseEntity.ok(response);
     }
 }
