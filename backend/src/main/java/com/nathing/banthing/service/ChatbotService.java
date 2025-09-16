@@ -8,49 +8,37 @@ import java.util.List;
 
 public interface ChatbotService {
 
+    // ===== 기존 메서드들 =====
+
     ChatbotMessageResponse processMessage(ChatbotMessageRequest request, Long userId);
 
-    /**
-     * 특정 사용자의 최신 대화 기록 조회.
-     */
     List<ChatbotConversationHistoryResponse> getConversationHistory(Long userId, int limit);
 
-    /**
-     * (V2) 사용자 질문의 의도 분석: 타입 안정성을 위해 Enum 기반.
-     */
-    IntentResult analyzeIntentV2(String userMessage);
-
-    /**
-     * (이전 버전) 문자열 반환 방식 — 호환성 유지를 위해 남겨두되 사용 자제.
-     */
-    @Deprecated
-    String analyzeIntent(String userMessage);
-
-    /**
-     * 사용자의 대화 맥락(메모리) 초기화.
-     */
     void clearConversation(Long userId);
 
-    /**
-     * 헬스 체크: 외부 GenAI API 접근 가능 여부 확인.
-     */
     boolean healthCheck();
 
-    /**
-     * 의도 타입 (반띵 도메인 맞춤)
-     */
-    enum IntentType {
-        FIND_GROUPS,          // 소분 모임 찾기
-        CREATE_GROUP,         // 소분 모임 생성/호스트 흐름
-        HYGIENE_GUIDE,        // 위생/준비물/소분 가이드
-        HOW_TO_USE,           // 서비스 이용법/정책/결제/참여 방법
-        FEEDBACK,             // 불편/피드백 전달
-        SMALL_TALK,           // 잡담/일반 대화
-        UNKNOWN               // 분류 불가
-    }
+    // ===== 새로운 메서드들 (로그인 선택적) =====
 
     /**
-     * 의도 분석 결과(타입 + 신뢰도)
+     * 로그인한 사용자의 메시지 처리 (providerId 기반)
      */
-    record IntentResult(IntentType type, double confidence) {}
+    ChatbotMessageResponse processAuthenticatedMessage(String providerId, String userMessage);
+
+    /**
+     * 게스트 사용자의 메시지 처리
+     */
+    ChatbotMessageResponse processGuestMessage(String userMessage);
+
+    /**
+     * 대화 기록 조회 (providerId 기반) - 기존 getConversationHistory와 유사하지만 providerId 사용
+     */
+    List<ChatbotConversationHistoryResponse> getChatHistory(String providerId);
+
+    /**
+     * 서비스 상태 확인 - 기존 healthCheck()와 동일하므로 별칭으로 처리
+     */
+    default boolean isServiceHealthy() {
+        return healthCheck();
+    }
 }

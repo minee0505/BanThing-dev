@@ -15,10 +15,9 @@ import com.nathing.banthing.entity.User;
 import com.nathing.banthing.exception.BusinessException;
 import com.nathing.banthing.exception.ErrorCode;
 import com.nathing.banthing.repository.ChatbotConversationsRepository;
-import com.nathing.banthing.repository.ChatbotMeetingSuggestionRepository;
+import com.nathing.banthing.repository.ChatbotMeetingsSuggestionRepository;
 import com.nathing.banthing.repository.MeetingsRepository;
 import com.nathing.banthing.repository.UsersRepository;
-import com.nathing.banthing.service.ChatbotService;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -42,40 +41,30 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     private final Client genAiClient;
     private final GenerateContentConfig genConfig;
-
     private final ChatbotConfig chatbotConfig;
-
     private final UsersRepository usersRepository;
     private final ChatbotConversationsRepository conversationRepository;
-    private final ChatbotMeetingSuggestionRepository suggestionRepository;
+    private final ChatbotMeetingsSuggestionRepository suggestionRepository;
     private final MeetingsRepository meetingsRepository;
 
     @PersistenceContext
     private EntityManager em;
 
-    // ===== Public API =====
+    // ===== 기존 메서드들 (레거시 호환성) =====
 
     @Override
     public ChatbotMessageResponse processMessage(ChatbotMessageRequest request, Long userId) {
         try {
-            // 1) 사용자 검증
             User user = usersRepository.findById(userId)
                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-            // 2) AI 응답 생성
-            String aiResponse = generateAIResponse(request.getMessage());
-
-            // 3) 의도 분석(레거시 문자열 기반)
+            String aiResponse = generateAIResponse(chatbotConfig.getSystemPrompt() + "\n\n사용자 질문: " + request.getMessage());
             ChatbotConversation.IntentType intentType = determineIntentType(request.getMessage());
+            ChatbotConversation conversation = saveConversation(user, request.getMessage(), aiResponse, intentType);
 
-            // 4) 대화 저장 (엔티티 생성자 protected → 리플렉션으로 생성)
-            ChatbotConversation conversation =
-                    saveConversation(user, request.getMessage(), aiResponse, intentType);
-
-            // 5) 모임 추천 (필요 시)
             List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestions = new ArrayList<>();
             if (intentType == ChatbotConversation.IntentType.MEETING_SEARCH) {
-                suggestions = findAndSuggestMeetings(conversation, request.getMessage());
+                suggestions = createMeetingSuggestions(conversation, request.getMessage());
             }
 
             return ChatbotMessageResponse.builder()
@@ -97,56 +86,14 @@ public class ChatbotServiceImpl implements ChatbotService {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
-        // Pageable 기반 최신 N개
         var pageable = PageRequest.of(0, Math.max(limit, 0));
-        List<ChatbotConversation> conversations =
-                conversationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId, pageable);
+        List<ChatbotConversation> conversations = conversationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId, pageable);
 
         return conversations.stream()
                 .map(this::convertToHistoryResponse)
                 .collect(Collectors.toList());
     }
 
-    // (V2) Enum 기반 의도 분석 구현
-    @Override
-    public IntentResult analyzeIntentV2(String userMessage) {
-        if (userMessage == null) return new IntentResult(IntentType.UNKNOWN, 0.0);
-        String msg = userMessage.toLowerCase();
-
-        if (containsAny(msg, "모임", "찾아", "검색", "소분", "함께", "나눔", "지역", "근처", "마트")) {
-            return new IntentResult(IntentType.FIND_GROUPS, 0.7);
-        }
-        if (containsAny(msg, "모임 생성", "개설", "주최", "호스트")) {
-            return new IntentResult(IntentType.CREATE_GROUP, 0.7);
-        }
-        if (containsAny(msg, "위생", "준비물", "보관", "소분 방법", "용기")) {
-            return new IntentResult(IntentType.HYGIENE_GUIDE, 0.7);
-        }
-        if (containsAny(msg, "이용법", "결제", "환불", "정원", "계정", "로그인", "회원", "가입")) {
-            return new IntentResult(IntentType.HOW_TO_USE, 0.7);
-        }
-        if (containsAny(msg, "안녕", "고마워", "뭐해", "잡담")) {
-            return new IntentResult(IntentType.SMALL_TALK, 0.6);
-        }
-        return new IntentResult(IntentType.UNKNOWN, 0.3);
-    }
-
-    // 레거시 문자열 시그니처 – 내부적으로 V2 매핑 (default 추가로 모든 enum 커버)
-    @Override
-    public String analyzeIntent(String userMessage) {
-        IntentResult r = analyzeIntentV2(userMessage);
-        return switch (r.type()) {
-            case FIND_GROUPS -> "MEETING_SEARCH";
-            case HYGIENE_GUIDE, HOW_TO_USE -> "SERVICE_GUIDE";
-            // ChatbotConversation.IntentType에는 CREATE_GROUP이 없으므로 GENERAL로 흡수
-            case CREATE_GROUP -> "GENERAL";
-            case SMALL_TALK, UNKNOWN -> "GENERAL";
-            case FEEDBACK -> "GENERAL";
-            default -> "GENERAL";
-        };
-    }
-
-    // 대화 비우기 (JPQL delete)
     @Override
     public void clearConversation(Long userId) {
         em.createQuery("delete from ChatbotConversation c where c.user.userId = :uid")
@@ -154,7 +101,6 @@ public class ChatbotServiceImpl implements ChatbotService {
                 .executeUpdate();
     }
 
-    // 헬스 체크 (최소 토큰 호출)
     @Override
     public boolean healthCheck() {
         try {
@@ -163,8 +109,7 @@ public class ChatbotServiceImpl implements ChatbotService {
                     .maxOutputTokens(1)
                     .temperature(0.0f)
                     .build();
-            GenerateContentResponse res =
-                    genAiClient.models.generateContent(model, "ping", pingCfg);
+            GenerateContentResponse res = genAiClient.models.generateContent(model, "ping", pingCfg);
             return res != null && res.text() != null;
         } catch (Exception e) {
             log.warn("GenAI healthCheck 실패", e);
@@ -172,15 +117,87 @@ public class ChatbotServiceImpl implements ChatbotService {
         }
     }
 
-    // ===== 내부 헬퍼 =====
+    // ===== 새로운 메서드들 (로그인 선택적) =====
 
-    private String generateAIResponse(String userMessage) {
+    @Override
+    @Transactional
+    public ChatbotMessageResponse processAuthenticatedMessage(String providerId, String userMessage) {
         try {
-            String modelName = chatbotConfig.getModelName();
-            String prompt = chatbotConfig.getSystemPrompt() + "\n\n사용자 질문: " + userMessage;
+            User user = usersRepository.findByProviderId(providerId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-            GenerateContentResponse response =
-                    genAiClient.models.generateContent(modelName, prompt, genConfig);
+            String systemPrompt = buildPersonalizedPrompt(user);
+            String aiResponse = generateAIResponse(systemPrompt + "\n\n사용자 질문: " + userMessage);
+            ChatbotConversation.IntentType intentType = determineIntentType(userMessage);
+            ChatbotConversation conversation = saveConversation(user, userMessage, aiResponse, intentType);
+
+            List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestions = new ArrayList<>();
+            if (intentType == ChatbotConversation.IntentType.MEETING_SEARCH) {
+                suggestions = createMeetingSuggestions(conversation, userMessage);
+            }
+
+            return ChatbotMessageResponse.builder()
+                    .response(aiResponse)
+                    .suggestedMeetings(suggestions)
+                    .intentType(intentType)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("로그인 사용자 메시지 처리 중 오류 발생", e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ChatbotMessageResponse processGuestMessage(String userMessage) {
+        try {
+            String systemPrompt = chatbotConfig.getGuestSystemPrompt();
+            String aiResponse = generateAIResponse(systemPrompt + "\n\n사용자 질문: " + userMessage);
+            ChatbotConversation.IntentType intentType = determineIntentType(userMessage);
+
+            return ChatbotMessageResponse.builder()
+                    .response(aiResponse)
+                    .suggestedMeetings(new ArrayList<>()) // 게스트는 모임 추천 안함
+                    .intentType(intentType)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("게스트 사용자 메시지 처리 중 오류 발생", e);
+            return ChatbotMessageResponse.builder()
+                    .response(getDefaultGuestResponse())
+                    .suggestedMeetings(new ArrayList<>())
+                    .intentType(ChatbotConversation.IntentType.GENERAL)
+                    .build();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatbotConversationHistoryResponse> getChatHistory(String providerId) {
+        try {
+            User user = usersRepository.findByProviderId(providerId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+            var pageable = PageRequest.of(0, 10);
+            List<ChatbotConversation> conversations = conversationRepository
+                    .findByUser_UserIdOrderByCreatedAtDesc(user.getUserId(), pageable);
+
+            return conversations.stream()
+                    .map(this::convertToHistoryResponse)
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            log.error("대화 기록 조회 중 오류 발생", e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // ===== Private 헬퍼 메서드들 =====
+
+    private String generateAIResponse(String fullPrompt) {
+        try {
+            GenerateContentResponse response = genAiClient.models.generateContent(
+                    chatbotConfig.getModelName(), fullPrompt, genConfig);
 
             String text = response.text();
             if (text == null || text.isBlank()) {
@@ -196,65 +213,79 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     private ChatbotConversation.IntentType determineIntentType(String message) {
-        String legacy = analyzeIntent(message);
-        return switch (legacy) {
-            case "MEETING_SEARCH" -> ChatbotConversation.IntentType.MEETING_SEARCH;
-            case "SERVICE_GUIDE"  -> ChatbotConversation.IntentType.SERVICE_GUIDE;
-            // CREATE_GROUP은 엔티티 Enum에 없으므로 제거
-            default               -> ChatbotConversation.IntentType.GENERAL;
-        };
-    }
+        String msg = message.toLowerCase();
 
-    // 엔티티 생성자 protected → 리플렉션으로 안전 생성 (엔티티 수정 없이 사용)
-    private ChatbotConversation newConversationInstance() {
-        try {
-            Constructor<ChatbotConversation> ctor =
-                    ChatbotConversation.class.getDeclaredConstructor();
-            ctor.setAccessible(true);
-            return ctor.newInstance();
-        } catch (Exception e) {
-            throw new IllegalStateException("ChatbotConversation 인스턴스 생성 실패", e);
+        if (containsAny(msg, "모임", "찾", "검색", "소분", "함께", "나눔", "지역", "근처", "마트", "추천")) {
+            return ChatbotConversation.IntentType.MEETING_SEARCH;
         }
-    }
-
-    // ChatbotMeetingSuggestion 역시 protected 생성자 → 리플렉션 팩토리
-    private ChatbotMeetingSuggestion newMeetingSuggestionInstance() {
-        try {
-            Constructor<ChatbotMeetingSuggestion> ctor =
-                    ChatbotMeetingSuggestion.class.getDeclaredConstructor();
-            ctor.setAccessible(true);
-            return ctor.newInstance();
-        } catch (Exception e) {
-            throw new IllegalStateException("ChatbotMeetingSuggestion 인스턴스 생성 실패", e);
+        if (containsAny(msg, "이용", "방법", "가이드", "가입", "시작", "어떻게", "준비", "위생", "안전")) {
+            return ChatbotConversation.IntentType.SERVICE_GUIDE;
         }
+        return ChatbotConversation.IntentType.GENERAL;
     }
 
-    private ChatbotConversation saveConversation(
-            User user, String userMessage, String botResponse, ChatbotConversation.IntentType intentType) {
+    private String buildPersonalizedPrompt(User user) {
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append(chatbotConfig.getSystemPrompt());
 
-        ChatbotConversation conversation = newConversationInstance();
-        conversation.setUser(user);
-        conversation.setUserMessage(userMessage);
-        conversation.setBotResponse(botResponse);
-        conversation.setIntentType(intentType);
-        return conversationRepository.save(conversation);
+        promptBuilder.append("\n\n# 현재 사용자 정보\n");
+        promptBuilder.append("- 닉네임: ").append(user.getNickname()).append("\n");
+        promptBuilder.append("- 신뢰도: ").append(user.getTrustScore()).append("점 (")
+                .append(user.getTrustGrade().name()).append(" 등급)\n");
+
+        if (user.getNoShowCount() > 0) {
+            promptBuilder.append("- 노쇼 이력: ").append(user.getNoShowCount()).append("회\n");
+        }
+
+        // 현재 활성 모임 정보 추가
+        List<Meeting> activeMeetings = meetingsRepository.findByStatusAndDeletedAtIsNull(Meeting.MeetingStatus.RECRUITING);
+        if (!activeMeetings.isEmpty()) {
+            promptBuilder.append("\n# 현재 모집 중인 모임 (최신 5개)\n");
+            activeMeetings.stream().limit(5).forEach(meeting -> {
+                promptBuilder.append("- ").append(meeting.getTitle())
+                        .append(" (").append(meeting.getMart().getMartName()).append(", ")
+                        .append(meeting.getMeetingDate().toLocalDate()).append(")\n");
+            });
+        }
+
+        return promptBuilder.toString();
     }
 
-    private List<ChatbotMessageResponse.MeetingSuggestionResponse> findAndSuggestMeetings(
+    private String getDefaultGuestResponse() {
+        return """
+                안녕하세요! 반띵 AI 도우미입니다.
+                
+                현재 AI 서버와 연결이 불안정하지만, 기본 정보를 안내해드릴게요:
+                
+                반띵 서비스는 대용량 상품을 여러 명이 나눠 구매하는 플랫폼이에요.
+                
+                서울 지역 8개 마트에서 다양한 소분 모임이 활발히 진행되고 있어요!
+                
+                로그인하시면 더 정확한 정보와 개인 맞춤 추천을 받으실 수 있어요.
+                
+                궁금한 점이 있으시면 언제든 말씀해주세요!
+                """;
+    }
+
+    private List<ChatbotMessageResponse.MeetingSuggestionResponse> createMeetingSuggestions(
             ChatbotConversation conversation, String userMessage) {
 
         List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestions = new ArrayList<>();
         try {
-            List<Meeting> recommendedMeetings = searchMeetingsByKeywords(userMessage);
+            List<Meeting> activeMeetings = meetingsRepository.findByStatusAndDeletedAtIsNull(Meeting.MeetingStatus.RECRUITING);
+            List<Meeting> recommendedMeetings = activeMeetings.stream().limit(3).collect(Collectors.toList());
 
-            int size = Math.min(3, recommendedMeetings.size());
-            for (int i = 0; i < size; i++) {
-                Meeting meeting = recommendedMeetings.get(i);
+            for (Meeting meeting : recommendedMeetings) {
+                String suggestionReason = "사용자 질문과 관련된 " + meeting.getMart().getMartName() + " 모임입니다.";
 
-                String suggestionReason = generateSuggestionReason(meeting, userMessage);
+                // 추천 저장
+                ChatbotMeetingSuggestion suggestion = newMeetingSuggestionInstance();
+                suggestion.setConversation(conversation);
+                suggestion.setMeeting(meeting);
+                suggestion.setSuggestionReason(suggestionReason);
+                suggestionRepository.save(suggestion);
 
-                saveMeetingSuggestion(conversation, meeting, suggestionReason);
-
+                // 응답 DTO 생성
                 suggestions.add(ChatbotMessageResponse.MeetingSuggestionResponse.builder()
                         .meetingId(meeting.getMeetingId())
                         .title(meeting.getTitle())
@@ -265,75 +296,40 @@ public class ChatbotServiceImpl implements ChatbotService {
                         .maxParticipants(meeting.getMaxParticipants())
                         .build());
             }
+
         } catch (Exception e) {
             log.error("모임 추천 중 오류 발생", e);
         }
         return suggestions;
     }
 
-    private List<Meeting> searchMeetingsByKeywords(String userMessage) {
-        // 기본적으로 모든 RECRUITING 상태 모임 조회 (팀원 코드에 맞춰서 수정)
-        List<Meeting> allMeetings = meetingsRepository.findAll().stream()
-                .filter(meeting -> meeting.getStatus() == Meeting.MeetingStatus.RECRUITING)
-                .filter(meeting -> !meeting.isDeleted())
-                .collect(Collectors.toList());
-
-        String lowerMessage = userMessage.toLowerCase();
-        List<Meeting> filteredMeetings = new ArrayList<>();
-
-        for (Meeting meeting : allMeetings) {
-            int score = 0;
-            String title = meeting.getTitle().toLowerCase();
-            String description = meeting.getDescription() != null ? meeting.getDescription().toLowerCase() : "";
-            String martName = meeting.getMart().getMartName().toLowerCase();
-
-            if (containsKeywords(title, lowerMessage)) score += 3;
-            if (containsKeywords(description, lowerMessage)) score += 2;
-            if (containsKeywords(martName, lowerMessage)) score += 1;
-            if (containsLocationKeywords(lowerMessage, meeting.getMart().getAddress())) score += 2;
-
-            if (score > 0) filteredMeetings.add(meeting);
-        }
-
-        return filteredMeetings.stream().limit(5).collect(Collectors.toList());
+    private ChatbotConversation saveConversation(User user, String userMessage, String botResponse, ChatbotConversation.IntentType intentType) {
+        ChatbotConversation conversation = newConversationInstance();
+        conversation.setUser(user);
+        conversation.setUserMessage(userMessage);
+        conversation.setBotResponse(botResponse);
+        conversation.setIntentType(intentType);
+        return conversationRepository.save(conversation);
     }
 
-    private boolean containsKeywords(String text, String userMessage) {
-        String[] commonKeywords = {"세제", "견과류", "과일", "고기", "쌀", "빵", "냉동", "유제품"};
-        for (String keyword : commonKeywords) {
-            if (userMessage.contains(keyword) && text.contains(keyword)) {
-                return true;
-            }
+    private ChatbotConversation newConversationInstance() {
+        try {
+            Constructor<ChatbotConversation> ctor = ChatbotConversation.class.getDeclaredConstructor();
+            ctor.setAccessible(true);
+            return ctor.newInstance();
+        } catch (Exception e) {
+            throw new IllegalStateException("ChatbotConversation 인스턴스 생성 실패", e);
         }
-        return false;
     }
 
-    private boolean containsLocationKeywords(String userMessage, String martAddress) {
-        String[] locationKeywords = {"양재", "상봉", "송도", "광명", "의정부", "월계", "킨텍스", "영등포", "하남", "서울역"};
-        for (String location : locationKeywords) {
-            if (userMessage.contains(location) && martAddress.contains(location)) {
-                return true;
-            }
+    private ChatbotMeetingSuggestion newMeetingSuggestionInstance() {
+        try {
+            Constructor<ChatbotMeetingSuggestion> ctor = ChatbotMeetingSuggestion.class.getDeclaredConstructor();
+            ctor.setAccessible(true);
+            return ctor.newInstance();
+        } catch (Exception e) {
+            throw new IllegalStateException("ChatbotMeetingSuggestion 인스턴스 생성 실패", e);
         }
-        return false;
-    }
-
-    private String generateSuggestionReason(Meeting meeting, String userMessage) {
-        String reason = "사용자 요청과 유사한 모임";
-        if (userMessage.toLowerCase().contains(meeting.getMart().getMartName().toLowerCase())) {
-            reason = "요청하신 " + meeting.getMart().getMartName() + "에서 진행되는 모임";
-        } else if (containsKeywords(meeting.getTitle().toLowerCase(), userMessage.toLowerCase())) {
-            reason = "요청하신 상품과 유사한 소분 모임";
-        }
-        return reason;
-    }
-
-    private void saveMeetingSuggestion(ChatbotConversation conversation, Meeting meeting, String reason) {
-        ChatbotMeetingSuggestion suggestion = newMeetingSuggestionInstance();
-        suggestion.setConversation(conversation);
-        suggestion.setMeeting(meeting);
-        suggestion.setSuggestionReason(reason);
-        suggestionRepository.save(suggestion);
     }
 
     private ChatbotConversationHistoryResponse convertToHistoryResponse(ChatbotConversation conversation) {
