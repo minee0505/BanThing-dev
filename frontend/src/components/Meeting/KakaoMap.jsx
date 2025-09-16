@@ -4,7 +4,7 @@ import { TbShoppingCartFilled } from "react-icons/tb";
 import { getAllMarts } from '../../services/MartApi.js';
 import styles from './KakaoMap.module.scss';
 
-const KakaoMap = () => {
+const KakaoMap = ({ onMarkerClick }) => {
     const mapContainer = useRef(null);
     const isMapInitialized = useRef(false);
 
@@ -38,27 +38,28 @@ const KakaoMap = () => {
                     };
                     const map = new window.kakao.maps.Map(mapContainer.current, options);
 
-                    // 마트 데이터로 커스텀 마커를 생성합니다.
                     martsData.forEach((mart) => {
-                        // 1. react-icons SVG를 문자열로 변환
                         const iconString = ReactDOMServer.renderToString(
                             <TbShoppingCartFilled color="#FD79A8" size="32" />
                         );
-
-                        // 2. SVG 문자열을 데이터 URL로 생성
                         const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(iconString)}`;
-
-                        // 3. 카카오맵에서 사용할 마커 이미지 객체 생성
                         const imageSize = new window.kakao.maps.Size(32, 32);
                         const markerImage = new window.kakao.maps.MarkerImage(dataUrl, imageSize);
 
-                        // 4. 최종 마커 생성
-                        new window.kakao.maps.Marker({
+                        // ✅ 1. 먼저 마커를 생성해서 변수에 담습니다.
+                        const marker = new window.kakao.maps.Marker({
                             position: new window.kakao.maps.LatLng(mart.latitude, mart.longitude),
                             title: mart.martName,
                             image: markerImage,
-                            map: map,
                         });
+
+                        // ✅ 2. 생성된 마커에 클릭 이벤트를 추가합니다.
+                        window.kakao.maps.event.addListener(marker, 'click', () => {
+                            onMarkerClick(mart.martId);
+                        });
+
+                        // ✅ 3. 마지막으로 마커를 지도에 표시합니다.
+                        marker.setMap(map);
                     });
 
                     console.log(" 지도가 성공적으로 생성되었고 커스텀 마커를 표시했습니다.");
@@ -76,6 +77,7 @@ const KakaoMap = () => {
         </div>
     );
 };
+
 // 헬퍼 함수
 const loadKakaoMapScript = () => {
     return new Promise((resolve, reject) => {
