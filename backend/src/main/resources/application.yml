@@ -11,6 +11,12 @@ spring:
       separator: ";"
       encoding: UTF-8
 
+  task:
+    scheduling:
+      pool:
+        size: 5
+      thread-name-prefix: meeting-scheduler-
+
 
 
   datasource:
@@ -77,3 +83,5 @@ cookie:
 app:
   oauth2-success-redirect-url: http://localhost:5173
   oauth2-failure-redirect-url: http://localhost:5173/login?from=oauth2
+
+
