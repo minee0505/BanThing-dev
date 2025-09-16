@@ -10,6 +10,8 @@ import java.util.Optional;
 
 public interface MeetingParticipantsRepository extends JpaRepository<MeetingParticipant, Long> {
 
+    boolean existsByMeetingAndUserAndApplicationStatus(Meeting meeting, User giverUser, MeetingParticipant.ApplicationStatus applicationStatus);
+
     // 특정 모임과 사용자로 참가자 존재 여부 확인 (중복 신청 방지)
     boolean existsByMeetingAndUser(Meeting meeting, User user);
 
@@ -21,4 +23,5 @@ public interface MeetingParticipantsRepository extends JpaRepository<MeetingPart
 
 
     long countByMeetingAndApplicationStatus(Meeting meeting, MeetingParticipant.ApplicationStatus status);
+
 }
