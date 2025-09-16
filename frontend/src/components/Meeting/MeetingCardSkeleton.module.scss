@@ -1,0 +1,68 @@
+/* MeetingCard와 유사한 레이아웃을 가집니다. */
+.card {
+  display: flex;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 20px;
+  padding: 16px;
+}
+
+.thumbnail {
+  flex: 0 0 100px; /* 너비 100px 고정 */
+  height: 100px;
+  border-radius: 8px;
+  background-color: #e0e0e0;
+  margin-right: 16px;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.line {
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  height: 16px;
+}
+
+.title {
+  height: 20px;
+  width: 80%;
+  margin-bottom: 12px;
+}
+
+.info {
+  width: 90%;
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.footer {
+  margin-top: auto;
+}
+
+.participants {
+  width: 40%;
+  height: 16px;
+}
+
+/* 반짝이는 스켈레톤 애니메이션 */
+.thumbnail, .line {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

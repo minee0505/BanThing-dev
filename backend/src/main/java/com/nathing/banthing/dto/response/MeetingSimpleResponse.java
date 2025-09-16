@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 public class MeetingSimpleResponse {
 
     private final Long meetingId;
+    private final Long martId;
     private final String title;
     private final String martName;
     private final LocalDateTime meetingDate;
@@ -47,6 +48,7 @@ public class MeetingSimpleResponse {
 
     public MeetingSimpleResponse(Meeting meeting) {
         this.meetingId = meeting.getMeetingId();
+        this.martId = meeting.getMart().getMartId();
         this.title = meeting.getTitle();
         this.martName = meeting.getMart().getMartName();
         this.meetingDate = meeting.getMeetingDate();
