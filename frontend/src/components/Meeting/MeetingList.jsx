@@ -2,14 +2,13 @@ import React from 'react';
 import MeetingCard from "./MeetingCard.jsx";
 import MeetingCardSkeleton from "./MeetingCardSkeleton.jsx";
 
-
-const MeetingList = ({ meetings, isLoading }) => {
-    // 로딩 중일 때 스켈레톤 UI 렌더링
+// ✅ 1. skeletonCount prop을 받고, 기본값을 3으로 설정합니다.
+const MeetingList = ({ meetings, isLoading, skeletonCount = 3 }) => {
     if (isLoading) {
         return (
             <div>
-                {/* 스켈레톤 3개 랜더링 */}
-                {[...Array(3)].map((_, index) => (
+                {/* ✅ 2. skeletonCount만큼 스켈레톤 UI를 반복 렌더링합니다. */}
+                {[...Array(skeletonCount)].map((_, index) => (
                     <MeetingCardSkeleton key={index} />
                 ))}
             </div>
