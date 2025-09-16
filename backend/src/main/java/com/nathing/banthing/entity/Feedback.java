@@ -1,10 +1,7 @@
 package com.nathing.banthing.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -15,6 +12,8 @@ import java.time.LocalDateTime;
         uniqueConstraints = @UniqueConstraint(columnNames = {"giver_user_id", "receiver_user_id", "meeting_id"}))
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Feedback {
 
@@ -35,8 +34,13 @@ public class Feedback {
     @JoinColumn(name = "meeting_id", nullable = false)
     private Meeting meeting;
 
-    @Column(name = "is_positive", nullable = false)
-    private Boolean isPositive;
+//    @Column(name = "is_positive", nullable = false)
+//    private Boolean isPositive;
+
+    // isPositive 대신 feedbackType으로 변경
+    @Enumerated(EnumType.STRING) // 열거형을 DB에 문자열로 저장
+    @Column(name = "feedback_type", nullable = false)
+    private FeedbackType feedbackType; // **타입을 FeedbackType으로 변경**
 
     @CreationTimestamp
     @Column(name = "created_at")
@@ -46,8 +50,4 @@ public class Feedback {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // 비즈니스 메서드
-    public boolean isPositive() {
-        return Boolean.TRUE.equals(isPositive);
-    }
 }
