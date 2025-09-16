@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT}
+  port: 9000
 
 # database setting
 spring:
@@ -60,7 +60,7 @@ spring:
 logging:
   level:
     root: info
-    com.nathing.banthing: debug
+    com.study.event: debug
     org.hibernate.SQL: debug
     org.springframework.jdbc.datasource.init: debug  # SQL 초기화 로그 추가
 

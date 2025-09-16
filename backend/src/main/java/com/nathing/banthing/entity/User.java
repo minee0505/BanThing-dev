@@ -99,9 +99,9 @@ public class User {
     @OneToMany(mappedBy = "receiverUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Feedback> receivedFeedbacks = new ArrayList<>();
 
-    public enum TrustGrade {
-        WARNING, BASIC, GOOD
-    }
+//    public enum TrustGrade {
+//        WARNING, BASIC, GOOD
+//    }
 
 
     //
