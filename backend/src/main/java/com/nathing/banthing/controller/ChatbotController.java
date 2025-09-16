@@ -5,7 +5,7 @@ import com.nathing.banthing.dto.response.ChatbotMessageResponse;
 import com.nathing.banthing.dto.response.ChatbotConversationHistoryResponse;
 import com.nathing.banthing.dto.common.ApiResponse;
 import com.nathing.banthing.entity.ChatbotConversation;
-import com.nathing.banthing.service.ChatbotServiceImpl;
+import com.nathing.banthing.service.ChatbotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatbotController {
 
-    private final ChatbotServiceImpl chatbotService;
+    private final ChatbotService chatbotService;
 
     /**
      * 챗봇 메시지 전송 (로그인 선택적)
@@ -172,7 +172,7 @@ public class ChatbotController {
     @GetMapping("/health")
     public ResponseEntity<ApiResponse<String>> healthCheck() {
         try {
-            boolean isHealthy = chatbotService.isServiceHealthy();
+            boolean isHealthy = chatbotService.healthCheck();
 
             if (isHealthy) {
                 return ResponseEntity.ok(ApiResponse.success(

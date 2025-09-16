@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,12 @@ import java.util.stream.Collectors;
  * @author 김경민
  * @since 2025-09-16
  * 반띵 AI 챗봇 서비스 구현체
+ *
+ * 챗봇 서비스의 핵심 기능을 담당하는 클래스입니다:
+ * - Google GenAI 모델과의 연동을 통한 AI 응답 생성
+ * - 로그인/비로그인 사용자 구분 처리 및 개인화된 응답 제공
+ * - 실시간 모임 정보 조회 및 지능적 모임 추천
+ * - 대화 내역 저장 및 관리
  */
 @Slf4j
 @Service
@@ -46,13 +53,20 @@ public class ChatbotServiceImpl implements ChatbotService {
     private final ChatbotMeetingsSuggestionRepository suggestionRepository;
     private final MeetingsRepository meetingsRepository;
 
+    /**
+     * 챗봇 서비스의 상태를 확인하는 헬스체크 메서드
+     * Google GenAI API에 간단한 요청("ping")을 보내 정상적으로 응답하는지 확인합니다.
+     *
+     * @return API와 통신이 정상이면 true, 아니면 false를 반환합니다.
+     */
     @Override
     public boolean healthCheck() {
         try {
             String model = chatbotConfig.getModelName();
+            // 헬스체크용으로 최소한의 리소스를 사용하도록 설정 객체를 별도로 생성
             GenerateContentConfig pingCfg = GenerateContentConfig.builder()
-                    .maxOutputTokens(1)
-                    .temperature(0.0f)
+                    .maxOutputTokens(1) // 응답 토큰 1개
+                    .temperature(0.0f)  // 0.0f로 두면, 같은 입력("ping")을 주면 항상 똑같은 응답을 돌려줌
                     .build();
             GenerateContentResponse res = genAiClient.models.generateContent(model, "ping", pingCfg);
             return res != null && res.text() != null;
@@ -62,26 +76,41 @@ public class ChatbotServiceImpl implements ChatbotService {
         }
     }
 
+    /**
+     * 로그인한 사용자의 챗봇 메시지를 처리합니다.
+     * 사용자 정보를 기반으로 개인화된 응답을 생성하고, 대화 내용을 DB에 저장합니다.
+     *
+     * @param providerId  사용자를 식별하는 소셜 로그인 ID
+     * @param userMessage 사용자가 입력한 메시지
+     * @return 개인화된 답변과 추천 모임 목록이 포함된 챗봇 응답 DTO
+     */
     @Override
     @Transactional
     public ChatbotMessageResponse processAuthenticatedMessage(String providerId, String userMessage) {
         try {
+            // 1. 사용자 정보 조회
             User user = usersRepository.findByProviderId(providerId)
                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-            // 개인화된 프롬프트 생성 (사용자 정보 + 실시간 모임 정보 포함)
+            // 2. 사용자 정보와 실시간 모임 정보를 포함한 개인화된 시스템 프롬프트 생성
             String systemPrompt = buildPersonalizedPrompt(user);
+
+            // 3. AI 모델을 통해 답변 생성
             String aiResponse = generateAIResponse(systemPrompt + "\n\n사용자 질문: " + userMessage);
 
+            // 4. 사용자의 질문 의도 파악 (확장된 키워드 기반)
             ChatbotConversation.IntentType intentType = determineIntentType(userMessage);
+
+            // 5. 대화 내용 DB에 저장
             ChatbotConversation conversation = saveConversation(user, userMessage, aiResponse, intentType);
 
-            // 모임 검색 의도일 때만 추천 모임 생성
+            // 6. 의도가 '모임 검색'일 경우, 관련 모임을 추천하고 DB에 기록
             List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestions = new ArrayList<>();
             if (intentType == ChatbotConversation.IntentType.MEETING_SEARCH) {
                 suggestions = createMeetingSuggestions(conversation, userMessage);
             }
 
+            // 7. 최종 응답 DTO를 빌드하여 반환
             return ChatbotMessageResponse.builder()
                     .response(aiResponse)
                     .suggestedMeetings(suggestions)
@@ -95,10 +124,17 @@ public class ChatbotServiceImpl implements ChatbotService {
         }
     }
 
+    /**
+     * 게스트(비로그인) 사용자의 챗봇 메시지를 처리합니다.
+     * 실시간 모임 정보를 조회하여 기본적인 안내와 함께 답변을 생성합니다.
+     * 대화 내용은 저장하지 않고, 개인화 정보 없이 일반적인 답변을 제공합니다.
+     *
+     * @param userMessage 사용자가 입력한 메시지
+     * @return 기본적인 답변이 포함된 챗봇 응답 DTO
+     */
     @Override
     public ChatbotMessageResponse processGuestMessage(String userMessage) {
-        log.info("=== 게스트 메시지 처리 시작 ===");
-        log.info("입력 메시지: {}", userMessage);
+        log.info("=== 게스트 메시지 처리 시작: '{}' ===", userMessage);
 
         try {
             // 1. API 키 상태 확인
@@ -106,7 +142,7 @@ public class ChatbotServiceImpl implements ChatbotService {
             boolean hasApiKey = apiKey != null && !apiKey.trim().isEmpty();
             log.info("Google AI API 키 상태: {}", hasApiKey ? "설정됨" : "누락됨");
 
-            // 2. 데이터베이스에서 실제 모임 정보 조회
+            // 2. 데이터베이스에서 실시간 모임 정보 조회 (실시간 업데이트 문제 해결)
             List<Meeting> activeMeetings = null;
             int meetingCount = 0;
             try {
@@ -132,15 +168,7 @@ public class ChatbotServiceImpl implements ChatbotService {
                 activeMeetings = new ArrayList<>();
             }
 
-            // 3. 사용자 질문 분석
-            String lowerMessage = userMessage.toLowerCase();
-            boolean isSpecificQuery = lowerMessage.contains("양재") || lowerMessage.contains("상봉") ||
-                    lowerMessage.contains("견과류") || lowerMessage.contains("냉동") ||
-                    lowerMessage.contains("세제") || lowerMessage.contains("육류");
-
-            log.info("특정 질문 여부: {}", isSpecificQuery);
-
-            // 4. AI API 사용 가능 여부에 따른 응답 전략
+            // 3. 응답 생성 전략 결정
             String response;
 
             if (hasApiKey && meetingCount > 0) {
@@ -155,12 +183,12 @@ public class ChatbotServiceImpl implements ChatbotService {
                     log.info("✅ AI 응답 생성 성공 (길이: {})", response.length());
                 } catch (Exception aiError) {
                     log.error("❌ AI API 호출 실패, 데이터베이스 기반 응답으로 전환", aiError);
-                    response = buildDatabaseBasedResponse(userMessage, activeMeetings, lowerMessage);
+                    response = buildDatabaseBasedResponse(userMessage, activeMeetings);
                 }
             } else {
                 // 데이터베이스 기반 직접 응답
                 log.info("데이터베이스 기반 직접 응답 생성 (API 키: {}, 모임 수: {})", hasApiKey, meetingCount);
-                response = buildDatabaseBasedResponse(userMessage, activeMeetings, lowerMessage);
+                response = buildDatabaseBasedResponse(userMessage, activeMeetings);
             }
 
             ChatbotConversation.IntentType intentType = determineIntentType(userMessage);
@@ -184,26 +212,139 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     /**
-     * 긴급 상황용 기본 응답
+     * 사용자의 대화 기록을 조회합니다.
+     * 최근 10개의 대화 내용을 반환합니다.
+     *
+     * @param providerId 사용자의 소셜 로그인 ID
+     * @return 대화 기록 리스트 (최신순)
      */
-    private String getEmergencyFallbackResponse(String userMessage) {
-        return String.format("""
-            안녕하세요! 반띵 AI 도우미입니다.
-            
-            현재 시스템에 일시적인 문제가 발생했지만, 기본 정보를 안내해드릴게요.
-            
-            문의하신 내용: "%s"
-            
-            반띵은 대용량 상품을 여러 명이 함께 구매하고 소분하는 서비스예요.
-            서울 지역 8개 마트(코스트코, 이마트 트레이더스, 롯데마트)에서 
-            다양한 소분 모임이 진행되고 있습니다.
-            
-            로그인 후 정확한 모임 정보를 확인하실 수 있어요!
-            """, userMessage);
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatbotConversationHistoryResponse> getChatHistory(String providerId) {
+        try {
+            User user = usersRepository.findByProviderId(providerId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+            var pageable = PageRequest.of(0, 10);
+            List<ChatbotConversation> conversations = conversationRepository
+                    .findByUser_UserIdOrderByCreatedAtDesc(user.getUserId(), pageable);
+
+            return conversations.stream()
+                    .map(this::convertToHistoryResponse)
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            log.error("대화 기록 조회 중 오류 발생", e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // ===== Private 헬퍼 메서드들 =====
+
+    /**
+     * Google GenAI API를 통해 응답을 생성합니다.
+     * API 호출 실패 시 적절한 기본 응답을 반환합니다.
+     */
+    private String generateAIResponse(String fullPrompt) {
+        try {
+            GenerateContentResponse response = genAiClient.models.generateContent(
+                    chatbotConfig.getModelName(), fullPrompt, genConfig);
+
+            String text = response.text();
+            if (text == null || text.isBlank()) {
+                log.warn("GenAI로부터 빈 응답을 받았습니다.");
+                return "죄송합니다. 현재 답변을 생성할 수 없습니다. 다시 시도해주세요.";
+            }
+            return text.trim();
+
+        } catch (Exception e) {
+            log.error("GenAI API 호출 중 오류 발생", e);
+            return "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+        }
     }
 
     /**
-     * 데이터베이스 정보를 포함한 강화된 시스템 프롬프트
+     * 사용자 메시지의 의도를 분석합니다. (확장된 키워드 기반)
+     * 모임 검색, 서비스 가이드, 일반 질문으로 구분합니다.
+     */
+    private ChatbotConversation.IntentType determineIntentType(String message) {
+        String msg = message.toLowerCase();
+
+        // 모임 검색 관련 키워드 (대폭 확장)
+        if (containsAny(msg,
+                // 기본 검색 키워드
+                "모임", "찾", "검색", "소분", "함께", "나눔", "지역", "근처", "마트", "추천",
+                // 지역명 키워드
+                "양재", "상봉", "마곡", "월계", "영등포", "금천", "고척", "양평",
+                // 마트 브랜드 키워드
+                "코스트코", "트레이더스", "롯데마트", "맥스",
+                // 상품 카테고리 키워드
+                "견과류", "아몬드", "호두", "캐슈넛", "마카다미아", "피스타치오",
+                "세제", "다우니", "섬유유연제", "세탁세제", "주방세제",
+                "냉동", "냉동식품", "만두", "냉동과일", "아이스크림",
+                "육류", "고기", "삼겹살", "소고기", "돼지고기", "닭고기", "등심",
+                "와인", "양주", "맥주", "음료", "주류",
+                "생활용품", "화장지", "휴지", "키친타올", "물티슈",
+                "캠핑용품", "아웃도어", "텐트", "의자",
+                "과일", "사과", "배", "포도", "딸기", "바나나",
+                "유제품", "우유", "치즈", "요거트", "버터",
+                "쌀", "곡물", "견과", "올리브오일", "식용유",
+                "간식", "과자", "초콜릿", "사탕", "젤리")) {
+            return ChatbotConversation.IntentType.MEETING_SEARCH;
+        }
+
+        // 서비스 가이드 관련 키워드 (확장)
+        if (containsAny(msg,
+                // 기본 가이드 키워드
+                "이용", "방법", "가이드", "가입", "시작", "어떻게", "준비", "위생", "안전",
+                // 회원 관련 키워드
+                "회원가입", "로그인", "탈퇴", "프로필", "정보수정",
+                // 사용법 관련 키워드
+                "사용법", "이용방법", "가입방법", "참여방법", "신청방법",
+                // 준비물 관련 키워드
+                "준비물", "용기", "아이스박스", "계량", "포장", "봉지",
+                // 규칙/정책 관련 키워드
+                "수칙", "매너", "규칙", "정책", "약관", "취소", "환불",
+                // 평가/신뢰도 관련 키워드
+                "신뢰도", "평가", "피드백", "후기", "리뷰", "별점",
+                // 문제해결 관련 키워드
+                "신고", "문의", "고객센터", "도움말", "FAQ", "질문")) {
+            return ChatbotConversation.IntentType.SERVICE_GUIDE;
+        }
+
+        return ChatbotConversation.IntentType.GENERAL;
+    }
+
+    /**
+     * 로그인한 사용자를 위한 개인화된 프롬프트를 생성합니다.
+     * 사용자의 닉네임과 실시간 모임 정보를 포함합니다.
+     * (신뢰도, 노쇼 횟수 등 부가 정보는 제거하여 간소화)
+     */
+    private String buildPersonalizedPrompt(User user) {
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append(chatbotConfig.getSystemPrompt());
+
+        // 사용자 기본 정보 (간소화 - 닉네임만)
+        promptBuilder.append("\n\n# 현재 사용자 정보\n");
+        promptBuilder.append("- 닉네임: ").append(user.getNickname()).append("\n");
+
+        // 현재 활성 모임 정보 추가 (실시간 데이터)
+        List<Meeting> activeMeetings = meetingsRepository.findByStatusAndDeletedAtIsNull(Meeting.MeetingStatus.RECRUITING);
+        if (!activeMeetings.isEmpty()) {
+            promptBuilder.append("\n# 현재 모집 중인 모임 (최신 5개)\n");
+            activeMeetings.stream().limit(5).forEach(meeting -> {
+                promptBuilder.append("- ").append(meeting.getTitle())
+                        .append(" (").append(meeting.getMart().getMartName()).append(", ")
+                        .append(meeting.getMeetingDate().toLocalDate()).append(")\n");
+            });
+        }
+
+        return promptBuilder.toString();
+    }
+
+    /**
+     * 실시간 모임 정보를 포함한 강화된 시스템 프롬프트를 생성합니다.
+     * 게스트 사용자용 프롬프트에 실제 모임 데이터를 추가합니다.
      */
     private String buildEnhancedSystemPrompt(List<Meeting> activeMeetings) {
         StringBuilder prompt = new StringBuilder();
@@ -230,32 +371,19 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     /**
-     * 데이터베이스 기반 직접 응답 생성
+     * 데이터베이스 기반 직접 응답을 생성합니다.
+     * AI API 사용이 불가능하거나 실패했을 때 사용하는 대안 응답입니다.
+     * 하드코딩된 키워드 매칭 대신 지능적인 모임 매칭을 수행합니다.
      */
-    private String buildDatabaseBasedResponse(String userMessage, List<Meeting> activeMeetings, String lowerMessage) {
+    private String buildDatabaseBasedResponse(String userMessage, List<Meeting> activeMeetings) {
         StringBuilder response = new StringBuilder();
         response.append("안녕하세요! 반띵 AI 도우미입니다.\n\n");
 
         if (activeMeetings != null && !activeMeetings.isEmpty()) {
             response.append("현재 서울 지역에서 총 ").append(activeMeetings.size()).append("개의 소분 모임이 진행 중이에요!\n\n");
 
-            // 사용자 질문에 맞는 특정 모임 찾기
-            List<Meeting> matchedMeetings = activeMeetings.stream()
-                    .filter(meeting -> {
-                        String title = meeting.getTitle().toLowerCase();
-                        String martName = meeting.getMart().getMartName().toLowerCase();
-
-                        if (lowerMessage.contains("양재")) return martName.contains("양재");
-                        if (lowerMessage.contains("상봉")) return martName.contains("상봉");
-                        if (lowerMessage.contains("견과류")) return title.contains("견과") || title.contains("아몬드") || title.contains("호두");
-                        if (lowerMessage.contains("냉동")) return title.contains("냉동");
-                        if (lowerMessage.contains("세제")) return title.contains("세제") || title.contains("다우니");
-                        if (lowerMessage.contains("육류")) return title.contains("육류") || title.contains("고기") || title.contains("삼겹살");
-
-                        return false;
-                    })
-                    .limit(3)
-                    .collect(Collectors.toList());
+            // 사용자 질문과 관련된 모임 지능적으로 찾기 (하드코딩 제거)
+            List<Meeting> matchedMeetings = findRelevantMeetings(userMessage, activeMeetings);
 
             if (!matchedMeetings.isEmpty()) {
                 response.append("문의하신 내용과 관련된 모임을 찾았어요:\n\n");
@@ -276,12 +404,6 @@ public class ChatbotServiceImpl implements ChatbotService {
                             .append(" (").append(meeting.getCurrentParticipants())
                             .append("/").append(meeting.getMaxParticipants()).append("명)\n\n");
                 });
-
-                if (lowerMessage.contains("양재") || lowerMessage.contains("견과류")) {
-                    response.append("양재 코스트코에서의 견과류 소분 모임은 평소 인기가 높은 모임이에요! ");
-                } else if (lowerMessage.contains("상봉") || lowerMessage.contains("냉동")) {
-                    response.append("상봉 코스트코는 냉동식품 소분이 활발한 지점이에요! ");
-                }
             }
         } else {
             response.append("현재 새로운 모임이 준비 중입니다.\n\n");
@@ -297,97 +419,100 @@ public class ChatbotServiceImpl implements ChatbotService {
         return response.toString();
     }
 
+    /**
+     * 사용자 질문과 관련성이 높은 모임을 지능적으로 찾습니다.
+     * 하드코딩된 키워드 매칭을 제거하고 동적 매칭을 수행합니다.
+     */
+    private List<Meeting> findRelevantMeetings(String userMessage, List<Meeting> activeMeetings) {
+        String lowerMessage = userMessage.toLowerCase();
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ChatbotConversationHistoryResponse> getChatHistory(String providerId) {
-        try {
-            User user = usersRepository.findByProviderId(providerId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        return activeMeetings.stream()
+                .filter(meeting -> {
+                    String title = meeting.getTitle().toLowerCase();
+                    String martName = meeting.getMart().getMartName().toLowerCase();
+                    String description = meeting.getDescription() != null ?
+                            meeting.getDescription().toLowerCase() : "";
 
-            var pageable = PageRequest.of(0, 10);
-            List<ChatbotConversation> conversations = conversationRepository
-                    .findByUser_UserIdOrderByCreatedAtDesc(user.getUserId(), pageable);
-
-            return conversations.stream()
-                    .map(this::convertToHistoryResponse)
-                    .collect(Collectors.toList());
-
-        } catch (Exception e) {
-            log.error("대화 기록 조회 중 오류 발생", e);
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
+                    // 제목, 마트명, 설명에서 사용자 메시지의 키워드와 일치하는 것이 있는지 확인
+                    return containsRelevantKeywords(lowerMessage, title, martName, description);
+                })
+                .limit(3)
+                .collect(Collectors.toList());
     }
 
-    // ===== Private 헬퍼 메서드들 =====
-
-    private String generateAIResponse(String fullPrompt) {
-        try {
-            GenerateContentResponse response = genAiClient.models.generateContent(
-                    chatbotConfig.getModelName(), fullPrompt, genConfig);
-
-            String text = response.text();
-            if (text == null || text.isBlank()) {
-                log.warn("GenAI로부터 빈 응답을 받았습니다.");
-                return "죄송합니다. 현재 답변을 생성할 수 없습니다. 다시 시도해주세요.";
+    /**
+     * 사용자 메시지와 모임 정보 간의 관련성을 판단합니다.
+     */
+    private boolean containsRelevantKeywords(String userMessage, String title, String martName, String description) {
+        // 지역명 매칭
+        String[] locations = {"양재", "상봉", "마곡", "월계", "영등포", "금천", "고척", "양평"};
+        for (String location : locations) {
+            if (userMessage.contains(location) && martName.contains(location)) {
+                return true;
             }
-            return text.trim();
-
-        } catch (Exception e) {
-            log.error("GenAI API 호출 중 오류 발생", e);
-            return "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
         }
+
+        // 마트 브랜드 매칭
+        String[] marts = {"코스트코", "트레이더스", "롯데"};
+        for (String mart : marts) {
+            if (userMessage.contains(mart) && martName.contains(mart)) {
+                return true;
+            }
+        }
+
+        // 상품명 매칭 (제목 또는 설명에서)
+        String[] products = {"견과", "아몬드", "호두", "세제", "다우니", "냉동", "육류", "고기", "와인", "생활용품", "화장지", "캠핑"};
+        for (String product : products) {
+            if (userMessage.contains(product) && (title.contains(product) || description.contains(product))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    private ChatbotConversation.IntentType determineIntentType(String message) {
-        String msg = message.toLowerCase();
-
-        if (containsAny(msg, "모임", "찾", "검색", "소분", "함께", "나눔", "지역", "근처", "마트", "추천")) {
-            return ChatbotConversation.IntentType.MEETING_SEARCH;
-        }
-        if (containsAny(msg, "이용", "방법", "가이드", "가입", "시작", "어떻게", "준비", "위생", "안전")) {
-            return ChatbotConversation.IntentType.SERVICE_GUIDE;
-        }
-        return ChatbotConversation.IntentType.GENERAL;
+    /**
+     * 긴급 상황용 기본 응답을 생성합니다.
+     * 모든 시스템이 실패했을 때 최후의 수단으로 사용됩니다.
+     */
+    private String getEmergencyFallbackResponse(String userMessage) {
+        return String.format("""
+                안녕하세요! 반띵 AI 도우미입니다.
+                
+                현재 시스템에 일시적인 문제가 발생했지만, 기본 정보를 안내해드릴게요.
+                
+                문의하신 내용: "%s"
+                
+                반띵은 대용량 상품을 여러 명이 함께 구매하고 소분하는 서비스예요.
+                서울 지역 8개 마트(코스트코, 이마트 트레이더스, 롯데마트)에서 
+                다양한 소분 모임이 진행되고 있습니다.
+                
+                로그인 후 정확한 모임 정보를 확인하실 수 있어요!
+                """, userMessage);
     }
 
-    private String buildPersonalizedPrompt(User user) {
-        StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append(chatbotConfig.getSystemPrompt());
-
-        promptBuilder.append("\n\n# 현재 사용자 정보\n");
-        promptBuilder.append("- 닉네임: ").append(user.getNickname()).append("\n");
-        promptBuilder.append("- 신뢰도: ").append(user.getTrustScore()).append("점 (")
-                .append(user.getTrustGrade().name()).append(" 등급)\n");
-
-        if (user.getNoShowCount() > 0) {
-            promptBuilder.append("- 노쇼 이력: ").append(user.getNoShowCount()).append("회\n");
-        }
-
-        // 현재 활성 모임 정보 추가
-        List<Meeting> activeMeetings = meetingsRepository.findByStatusAndDeletedAtIsNull(Meeting.MeetingStatus.RECRUITING);
-        if (!activeMeetings.isEmpty()) {
-            promptBuilder.append("\n# 현재 모집 중인 모임 (최신 5개)\n");
-            activeMeetings.stream().limit(5).forEach(meeting -> {
-                promptBuilder.append("- ").append(meeting.getTitle())
-                        .append(" (").append(meeting.getMart().getMartName()).append(", ")
-                        .append(meeting.getMeetingDate().toLocalDate()).append(")\n");
-            });
-        }
-
-        return promptBuilder.toString();
-    }
-
+    /**
+     * 로그인한 사용자를 위한 모임 추천을 생성합니다.
+     * 실시간 모임 데이터를 기반으로 지능적인 추천을 수행합니다.
+     */
     private List<ChatbotMessageResponse.MeetingSuggestionResponse> createMeetingSuggestions(
             ChatbotConversation conversation, String userMessage) {
 
         List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestions = new ArrayList<>();
         try {
+            // 실시간 활성 모임 조회
             List<Meeting> activeMeetings = meetingsRepository.findByStatusAndDeletedAtIsNull(Meeting.MeetingStatus.RECRUITING);
-            List<Meeting> recommendedMeetings = activeMeetings.stream().limit(3).collect(Collectors.toList());
+
+            // 사용자 질문과 관련된 모임을 지능적으로 선별
+            List<Meeting> relevantMeetings = findRelevantMeetings(userMessage, activeMeetings);
+
+            // 관련 모임이 없으면 최근 생성된 모임 3개 선택
+            List<Meeting> recommendedMeetings = relevantMeetings.isEmpty() ?
+                    activeMeetings.stream().limit(3).collect(Collectors.toList()) :
+                    relevantMeetings;
 
             for (Meeting meeting : recommendedMeetings) {
-                String suggestionReason = "사용자 질문과 관련된 " + meeting.getMart().getMartName() + " 모임입니다.";
+                String suggestionReason = generateSuggestionReason(meeting, userMessage);
 
                 // 추천 저장
                 ChatbotMeetingSuggestion suggestion = newMeetingSuggestionInstance();
@@ -414,6 +539,39 @@ public class ChatbotServiceImpl implements ChatbotService {
         return suggestions;
     }
 
+    /**
+     * 모임 추천 이유를 동적으로 생성합니다.
+     * 사용자 질문과 모임 정보의 매칭 결과에 따라 적절한 이유를 제공합니다.
+     */
+    private String generateSuggestionReason(Meeting meeting, String userMessage) {
+        String lowerMessage = userMessage.toLowerCase();
+        String title = meeting.getTitle().toLowerCase();
+        String martName = meeting.getMart().getMartName();
+
+        // 지역 매칭
+        String[] locations = {"양재", "상봉", "마곡", "월계", "영등포", "금천"};
+        for (String location : locations) {
+            if (lowerMessage.contains(location) && martName.toLowerCase().contains(location)) {
+                return "요청하신 " + location + " 지역의 " + martName + " 모임입니다.";
+            }
+        }
+
+        // 상품 매칭
+        String[] products = {"견과", "세제", "냉동", "육류", "와인", "생활용품", "캠핑"};
+        for (String product : products) {
+            if (lowerMessage.contains(product) && title.contains(product)) {
+                return "문의하신 " + product + " 관련 모임입니다.";
+            }
+        }
+
+        // 기본 추천 이유
+        return "현재 인기 있는 " + martName + " 모임입니다.";
+    }
+
+    /**
+     * 대화 내용을 데이터베이스에 저장합니다.
+     * 로그인한 사용자의 대화 이력을 관리하기 위해 사용됩니다.
+     */
     private ChatbotConversation saveConversation(User user, String userMessage, String botResponse, ChatbotConversation.IntentType intentType) {
         ChatbotConversation conversation = newConversationInstance();
         conversation.setUser(user);
@@ -423,6 +581,10 @@ public class ChatbotServiceImpl implements ChatbotService {
         return conversationRepository.save(conversation);
     }
 
+    /**
+     * 리플렉션을 사용하여 ChatbotConversation 인스턴스를 생성합니다.
+     * 기존 코드의 패턴을 유지합니다.
+     */
     private ChatbotConversation newConversationInstance() {
         try {
             Constructor<ChatbotConversation> ctor = ChatbotConversation.class.getDeclaredConstructor();
@@ -433,6 +595,10 @@ public class ChatbotServiceImpl implements ChatbotService {
         }
     }
 
+    /**
+     * 리플렉션을 사용하여 ChatbotMeetingSuggestion 인스턴스를 생성합니다.
+     * 기존 코드의 패턴을 유지합니다.
+     */
     private ChatbotMeetingSuggestion newMeetingSuggestionInstance() {
         try {
             Constructor<ChatbotMeetingSuggestion> ctor = ChatbotMeetingSuggestion.class.getDeclaredConstructor();
@@ -443,6 +609,10 @@ public class ChatbotServiceImpl implements ChatbotService {
         }
     }
 
+    /**
+     * 대화 기록을 히스토리 응답 DTO로 변환합니다.
+     * 클라이언트에서 필요한 형태로 데이터를 가공합니다.
+     */
     private ChatbotConversationHistoryResponse convertToHistoryResponse(ChatbotConversation conversation) {
         List<ChatbotConversationHistoryResponse.MeetingSuggestionInfo> suggestionInfos =
                 conversation.getMeetingSuggestions().stream()
@@ -463,6 +633,10 @@ public class ChatbotServiceImpl implements ChatbotService {
                 .build();
     }
 
+    /**
+     * 문자열에 지정된 키워드들 중 하나라도 포함되어 있는지 확인합니다.
+     * 의도 분석에서 사용되는 유틸리티 메서드입니다.
+     */
     private boolean containsAny(String text, String... keywords) {
         for (String k : keywords) {
             if (text.contains(k)) return true;
