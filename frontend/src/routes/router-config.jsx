@@ -6,6 +6,7 @@ import MeetingDetailPage from "../pages/MeetingDetailPage.jsx";
 import CommentPage from "../pages/CommentPage.jsx";
 import LoginPage from "../pages/LoginPage.jsx";
 import AgreementPage from "../pages/AgreementPage.jsx";
+import PopupClosePage from '../pages/PopupClosePage.jsx';
 
 // 라우터 설정
 export const router = createBrowserRouter([
@@ -23,6 +24,10 @@ export const router = createBrowserRouter([
   {
     path: '/agreement',
     element: <AgreementPage />
+  },
+  {
+    path: '/popup-close', // 팝업을 닫아주는 페이지
+    element: <PopupClosePage />
   }
 ]);
 
