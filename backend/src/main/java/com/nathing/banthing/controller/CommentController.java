@@ -83,7 +83,6 @@ public class CommentController {
 @RestController
 @RequestMapping("/api/meetings/{meetingId}/comments")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 public class CommentController {
 
     private final CommentService commentService;
@@ -97,12 +96,10 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<CommentReadDto> createComment(
             @PathVariable Long meetingId,
-            @RequestBody CommentCreateDto createDto,
-            @AuthenticationPrincipal String providerId) {
-
-        Long currentUserId = userService.getUserIdByProviderId(providerId);
-        CommentReadDto createdComment = commentService.createComment(meetingId, currentUserId, createDto.getContent());
-        return ResponseEntity.ok(createdComment);
+            @AuthenticationPrincipal String providerId,
+            @RequestBody CommentCreateDto createDto) {
+        CommentReadDto createdComment = commentService.createComment(meetingId, providerId, createDto.getContent());
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
     }
 
     /**
@@ -111,12 +108,11 @@ public class CommentController {
      * @return 생성된 댓글 DTO와 HTTP 상태 코드
      */
     @GetMapping
-    public ResponseEntity<CommentListDto> getComments(
+    public ResponseEntity<CommentListDto> getCommentsByMeetingId(
             @PathVariable Long meetingId,
             @AuthenticationPrincipal String providerId) {
 
-        Long currentUserId = userService.getUserIdByProviderId(providerId);
-        CommentListDto comments = commentService.getCommentsByMeetingId(meetingId, currentUserId);
+        CommentListDto comments = commentService.getCommentsByMeetingId(meetingId, providerId);
         return ResponseEntity.ok(comments);
     }
 
@@ -132,8 +128,7 @@ public class CommentController {
             @RequestBody CommentUpdateDto updateDto,
             @AuthenticationPrincipal String providerId) {
 
-        Long currentUserId = userService.getUserIdByProviderId(providerId);
-        CommentReadDto updatedComment = commentService.updateComment(commentId, currentUserId, updateDto.getContent());
+        CommentReadDto updatedComment = commentService.updateComment(commentId, providerId, updateDto.getContent());
         return ResponseEntity.ok(updatedComment);
     }
 
@@ -147,8 +142,7 @@ public class CommentController {
             @PathVariable Long commentId,
             @AuthenticationPrincipal String providerId) {
 
-        Long currentUserId = userService.getUserIdByProviderId(providerId);
-        commentService.deleteComment(commentId, currentUserId);
+        commentService.deleteComment(commentId, providerId);
         return ResponseEntity.noContent().build();
     }
 }

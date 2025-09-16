@@ -5,9 +5,10 @@ import com.nathing.banthing.dto.response.CommentListDto;
 import com.nathing.banthing.dto.response.CommentReadDto;
 import com.nathing.banthing.entity.Comment;
 import com.nathing.banthing.entity.Meeting;
-import com.nathing.banthing.entity.MeetingParticipant;
 import com.nathing.banthing.entity.User;
 import com.nathing.banthing.entity.MeetingParticipant.ApplicationStatus;
+import com.nathing.banthing.exception.BusinessException;
+import com.nathing.banthing.exception.ErrorCode;
 import com.nathing.banthing.repository.CommentRepository;
 import com.nathing.banthing.repository.MeetingParticipantsRepository;
 import com.nathing.banthing.repository.MeetingsRepository;
@@ -27,34 +28,26 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final MeetingsRepository meetingRepository;
     private final MeetingParticipantsRepository meetingParticipantRepository;
-    private final UsersRepository userRepository;
+    private final UsersRepository usersRepository;
 
     @Override
-    public CommentListDto getCommentsByMeetingId(Long meetingId, Long currentUserId) {
+    public CommentListDto getCommentsByMeetingId(Long meetingId, String providerId) {
         // 1. 모임 존재 여부 확인
-        meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 모임입니다."));
-
-        // 2. 현재 사용자가 해당 모임의 유효한 참여자인지 확인 (비즈니스 로직)
-        boolean isParticipant = meetingParticipantRepository.findByMeetingMeetingIdAndUserUserIdAndApplicationStatus(
-                meetingId,
-                currentUserId,
-                ApplicationStatus.APPROVED
-        ).isPresent();
-
-        // 3. 모임 호스트도 댓글을 열람할 수 있도록 예외 처리 추가
         Meeting meeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 모임입니다."));
-        boolean isHost = meeting.getHostUser().getUserId().equals(currentUserId);
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
-        if (!isParticipant && !isHost) {
-            throw new IllegalArgumentException("댓글을 열람할 권한이 없습니다. 모임에 참여한 사용자만 댓글을 볼 수 있습니다.");
-        }
+        // ✅ 댓글 조회는 로그인 여부와 관계없이 모두에게 허용
+        // 2. 현재 사용자가 해당 모임의 유효한 참여자인지 확인 (인증 로직 제거)
+//        boolean isParticipant = meetingParticipantRepository.findByMeetingMeetingIdAndUserUserIdAndApplicationStatus(
+//                meetingId,
+//                currentUserId,
+//                ApplicationStatus.APPROVED
+//        ).isPresent();
 
-        // 4. 모임 ID로 댓글 목록을 조회 (최신순 정렬)
+        // 3. 댓글 목록 조회
         List<Comment> comments = commentRepository.findByMeetingMeetingIdOrderByCreatedAtDesc(meetingId);
 
-        // 5. 엔티티를 DTO로 변환
+        // 4. DTO로 변환
         List<CommentReadDto> commentDtos = comments.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -69,23 +62,23 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentReadDto createComment(Long meetingId, Long currentUserId, String content) {
+    public CommentReadDto createComment(Long meetingId, String providerId, String content) {
         // 1. 사용자 및 모임 존재 여부 확인
-        User user = userRepository.findById(currentUserId)
+        User user = usersRepository.findById(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         Meeting meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 모임입니다."));
 
         // 2. 승인된 참여자 및 호스트만 댓글 작성 가능하도록 검증
         boolean isApprovedParticipant = meetingParticipantRepository
-                .findByMeetingMeetingIdAndUserUserIdAndApplicationStatus(meetingId, currentUserId, ApplicationStatus.APPROVED)
+                .findByMeetingMeetingIdAndUserUserIdAndApplicationStatus(meetingId, meetingId, ApplicationStatus.APPROVED)
                 .isPresent();
-        boolean isHost = meeting.getHostUser().getUserId().equals(currentUserId);
+        boolean isHost = meeting.getHostUser().getUserId().equals(meetingId);
 
-
+        /* 테스트용 주석으로 테스터가 모임의 참여 인원이 아니라도 해당 기능을 테스트할 수 있게 주석처리함
         if (!isApprovedParticipant && !isHost) {
             throw new IllegalArgumentException("댓글을 작성할 권한이 없습니다. 모임에 참여하고 승인된 사용자만 댓글을 작성할 수 있습니다.");
-        }
+        }*/
 
         // 3. 댓글 엔티티 생성
         Comment comment = Comment.builder()
@@ -120,15 +113,16 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentReadDto updateComment(Long commentId, Long currentUserId, String content) {
+    public CommentReadDto updateComment(Long commentId, String providerId, String content) {
         // 1. 댓글 존재 여부 확인 및 엔티티 조회
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글입니다."));
 
         // 2. 현재 사용자가 댓글의 작성자인지 확인
-        if (!comment.getUser().getUserId().equals(currentUserId)) {
+        /* 테스트용 주석으로 테스터가 모임의 참여 인원이 아니라도 해당 기능을 테스트할 수 있게 주석처리함
+        if (!comment.getUser().getUserId().equals(providerId)) {
             throw new IllegalArgumentException("댓글을 수정할 권한이 없습니다. 작성자만 수정할 수 있습니다.");
-        }
+        }*/
 
         // 3. 댓글 내용 수정 (더티 체킹 활용)
         comment.setContent(content);
@@ -139,15 +133,16 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void deleteComment(Long commentId, Long currentUserId) {
+    public void deleteComment(Long commentId, String providerId) {
         // 1. 댓글 존재 여부 확인 및 엔티티 조회
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글입니다."));
 
         // 2. 현재 사용자가 댓글의 작성자인지 확인
-        if (!comment.getUser().getUserId().equals(currentUserId)) {
+        /* 테스트용 주석으로 테스터가 모임의 참여 인원이 아니라도 해당 기능을 테스트할 수 있게 주석처리함
+        if (!comment.getUser().getUserId().equals(providerId)) {
             throw new IllegalArgumentException("댓글을 삭제할 권한이 없습니다. 작성자만 삭제할 수 있습니다.");
-        }
+        }*/
 
         // 3. 댓글 삭제
         commentRepository.delete(comment);

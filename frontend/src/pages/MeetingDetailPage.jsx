@@ -6,7 +6,7 @@ const MeetingDetailPage = () => {
     // 1. URL에서 meetingId 추출
     const { meetingId } = useParams();
     const [comments, setComments] = useState([]);
-    const token = 'CtVZHE-M1upT'; // TODO: 실제 인증 토큰으로 교체하세요
+    const token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NDQ5Nzg3ODkwIiwiaWF0IjoxNzU4MDE0NTI3LCJleHAiOjE3NTgwMTU0Mjd9.EdA_KFKGU9gPmstc3twaX6jOQnLTiTaCZeDDLQbiEeI'; // TODO: 실제 인증 토큰으로 교체하세요
 
     useEffect(() => {
         // 2. meetingId가 유효할 때만 API 호출

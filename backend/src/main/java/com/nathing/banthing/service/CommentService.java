@@ -9,32 +9,31 @@ public interface CommentService {
     /**
      * 특정 모임에 속한 댓글 목록을 조회합니다.
      * @param meetingId 모임 ID
-     * @param currentUserId 현재 로그인한 사용자 ID
+     * @param providerId 현재 로그인한 사용자 ID
      * @return 댓글 목록 DTO (CommentListDto)
      */
-    CommentListDto getCommentsByMeetingId(Long meetingId, Long currentUserId);
+    CommentListDto getCommentsByMeetingId(Long meetingId, String providerId);
 
     /**
      * 특정 모임에 새로운 댓글을 작성합니다.
      * @param meetingId 모임 ID
-     * @param currentUserId 현재 로그인한 사용자 ID
+
      * @return 생성된 댓글 DTO (CommentReadDto)
      */
-    CommentReadDto createComment(Long meetingId,  Long currentUserId, String content);
+    CommentReadDto createComment(Long meetingId,  String providerId, String content);
 
     /**
      * 댓글을 수정합니다.
      * @param commentId 수정할 댓글 ID
-     * @param currentUserId 현재 로그인한 사용자 ID
+
      * @param content 새로운 댓글 내용
      * @return 수정된 댓글 DTO (CommentReadDto)
      */
-    CommentReadDto updateComment(Long commentId, Long currentUserId, String content);
+    CommentReadDto updateComment(Long commentId, String providerId, String content);
 
     /**
      * 댓글을 삭제합니다.
      * @param commentId 삭제할 댓글 ID
-     * @param currentUserId 현재 로그인한 사용자 ID
      */
-    void deleteComment(Long commentId, Long currentUserId);
+    void deleteComment(Long commentId, String providerId);
 }
