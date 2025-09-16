@@ -4,7 +4,7 @@ const LoginPage = () => {
   return (
     <>
       <p>로그인 페이지입니다.</p>
-      <button>카카오로 로그인</button>
+      <a href="http://localhost:9000/oauth2/authorization/kakao">Kakao로 로그인</a>
     </>
   );
 };
