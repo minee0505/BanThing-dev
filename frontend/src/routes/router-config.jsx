@@ -16,7 +16,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <MeetingListPage /> },
       { path: 'meetings/:meetingId', element: <MeetingDetailPage /> },
-      { path: 'meetings/:id/comments', element: <CommentPage /> },
+      { path: 'meetings/:meetingId/comments', element: <CommentPage /> },
       { path: 'login', element: <LoginPage /> },
     ],
   },
