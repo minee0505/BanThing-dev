@@ -162,6 +162,11 @@ public class MeetingController {
         return ResponseEntity.ok(apiResponse);
     }
 
+
+    // ================================ 여기서 부터는 모임 신청 관련 api ================================== /
+
+
+
     /**
      * 모임 참가 신청 API
      *
@@ -181,21 +186,23 @@ public class MeetingController {
         return ResponseEntity.ok(apiResponse);
     }
 
+
     /**
-     * 모임 참가 신청 목록 조회 API (호스트 전용)
+     * 모임 참가자 목록 조회 API (호스트 전용)
+     * 호스트에게는 확정된 멤버와 신청 대기자 목록을 모두 반환합니다.
      *
      * @param meetingId 신청 목록을 조회할 모임의 ID
      * @param currentUserId 현재 로그인한 사용자의 ID (자동 주입)
-     * @return 참가 신청 목록
+     * @return 참가자 목록 (확정/대기 포함)
      */
     @GetMapping("/{meetingId}/participants")
-    public ResponseEntity<ApiResponse<List<MeetingParticipantResponse>>> getParticipants(
+    public ResponseEntity<ApiResponse<ParticipantListResponse>> getParticipants(
             @PathVariable Long meetingId,
             @AuthenticationPrincipal Long currentUserId) {
 
-        List<MeetingParticipantResponse> participants = joinMeetingService.getPendingParticipants(meetingId, currentUserId);
+        ParticipantListResponse participants = joinMeetingService.getParticipantsByStatusForHost(meetingId, currentUserId);
 
-        ApiResponse<List<MeetingParticipantResponse>> apiResponse = ApiResponse.success("참가 신청 목록이 성공적으로 조회되었습니다.", participants);
+        ApiResponse<ParticipantListResponse> apiResponse = ApiResponse.success("참가자 목록이 성공적으로 조회되었습니다.", participants);
 
         return ResponseEntity.ok(apiResponse);
     }

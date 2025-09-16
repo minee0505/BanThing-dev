@@ -1,6 +1,7 @@
 package com.nathing.banthing.service;
 
 import com.nathing.banthing.dto.response.MeetingParticipantResponse;
+import com.nathing.banthing.dto.response.ParticipantListResponse;
 import com.nathing.banthing.entity.Meeting;
 import com.nathing.banthing.entity.User;
 import com.nathing.banthing.entity.MeetingParticipant;
@@ -45,7 +46,7 @@ public class JoinMeetingService {
      * 모임 참가 신청 로직
      *
      * @param meetingId 신청할 모임 ID
-     * @param userId 신청하는 사용자 ID
+     * @param userId    신청하는 사용자 ID
      */
     @Transactional
     public void joinMeeting(Long meetingId, Long userId) {
@@ -75,9 +76,9 @@ public class JoinMeetingService {
         // 5. 모임 정원 체크
         long currentParticipantCount = meetingParticipantsRepository
                 .countByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.APPROVED);
-        
+
         if (currentParticipantCount >= meeting.getMaxParticipants()) {
-            throw new BusinessException(ErrorCode.MEETING_IS_FULL); // 새로운 에러 코드 필요
+            throw new BusinessException(ErrorCode.MEETING_IS_FULL);
         }
 
         // 6. MeetingParticipant 엔티티 생성 (신청 대기 상태)
@@ -91,16 +92,16 @@ public class JoinMeetingService {
         meetingParticipantsRepository.save(newParticipant);
     }
 
+
     /**
-     * 모임 참가 신청 목록 조회 로직 (호스트 전용)
+     * 모임의 확정된 참가자와 대기중인 신청자 목록을 모두 조회합니다. (호스트 전용)
      *
-     * @param meetingId 신청 목록을 조회할 모임 ID
-     * @param userId 요청을 보낸 사용자 ID (호스트인지 확인)
-     * @return 참가 신청 목록 DTO
+     * @param meetingId 조회할 모임 ID
+     * @param userId    요청을 보낸 사용자 ID (호스트인지 확인)
+     * @return 확정 및 대기 목록을 포함한 DTO
      */
     @Transactional(readOnly = true)
-    public List<MeetingParticipantResponse> getPendingParticipants(Long meetingId, Long userId) {
-
+    public ParticipantListResponse getParticipantsByStatusForHost(Long meetingId, Long userId) {
         // 1. 모임 존재 및 호스트 권한 확인
         Meeting meeting = meetingsRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
@@ -109,13 +110,21 @@ public class JoinMeetingService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
-        // 2. 대기 상태인 참가자 목록 조회
-        List<MeetingParticipant> participants = meetingParticipantsRepository
+        // 2. 상태별로 참가자 목록을 DB에서 각각 조회
+        List<MeetingParticipant> approvedList = meetingParticipantsRepository
+                .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.APPROVED);
+        List<MeetingParticipant> pendingList = meetingParticipantsRepository
                 .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.PENDING);
 
-        // 3. DTO로 변환하여 반환
-        return participants.stream()
+        // 3. 각 목록을 DTO로 변환
+        List<MeetingParticipantResponse> approvedDto = approvedList.stream()
                 .map(MeetingParticipantResponse::new)
                 .collect(Collectors.toList());
+        List<MeetingParticipantResponse> pendingDto = pendingList.stream()
+                .map(MeetingParticipantResponse::new)
+                .collect(Collectors.toList());
+
+        // 4. 새로 만든 ParticipantListResponse DTO에 담아서 반환
+        return new ParticipantListResponse(approvedDto, pendingDto);
     }
 }
