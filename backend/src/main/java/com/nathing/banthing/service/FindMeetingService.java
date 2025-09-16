@@ -45,16 +45,15 @@ public class FindMeetingService {
     private final MeetingsRepository meetingsRepository;
 
     /**
-     * 전체 모임 목록 조회
-     *
+     * 전체 모임 목록 조회 (생성 시간 최신순으로 정렬)
      * @return 전체 모임의 핵심 정보 리스트
      */
     public List<MeetingSimpleResponse> findAllMeetings() {
-        return meetingsRepository.findAll().stream()
+        // ✅ 수정된 부분: 최신순 정렬 메서드를 호출하도록 변경합니다.
+        return meetingsRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(MeetingSimpleResponse::new)
                 .collect(Collectors.toList());
     }
-
     /**
      * 특정 모임 상세 조회
      *

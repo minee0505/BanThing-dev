@@ -42,4 +42,12 @@ public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
             "LOWER(mart.address) LIKE LOWER(CONCAT('%', :location, '%')) AND " +
             "m.status = 'RECRUITING' AND m.deletedAt IS NULL")
     List<Meeting> findByLocationAndRecruiting(@Param("location") String location);
+
+
+    /**
+     * 모든 모임을 생성 시간(createdAt) 내림차순으로 정렬하여 조회합니다. (최신순)
+     * (@Where 어노테이션에 의해 삭제된 모임은 자동으로 제외됩니다.)
+     * @return 정렬된 모임 목록
+     */
+    List<Meeting> findAllByOrderByCreatedAtDesc();
 }

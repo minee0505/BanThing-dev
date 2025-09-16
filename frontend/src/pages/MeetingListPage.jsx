@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import KakaoMap from "../components/Meeting/KakaoMap.jsx";
 import MeetingList from "../components/Meeting/MeetingList.jsx";
-import { getAllMeetings } from '../services/meetingApi.js';
+import {getAllMeetings} from '../services/meetingApi.js';
 import styles from './MeetingListPage.module.scss';
+import Chatbot from '../components/ChatBot/Chatbot.jsx';
 
 const MeetingListPage = () => {
     const [meetings, setMeetings] = useState([]);
@@ -51,6 +52,7 @@ const MeetingListPage = () => {
 
             {/*  isLoading 상태를 MeetingList에 prop으로 전달 */}
             <MeetingList meetings={filteredMeetings} isLoading={isLoading} />
+            <Chatbot />
         </div>
     );
 };
