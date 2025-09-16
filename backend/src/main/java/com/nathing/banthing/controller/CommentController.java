@@ -83,6 +83,7 @@ public class CommentController {
 @RestController
 @RequestMapping("/api/meetings/{meetingId}/comments")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class CommentController {
 
     private final CommentService commentService;
