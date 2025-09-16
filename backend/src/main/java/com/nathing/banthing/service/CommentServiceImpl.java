@@ -63,17 +63,22 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public CommentReadDto createComment(Long meetingId, String providerId, String content) {
-        // 1. 사용자 및 모임 존재 여부 확인
-        User user = usersRepository.findById(meetingId)
+        // 1. providerId로 사용자 및 모임 존재 여부 확인
+        // userId가 아닌 providerId로 사용자를 조회합니다.
+        User user = usersRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
         Meeting meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 모임입니다."));
 
         // 2. 승인된 참여자 및 호스트만 댓글 작성 가능하도록 검증
+        // user.getUserId()를 사용해 정확한 userId를 전달합니다.
         boolean isApprovedParticipant = meetingParticipantRepository
-                .findByMeetingMeetingIdAndUserUserIdAndApplicationStatus(meetingId, meetingId, ApplicationStatus.APPROVED)
+                .findByMeetingMeetingIdAndUserUserIdAndApplicationStatus(meetingId, user.getUserId(), ApplicationStatus.APPROVED)
                 .isPresent();
-        boolean isHost = meeting.getHostUser().getUserId().equals(meetingId);
+
+        // hostUser의 userId와 user의 userId를 비교해야 합니다.
+        boolean isHost = meeting.getHostUser().getUserId().equals(user.getUserId());
 
         /* 테스트용 주석으로 테스터가 모임의 참여 인원이 아니라도 해당 기능을 테스트할 수 있게 주석처리함
         if (!isApprovedParticipant && !isHost) {
@@ -119,8 +124,9 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글입니다."));
 
         // 2. 현재 사용자가 댓글의 작성자인지 확인
+        // providerId가 아닌 user.getProviderId()를 사용하여 비교합니다.
         /* 테스트용 주석으로 테스터가 모임의 참여 인원이 아니라도 해당 기능을 테스트할 수 있게 주석처리함
-        if (!comment.getUser().getUserId().equals(providerId)) {
+        if (!comment.getUser().getProviderId().equals(providerId)) {
             throw new IllegalArgumentException("댓글을 수정할 권한이 없습니다. 작성자만 수정할 수 있습니다.");
         }*/
 
