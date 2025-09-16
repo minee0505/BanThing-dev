@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>반띵 챗봇 반응형 테스트</title>
+    <style>
+        /* 반띵 컬러 가이드 */
+        :root {
+            --primary-color: #A29BFE;
+            --secondary-color: #FD79A8;
+            --accent-color: #FDCB6E;
+            --text-color: #2D3436;
+            --background-color: #FAFAFA;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--background-color);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            margin: -20px -20px 20px -20px;
+            text-align: center;
+        }
+
+        .content {
+            line-height: 1.6;
+            color: var(--text-color);
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .test-button {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .test-button:hover {
+            background: var(--accent-color);
+        }
+
+        .screen-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: var(--text-color);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10000;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header {
+                margin: -16px -16px 16px -16px;
+                padding: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+            }
+
+            .test-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 챗봇 스타일 (간소화된 버전) */
+        .chatbot-float-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(162, 155, 254, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            color: white;
+            font-size: 24px;
+        }
+
+        .chatbot-float-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(162, 155, 254, 0.6);
+        }
+
+        .chatbot-modal {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 380px;
+            height: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chatbot-modal.active {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 16px;
+            background: var(--background-color);
+            overflow-y: auto;
+        }
+
+        .chatbot-input {
+            background: white;
+            border-top: 1px solid rgba(162, 155, 254, 0.1);
+            padding: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .chatbot-input input {
+            flex: 1;
+            border: 1px solid rgba(162, 155, 254, 0.3);
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+
+        .chatbot-input button {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .chatbot-modal {
+                bottom: 0;
+                right: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            .chatbot-float-button {
+                bottom: 20px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 화면 크기 표시 -->
+<div class="screen-info" id="screenInfo">
+    화면 크기: <span id="screenSize"></span>
+</div>
+
+<!-- 메인 콘텐츠 -->
+<div class="container">
+    <header class="header">
+        <h1>반띵 (BanThing) 챗봇 테스트</h1>
+    </header>
+
+    <div class="content">
+        <h2>🤖 AI 챗봇 테스트</h2>
+        <p>우측 하단의 챗봇 버튼을 클릭해보세요!</p>
+
+
+        <h3>🎨 컬러 가이드</h3>
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0;">
+            <div style="width: 100px; height: 60px; background: var(--primary-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">Primary</div>
+            <div style="width: 100px; height: 60px; background: var(--secondary-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">Secondary</div>
+            <div style="width: 100px; height: 60px; background: var(--accent-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">Accent</div>
+            <div style="width: 100px; height: 60px; background: var(--text-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">Text</div>
+        </div>
+    </div>
+</div>
+
+<!-- 챗봇 UI -->
+<div class="chatbot-float-button" onclick="toggleChatbot()">
+    💬
+</div>
+
+<div class="chatbot-modal" id="chatbotModal">
+    <div class="chatbot-header">
+        <div>
+            <h3 style="margin: 0;">반띵 AI 챗봇</h3>
+            <span style="font-size: 12px; opacity: 0.8;">온라인</span>
+        </div>
+        <button onclick="toggleChatbot()" style="background: none; border: none; color: white; cursor: pointer; font-size: 18px;">✕</button>
+    </div>
+
+    <div class="chatbot-messages">
+        <div style="background: white; padding: 12px 16px; border-radius: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+            안녕하세요! 반띵 챗봇입니다. 소분 모임에 대해 궁금한 것이 있으시면 언제든 물어보세요! 😊
+        </div>
+
+        <!-- 추천 모임 카드 예시 -->
+        <div style="background: white; padding: 12px 16px; border-radius: 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+            <p style="margin: 0 0 12px 0;">네, 양재 코스트코 견과류 소분 모임을 찾아드렸습니다!</p>
+
+            <div style="margin-top: 12px;">
+                <h4 style="margin: 0 0 8px 0; font-size: 14px;">🎯 추천 모임</h4>
+                <div style="background: var(--background-color); border: 1px solid rgba(162, 155, 254, 0.2); border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s ease;">
+                    <h5 style="margin: 0 0 4px 0; font-size: 13px;">코스트코 견과류 소분해요!</h5>
+                    <p style="margin: 2px 0; font-size: 11px; color: var(--secondary-color);">📍 코스트코 양재점</p>
+                    <p style="margin: 2px 0; font-size: 11px;">🕐 2025-09-15 14:00</p>
+                    <p style="margin: 2px 0; font-size: 11px; color: var(--accent-color);">👥 3/4명</p>
+                    <p style="margin: 4px 0 0 0; font-size: 11px; font-style: italic; background: rgba(253, 203, 110, 0.1); padding: 2px 6px; border-radius: 4px;">💡 요청하신 견과류 소분 모임</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chatbot-input">
+        <input type="text" placeholder="메시지를 입력하세요..." />
+        <button>➤</button>
+    </div>
+</div>
+
+<script>
+    let chatbotOpen = false;
+
+    function toggleChatbot() {
+        const modal = document.getElementById('chatbotModal');
+        chatbotOpen = !chatbotOpen;
+
+        if (chatbotOpen) {
+            modal.classList.add('active');
+        } else {
+            modal.classList.remove('active');
+        }
+    }
+
+    function testDesktop() {
+        document.documentElement.style.setProperty('--test-width', '1200px');
+        updateScreenInfo();
+    }
+
+    function testTablet() {
+        document.documentElement.style.setProperty('--test-width', '768px');
+        updateScreenInfo();
+    }
+
+    function testMobile() {
+        document.documentElement.style.setProperty('--test-width', '375px');
+        updateScreenInfo();
+    }
+
+    function updateScreenInfo() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        document.getElementById('screenSize').textContent = `${width}x${height}`;
+    }
+
+    // 화면 크기 변경 감지
+    window.addEventListener('resize', updateScreenInfo);
+
+    // 페이지 로드 시 초기화
+    updateScreenInfo();
+
+    // 입력창 엔터 키 처리
+    document.querySelector('.chatbot-input input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            alert('실제 구현에서는 메시지가 전송됩니다!');
+        }
+    });
+</script>
+</body>
+</html>

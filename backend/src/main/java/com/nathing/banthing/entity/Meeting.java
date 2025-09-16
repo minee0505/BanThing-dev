@@ -1,6 +1,8 @@
 package com.nathing.banthing.entity;
 
 import com.nathing.banthing.dto.request.MeetingUpdateRequest;
+import com.nathing.banthing.exception.BusinessException;
+import com.nathing.banthing.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -109,4 +111,38 @@ public class Meeting {
         this.meetingDate = request.getMeetingDate();
         this.thumbnailImageUrl = request.getThumbnailImageUrl();
     }
-}
+
+    // '모집 완료'는 상태를 FULL로 변경
+    public void closeRecruitment() {
+        if (this.status != MeetingStatus.RECRUITING) {
+            throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
+        }
+        this.status = MeetingStatus.FULL;
+    }
+
+    // '모집 재개'는 상태를 RECRUITING으로 변경
+    public void reopenRecruitment() {
+        if (this.status != MeetingStatus.FULL) {
+            throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
+        }
+        this.status = MeetingStatus.RECRUITING;
+    }
+
+    // '모임 시작'은 FULL 상태에서 ONGOING으로 변경
+    public void startMeeting() {
+        if (this.status != MeetingStatus.FULL) {
+            throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
+        }
+        this.status = MeetingStatus.ONGOING;
+    }
+
+    // '모임 종료'는 ONGOING 상태에서 COMPLETED로 변경 (기존 로직 유지)
+    public void completeMeeting() {
+        if (this.status != MeetingStatus.ONGOING) {
+            throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
+        }
+        this.status = MeetingStatus.COMPLETED;
+    }
+
+    }
+
