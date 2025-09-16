@@ -48,8 +48,14 @@ public class JoinMeetingService {
      * @param meetingId 신청할 모임 ID
      * @param userId    신청하는 사용자 ID
      */
+    /**
+     * 모임 참가 신청 로직
+     *
+     * @param meetingId 신청할 모임 ID
+     * @param providerId 신청하는 사용자의 providerId
+     */
     @Transactional
-    public void joinMeeting(Long meetingId, Long userId) {
+    public void joinMeeting(Long meetingId, String providerId) {
         // 1. 모임 존재 여부 및 모집 상태 확인
         Meeting meeting = meetingsRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
@@ -58,8 +64,8 @@ public class JoinMeetingService {
             throw new BusinessException(ErrorCode.MEETING_IS_NOT_RECRUITING);
         }
 
-        // 2. 신청하는 사용자 정보 확인
-        User user = usersRepository.findById(userId)
+        // 2. 신청하는 사용자 정보 확인 (providerId로 조회)
+        User user = usersRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         // 3. 중복 신청 방지
@@ -69,7 +75,7 @@ public class JoinMeetingService {
         }
 
         // 4. 모임 호스트는 참가 신청할 수 없도록 방지
-        if (meeting.getHostUser().getUserId().equals(userId)) {
+        if (meeting.getHostUser().equals(user)) {
             throw new BusinessException(ErrorCode.CANNOT_JOIN_AS_HOST);
         }
 
@@ -97,16 +103,19 @@ public class JoinMeetingService {
      * 모임의 확정된 참가자와 대기중인 신청자 목록을 모두 조회합니다. (호스트 전용)
      *
      * @param meetingId 조회할 모임 ID
-     * @param userId    요청을 보낸 사용자 ID (호스트인지 확인)
+     * @param providerId    요청을 보낸 사용자 ID (호스트인지 확인)
      * @return 확정 및 대기 목록을 포함한 DTO
      */
     @Transactional(readOnly = true)
-    public ParticipantListResponse getParticipantsByStatusForHost(Long meetingId, Long userId) {
+    public ParticipantListResponse getParticipantsByStatusForHost(Long meetingId, String providerId) {
         // 1. 모임 존재 및 호스트 권한 확인
         Meeting meeting = meetingsRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
-        if (!meeting.getHostUser().getUserId().equals(userId)) {
+        User currentUser = usersRepository.findByProviderId(providerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!meeting.getHostUser().equals(currentUser)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 

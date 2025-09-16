@@ -10,6 +10,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import com.nathing.banthing.entity.User;
+import com.nathing.banthing.repository.UsersRepository;
 
 /**
  * UpdateMeetingService 클래스는 모임 수정 비즈니스 로직을 처리하는 서비스 클래스입니다.
@@ -47,12 +49,16 @@ public class UpdateMeetingService {
 
     private final MeetingsRepository meetingsRepository;
     private final MartsRepository martsRepository;
+    private final UsersRepository usersRepository;
 
-    public Meeting updateMeeting(Long meetingId, MeetingUpdateRequest request, Long userId) {
+    public Meeting updateMeeting(Long meetingId, MeetingUpdateRequest request, String providerId) {
         Meeting meeting = meetingsRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
-        if (!meeting.getHostUser().getUserId().equals(userId)) {
+        User currentUser = usersRepository.findByProviderId(providerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!meeting.getHostUser().equals(currentUser)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
@@ -62,8 +68,7 @@ public class UpdateMeetingService {
         // Meeting 객체에게 직접 업데이트를 위임
         meeting.update(request, newMart);
 
-
-        log.info("모임 정보가 수정되었습니다. meetingId: {}, userId: {}", meetingId, userId);
+        log.info("모임 정보가 수정되었습니다. meetingId: {}, userId: {}", meetingId, currentUser.getUserId());
 
         return meeting;
     }

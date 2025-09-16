@@ -76,9 +76,9 @@ public class MeetingController {
     @PostMapping
     public ResponseEntity<ApiResponse<MeetingCreateResponse>> createMeeting(
             @Valid @RequestBody MeetingCreateRequest request,
-            @AuthenticationPrincipal Long currentUserId) {
+            @AuthenticationPrincipal String providerId) {
 
-        Meeting newMeeting = createMeetingService.createMeeting(request, currentUserId);
+        Meeting newMeeting = createMeetingService.createMeeting(request, providerId);
 
         MeetingCreateResponse responseDto = new MeetingCreateResponse(newMeeting);
 
@@ -128,16 +128,12 @@ public class MeetingController {
     @PutMapping("/update/{meetingId}")
     public ResponseEntity<ApiResponse<MeetingUpdateResponse>> updateMeeting(
             @PathVariable Long meetingId,
-            @AuthenticationPrincipal Long currentUserId,
+            @AuthenticationPrincipal String providerId,
             @Valid @RequestBody MeetingUpdateRequest request) {
 
-
-        Meeting updatedMeeting = updateMeetingService.updateMeeting(meetingId, request, currentUserId);
-
-        // 6. 전용 응답 DTO로 변환하여 반환
+        Meeting updatedMeeting = updateMeetingService.updateMeeting(meetingId, request, providerId);
         MeetingUpdateResponse responseDto = new MeetingUpdateResponse(updatedMeeting);
         ApiResponse<MeetingUpdateResponse> apiResponse = ApiResponse.success("모임 정보가 성공적으로 수정되었습니다.", responseDto);
-
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -151,10 +147,10 @@ public class MeetingController {
     @DeleteMapping("/delete/{meetingId}")
     public ResponseEntity<ApiResponse<Void>> deleteMeeting(
             @PathVariable Long meetingId,
-            @AuthenticationPrincipal Long currentUserId) {
+            @AuthenticationPrincipal String providerId) {
 
 
-        deleteMeetingService.deleteMeeting(meetingId, currentUserId);
+        deleteMeetingService.deleteMeeting(meetingId, providerId);
 
         // 삭제 후에는 별도 데이터 없이 성공 메시지만 반환합니다.
         ApiResponse<Void> apiResponse = ApiResponse.success("모임이 성공적으로 삭제되었습니다.", null);
@@ -171,15 +167,15 @@ public class MeetingController {
      * 모임 참가 신청 API
      *
      * @param meetingId 참가 신청할 모임의 ID
-     * @param currentUserId 현재 로그인한 사용자의 ID (자동 주입)
+     * @param providerId 현재 로그인한 사용자의 ID (자동 주입)
      * @return 성공 응답
      */
     @PostMapping("/{meetingId}/join")
     public ResponseEntity<ApiResponse<Void>> joinMeeting(
             @PathVariable Long meetingId,
-            @AuthenticationPrincipal Long currentUserId) {
+            @AuthenticationPrincipal String providerId) {
 
-        joinMeetingService.joinMeeting(meetingId, currentUserId);
+        joinMeetingService.joinMeeting(meetingId, providerId);
 
         ApiResponse<Void> apiResponse = ApiResponse.success("모임 참가 신청이 완료되었습니다.", null);
 
@@ -192,15 +188,15 @@ public class MeetingController {
      * 호스트에게는 확정된 멤버와 신청 대기자 목록을 모두 반환합니다.
      *
      * @param meetingId 신청 목록을 조회할 모임의 ID
-     * @param currentUserId 현재 로그인한 사용자의 ID (자동 주입)
+     * @param providerId 현재 로그인한 사용자의 ID (자동 주입)
      * @return 참가자 목록 (확정/대기 포함)
      */
     @GetMapping("/{meetingId}/participants")
     public ResponseEntity<ApiResponse<ParticipantListResponse>> getParticipants(
             @PathVariable Long meetingId,
-            @AuthenticationPrincipal Long currentUserId) {
+            @AuthenticationPrincipal String providerId) {
 
-        ParticipantListResponse participants = joinMeetingService.getParticipantsByStatusForHost(meetingId, currentUserId);
+        ParticipantListResponse participants = joinMeetingService.getParticipantsByStatusForHost(meetingId, providerId);
 
         ApiResponse<ParticipantListResponse> apiResponse = ApiResponse.success("참가자 목록이 성공적으로 조회되었습니다.", participants);
 
@@ -216,15 +212,15 @@ public class MeetingController {
      *
      * @param meetingId 모임의 고유 식별자(ID)입니다.
      * @param participantId 승인할 참가자의 고유 식별자(ID)입니다.
-     * @param hostId 현재 인증된 사용자의 고유 식별자(ID)로서, 주최자(호스트)를 나타냅니다.
+     * @param hostProviderId 현재 인증된 사용자의 고유 식별자(ID)로서, 주최자(호스트)를 나타냅니다.
      * @return 참가 신청 승인 작업이 성공적으로 완료되었음을 나타내는 응답 객체입니다.
      */
     @PostMapping("/{meetingId}/participants/{participantId}/approve")
     public ResponseEntity<ApiResponse<Void>> approveParticipant(
             @PathVariable Long meetingId,
             @PathVariable Long participantId,
-            @AuthenticationPrincipal Long hostId) {
-        manageMeetingService.approveParticipant(meetingId, participantId, hostId);
+            @AuthenticationPrincipal String hostProviderId) {
+        manageMeetingService.approveParticipant(meetingId, participantId, hostProviderId);
         return ResponseEntity.ok(ApiResponse.success("참가 신청이 승인되었습니다.", null));
     }
 
@@ -235,14 +231,14 @@ public class MeetingController {
      * 성공적으로 실행된 경우, 모집이 마감되었다는 메시지를 포함한 응답을 반환합니다.
      *
      * @param meetingId 모집을 마감할 모임의 고유 식별자 (PathVariable로 전달됨)
-     * @param hostId 현재 요청을 보낸 사용자의 ID로, 인증 정보에서 추출됨 (AuthenticationPrincipal로 전달됨)
+     * @param hostProviderId 현재 요청을 보낸 사용자의 ID로, 인증 정보에서 추출됨 (AuthenticationPrincipal로 전달됨)
      * @return 모집 마감 성공 메시지가 포함된 응답
      */
     @PostMapping("/{meetingId}/close-recruitment")
     public ResponseEntity<ApiResponse<Void>> closeRecruitment(
             @PathVariable Long meetingId,
-            @AuthenticationPrincipal Long hostId) {
-        manageMeetingService.closeRecruitment(meetingId, hostId);
+            @AuthenticationPrincipal String hostProviderId) {
+        manageMeetingService.closeRecruitment(meetingId, hostProviderId);
         return ResponseEntity.ok(ApiResponse.success("모집이 마감되었습니다.", null));
     }
 
@@ -253,14 +249,14 @@ public class MeetingController {
      * 성공적으로 처리된 경우, 성공 메시지와 함께 응답이 반환됩니다.
      *
      * @param meetingId 탈퇴하려는 모임의 고유 식별자 (path variable)
-     * @param userId 인증된 사용자의 고유 식별자 (authentication principal)
+     * @param providerId 인증된 사용자의 고유 식별자 (authentication principal)
      * @return ApiResponse 객체를 감싼 ResponseEntity로 처리 결과를 반환합니다. 성공적으로 처리된 경우 "모임에서 탈퇴하였습니다." 메시지가 포함됩니다.
      */
     @PostMapping("/{meetingId}/leave")
     public ResponseEntity<ApiResponse<Void>> leaveMeeting(
             @PathVariable Long meetingId,
-            @AuthenticationPrincipal Long userId) {
-        manageMeetingService.leaveMeeting(meetingId, userId);
+            @AuthenticationPrincipal String providerId) {
+        manageMeetingService.leaveMeeting(meetingId, providerId);
         return ResponseEntity.ok(ApiResponse.success("모임에서 탈퇴하였습니다.", null));
     }
 
@@ -269,14 +265,14 @@ public class MeetingController {
      * 모임 완료 처리가 성공적으로 이루어진 경우, 적절한 API 응답 메시지를 반환합니다.
      *
      * @param meetingId 완료하고자 하는 모임의 식별자(ID)
-     * @param hostId 완료 처리를 요청하는 호스트 사용자의 식별자(ID)
+     * @param hostProviderId 완료 처리를 요청하는 호스트 사용자의 식별자(ID)
      * @return 모임 완료 처리 결과를 포함하는 ResponseEntity 객체
      */
     @PostMapping("/{meetingId}/complete")
     public ResponseEntity<ApiResponse<Void>> completeMeeting(
             @PathVariable Long meetingId,
-            @AuthenticationPrincipal Long hostId) {
-        manageMeetingService.completeMeeting(meetingId, hostId);
+            @AuthenticationPrincipal String hostProviderId) {
+        manageMeetingService.completeMeeting(meetingId, hostProviderId);
         return ResponseEntity.ok(ApiResponse.success("모임이 종료되었습니다.", null));
     }
 
