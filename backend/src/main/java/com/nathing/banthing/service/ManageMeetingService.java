@@ -37,12 +37,15 @@ public class ManageMeetingService {
     /**
      * 참가 신청 수락
      */
-    public void approveParticipant(Long meetingId, Long participantId, Long hostId) {
+    public void approveParticipant(Long meetingId, Long participantId, String hostProviderId) {
         Meeting meeting = meetingsRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
+        User hostUser = usersRepository.findByProviderId(hostProviderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
         // 호스트 권한 확인
-        if (!meeting.getHostUser().getUserId().equals(hostId)) {
+        if (!meeting.getHostUser().equals(hostUser)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
@@ -52,10 +55,9 @@ public class ManageMeetingService {
         // 승인 처리
         participant.approve();
 
-        // 참가자 수 업데이트 시에도 count 쿼리 사용
+        // 참가자 수 업데이트
         long approvedCount = meetingParticipantsRepository
                 .countByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.APPROVED);
-
         meeting.setCurrentParticipants((int) approvedCount);
 
         // 최대 인원 도달 시 자동 모집 마감
@@ -67,11 +69,14 @@ public class ManageMeetingService {
     /**
      * 모임 수동 모집 마감
      */
-    public void closeRecruitment(Long meetingId, Long hostId) {
+    public void closeRecruitment(Long meetingId, String hostProviderId) {
         Meeting meeting = meetingsRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
-        if (!meeting.getHostUser().getUserId().equals(hostId)) {
+        User hostUser = usersRepository.findByProviderId(hostProviderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!meeting.getHostUser().equals(hostUser)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
@@ -81,11 +86,11 @@ public class ManageMeetingService {
     /**
      * 모임 탈퇴 처리
      */
-    public void leaveMeeting(Long meetingId, Long userId) {
+    public void leaveMeeting(Long meetingId, String providerId) {
         Meeting meeting = meetingsRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
-        User user = usersRepository.findById(userId)
+        User user = usersRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         MeetingParticipant participant = meetingParticipantsRepository
@@ -103,11 +108,14 @@ public class ManageMeetingService {
     /**
      * 모임 종료 처리
      */
-    public void completeMeeting(Long meetingId, Long hostId) {
+    public void completeMeeting(Long meetingId, String hostProviderId) {
         Meeting meeting = meetingsRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
-        if (!meeting.getHostUser().getUserId().equals(hostId)) {
+        User hostUser = usersRepository.findByProviderId(hostProviderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!meeting.getHostUser().equals(hostUser)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 

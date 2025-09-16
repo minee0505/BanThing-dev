@@ -48,18 +48,18 @@ public class CreateMeetingService {
     /**
      * 모임 생성 비즈니스 로직
      * @param request 모임 생성에 필요한 데이터 DTO
-     * @param userId 현재 로그인하여 모임을 생성하는 사용자 ID
+     * @param providerId 현재 로그인하여 모임을 생성하는 사용자 ID
      * @return 생성된 Meeting 엔티티 정보
      */
-    public Meeting createMeeting(MeetingCreateRequest request, Long userId) {
+    public Meeting createMeeting(MeetingCreateRequest request, String providerId) {
 
         // userId가 null인지 검증
-        if (userId == null) {
+        if (providerId == null) {
             throw new BusinessException(ErrorCode.AUTHENTICATION_NOT_FOUND);
         }
 
         // 사용자 정보 조회
-        User hostUser = usersRepository.findById(userId).orElseThrow(
+        User hostUser = usersRepository.findByProviderId(providerId).orElseThrow(
                 ()->new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         // 마트 정보 조회
