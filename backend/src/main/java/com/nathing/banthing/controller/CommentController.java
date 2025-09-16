@@ -5,13 +5,14 @@ import com.nathing.banthing.dto.request.CommentUpdateDto;
 import com.nathing.banthing.dto.response.CommentListDto;
 import com.nathing.banthing.dto.response.CommentReadDto;
 import com.nathing.banthing.service.CommentService;
+import com.nathing.banthing.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-
+/*
 @RestController
 @RequestMapping("/api/meetings/{meetingId}/comments")
 @RequiredArgsConstructor
@@ -19,11 +20,7 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    /**
-     * 특정 모임의 댓글 목록을 조회합니다.
-     * @param meetingId 모임 ID
-     * @return 댓글 목록 DTO와 HTTP 상태 코드
-     */
+
     @GetMapping
     public ResponseEntity<CommentListDto> getCommentsByMeetingId(
             @PathVariable Long meetingId
@@ -37,12 +34,7 @@ public class CommentController {
         return ResponseEntity.ok(commentList);
     }
 
-    /**
-     * 특정 모임에 새로운 댓글을 작성합니다.
-     * @param meetingId 모임 ID
-     * @param createDto 댓글 생성 요청 DTO
-     * @return 생성된 댓글 DTO와 HTTP 상태 코드
-     */
+
     @PostMapping
     public ResponseEntity<CommentReadDto> createComment(
             @PathVariable Long meetingId,
@@ -60,12 +52,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newComment);
     }
 
-    /**
-     * 특정 댓글을 수정합니다.
-     * @param commentId 수정할 댓글 ID
-     * @param updateDto 댓글 수정 요청 DTO
-     * @return 수정된 댓글 DTO와 HTTP 상태 코드
-     */
+
     @PutMapping("/{commentId}")
     public ResponseEntity<CommentReadDto> updateComment(
             @PathVariable Long commentId,
@@ -79,11 +66,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.OK).body(updatedComment);
     }
 
-    /**
-     * 특정 댓글을 삭제합니다.
-     * @param commentId 삭제할 댓글 ID
-     * @return HTTP 상태 코드 (204 No Content)
-     */
+
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long commentId
@@ -94,5 +77,77 @@ public class CommentController {
         commentService.deleteComment(commentId, currentUserId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+}*/
+
+@RestController
+@RequestMapping("/api/meetings/{meetingId}/comments")
+@RequiredArgsConstructor
+public class CommentController {
+
+    private final CommentService commentService;
+    private final UserService userService; // UserService 주입
+
+    /**
+     * 특정 모임의 댓글 목록을 조회합니다.
+     * @param meetingId 모임 ID
+     * @return 댓글 목록 DTO와 HTTP 상태 코드
+     */
+    @PostMapping
+    public ResponseEntity<CommentReadDto> createComment(
+            @PathVariable Long meetingId,
+            @RequestBody CommentCreateDto createDto,
+            @AuthenticationPrincipal String providerId) {
+
+        Long currentUserId = userService.getUserIdByProviderId(providerId);
+        CommentReadDto createdComment = commentService.createComment(meetingId, currentUserId, createDto.getContent());
+        return ResponseEntity.ok(createdComment);
+    }
+
+    /**
+     * 특정 모임에 새로운 댓글을 작성합니다.
+     * @param meetingId 모임 ID
+     * @return 생성된 댓글 DTO와 HTTP 상태 코드
+     */
+    @GetMapping
+    public ResponseEntity<CommentListDto> getComments(
+            @PathVariable Long meetingId,
+            @AuthenticationPrincipal String providerId) {
+
+        Long currentUserId = userService.getUserIdByProviderId(providerId);
+        CommentListDto comments = commentService.getCommentsByMeetingId(meetingId, currentUserId);
+        return ResponseEntity.ok(comments);
+    }
+
+    /**
+     * 특정 댓글을 수정합니다.
+     * @param commentId 수정할 댓글 ID
+     * @param updateDto 댓글 수정 요청 DTO
+     * @return 수정된 댓글 DTO와 HTTP 상태 코드
+     */
+    @PutMapping("/{commentId}")
+    public ResponseEntity<CommentReadDto> updateComment(
+            @PathVariable Long commentId,
+            @RequestBody CommentUpdateDto updateDto,
+            @AuthenticationPrincipal String providerId) {
+
+        Long currentUserId = userService.getUserIdByProviderId(providerId);
+        CommentReadDto updatedComment = commentService.updateComment(commentId, currentUserId, updateDto.getContent());
+        return ResponseEntity.ok(updatedComment);
+    }
+
+    /**
+     * 특정 댓글을 삭제합니다.
+     * @param commentId 삭제할 댓글 ID
+     * @return HTTP 상태 코드 (204 No Content)
+     */
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal String providerId) {
+
+        Long currentUserId = userService.getUserIdByProviderId(providerId);
+        commentService.deleteComment(commentId, currentUserId);
+        return ResponseEntity.noContent().build();
     }
 }

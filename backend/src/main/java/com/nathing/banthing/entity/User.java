@@ -1,9 +1,13 @@
 package com.nathing.banthing.entity;
 
+import com.nathing.banthing.exception.BusinessException;
+import com.nathing.banthing.exception.ErrorCode;
+import com.nathing.banthing.repository.UsersRepository;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -103,9 +107,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    public enum TrustGrade {
-        WARNING, BASIC, GOOD
-    }
 
 
 
