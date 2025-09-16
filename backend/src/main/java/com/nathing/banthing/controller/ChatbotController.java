@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,17 +45,25 @@ public class ChatbotController {
             HttpServletRequest httpRequest) {
 
         try {
-            log.info("챗봇 메시지 요청 - 로그인 여부: {}, 메시지: {}",
-                    subject != null, request.getMessage());
+            log.info("=== 챗봇 메시지 요청 ===");
+            log.info("로그인 여부: {}", subject != null);
+            log.info("메시지: {}", request.getMessage());
 
             ChatbotMessageResponse response;
 
             if (subject != null) {
                 // 로그인한 사용자 - 개인화된 응답 + 대화 기록 저장
-                response = chatbotService.processAuthenticatedMessage(subject, request.getMessage());
-                log.info("로그인 사용자 응답 생성 완료 - UserId: {}", subject);
+                log.info("로그인 사용자 처리 시작 - providerId: {}", subject);
+                try {
+                    response = chatbotService.processAuthenticatedMessage(subject, request.getMessage());
+                    log.info("로그인 사용자 응답 생성 완료");
+                } catch (Exception authError) {
+                    log.error("로그인 사용자 처리 중 오류 발생, 게스트 모드로 전환", authError);
+                    response = chatbotService.processGuestMessage(request.getMessage());
+                }
             } else {
                 // 비로그인 사용자 - 기본 응답만 제공
+                log.info("게스트 사용자 처리 시작");
                 response = chatbotService.processGuestMessage(request.getMessage());
                 log.info("게스트 사용자 응답 생성 완료");
             }
@@ -64,14 +74,17 @@ public class ChatbotController {
             return ResponseEntity.ok(apiResponse);
 
         } catch (Exception e) {
-            log.error("챗봇 메시지 처리 중 오류 발생", e);
+            log.error("=== 챗봇 메시지 처리 중 최종 오류 ===", e);
+            log.error("오류 타입: {}", e.getClass().getSimpleName());
+            log.error("오류 메시지: {}", e.getMessage());
 
             // 에러 상황에서도 사용자에게 도움이 되는 응답 제공
             ChatbotMessageResponse errorResponse = ChatbotMessageResponse.builder()
                     .response(subject != null ?
-                            "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요. 😅" :
-                            "현재 AI 서버에 일시적인 문제가 있습니다. 로그인 후 이용하시면 더 안정적인 서비스를 받으실 수 있어요! 😊")
+                            "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요." :
+                            "현재 AI 서버에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요!")
                     .intentType(ChatbotConversation.IntentType.GENERAL)
+                    .suggestedMeetings(new ArrayList<>())
                     .build();
 
             ApiResponse<ChatbotMessageResponse> apiResponse = ApiResponse.success(
@@ -82,16 +95,22 @@ public class ChatbotController {
     }
 
     /**
-     * 게스트 전용 챗봇 엔드포인트 (로그인 불필요)
+     * 게스트 전용 챗봇 엔드포인트 (로그인 불필요) - 디버깅 강화버전
      */
     @PostMapping("/guest")
     public ResponseEntity<ApiResponse<ChatbotMessageResponse>> sendGuestMessage(
             @Valid @RequestBody ChatbotMessageRequest request) {
 
         try {
-            log.info("게스트 챗봇 메시지 요청 - 메시지: {}", request.getMessage());
+            log.info("=== 게스트 챗봇 요청 시작 ===");
+            log.info("요청 메시지: {}", request.getMessage());
+
+            // Google AI API 상태 확인
+            boolean isHealthy = chatbotService.healthCheck();
+            log.info("Google AI API 상태: {}", isHealthy ? "정상" : "연결 실패");
 
             ChatbotMessageResponse response = chatbotService.processGuestMessage(request.getMessage());
+            log.info("응답 생성 완료: {}", response.getResponse().substring(0, Math.min(50, response.getResponse().length())));
 
             ApiResponse<ChatbotMessageResponse> apiResponse = ApiResponse.success(
                     "게스트 챗봇 응답이 생성되었습니다.", response);
@@ -99,11 +118,14 @@ public class ChatbotController {
             return ResponseEntity.ok(apiResponse);
 
         } catch (Exception e) {
-            log.error("게스트 챗봇 메시지 처리 중 오류 발생", e);
+            log.error("=== 게스트 챗봇 처리 중 오류 발생 ===", e);
+            log.error("오류 메시지: {}", e.getMessage());
+            log.error("오류 타입: {}", e.getClass().getSimpleName());
 
             ChatbotMessageResponse errorResponse = ChatbotMessageResponse.builder()
                     .response("현재 AI 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요. 🙏\n\n" +
-                            "더 정확한 답변을 원하시면 회원가입 후 이용해보세요!")
+                            "더 정확한 답변을 원하시면 회원가입 후 이용해보세요!\n\n" +
+                            "디버그 정보: " + e.getMessage())
                     .intentType(ChatbotConversation.IntentType.GENERAL)
                     .build();
 

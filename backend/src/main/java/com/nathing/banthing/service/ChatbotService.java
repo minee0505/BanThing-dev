@@ -41,4 +41,5 @@ public interface ChatbotService {
     default boolean isServiceHealthy() {
         return healthCheck();
     }
+
 }
