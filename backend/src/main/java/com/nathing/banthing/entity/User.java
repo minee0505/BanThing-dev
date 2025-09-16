@@ -99,12 +99,9 @@ public class User {
     @OneToMany(mappedBy = "receiverUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Feedback> receivedFeedbacks = new ArrayList<>();
 
-//    public enum TrustGrade {
-//        WARNING, BASIC, GOOD
-//    }
 
 
-    //
+
 
     /**
      * 점수를 업데이트하는 메서드

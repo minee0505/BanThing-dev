@@ -1,5 +1,5 @@
 server:
-  port: 9000
+  port: ${SERVER_PORT}
 
 # database setting
 spring:
@@ -60,7 +60,7 @@ spring:
 logging:
   level:
     root: info
-    com.study.event: debug
+    com.nathing.banthing: debug
     org.hibernate.SQL: debug
     org.springframework.jdbc.datasource.init: debug  # SQL 초기화 로그 추가
 
@@ -84,4 +84,11 @@ app:
   oauth2-success-redirect-url: http://localhost:5173
   oauth2-failure-redirect-url: http://localhost:5173/login?from=oauth2
 
+# ===== Google AI (Gemini) 설정 추가 =====
+google:
+  ai:
+    api-key: ${GOOGLE_AI_API_KEY}
+    model: ${GOOGLE_AI_MODEL:gemini-1.5-flash}
+    temperature: ${GOOGLE_AI_TEMPERATURE:0.7}
+    max-tokens: ${GOOGLE_AI_MAX_TOKENS:1000}
 

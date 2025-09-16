@@ -19,8 +19,4 @@ public class CommonResponse<T> {
         return new CommonResponse<>("success", message, data);
     }
 
-    // 데이터가 없는 성공 응답을 위한 정적 팩토리 메서드 추가
-    public static CommonResponse<Void> success(String message) {
-        return new CommonResponse<>("success", message, null);
-    }
 }

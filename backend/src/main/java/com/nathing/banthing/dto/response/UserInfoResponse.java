@@ -1,5 +1,6 @@
 package com.nathing.banthing.dto.response;
 
+import com.nathing.banthing.entity.TrustGrade;
 import com.nathing.banthing.entity.User;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +14,7 @@ public class UserInfoResponse {
     private String selfIntroduction;
     private String provider;
     private Integer trustScore;
-    private User.TrustGrade trustGrade;
+    private TrustGrade trustGrade;
     private Integer noShowCount;
     private Boolean agree;
 

@@ -1,0 +1,547 @@
+/* ==============================================
+   반띵(BanThing) 프로젝트 공통 스타일
+   팀명: 노나가져 | 작성자: 김경민
+   버전: v1.0.0 | 작성일: 2025.09.15
+   ============================================== */
+
+/* ===== 1. CSS 변수 정의 (CSS Custom Properties) ===== */
+:root {
+  /* Primary Colors - 60% 사용 영역 */
+  --primary-color: #A29BFE; /* 라벤더 rgb(162,155,254) */
+  --primary-light: rgba(162, 155, 254, 0.1);
+  --primary-hover: rgba(162, 155, 254, 0.8);
+
+  /* Secondary Colors - 30% 사용 영역 */
+  --secondary-color: #FD79A8; /* 로즈 rgb(253,121,168) */
+  --secondary-light: rgba(253, 121, 168, 0.1);
+  --secondary-hover: rgba(253, 121, 168, 0.8);
+
+  /* Accent Colors - 10% 사용 영역 */
+  --accent-color: #FDCB6E; /* 선샤인 옐로우 rgb(253,203,110) */
+  --accent-light: rgba(253, 203, 110, 0.1);
+  --accent-hover: rgba(253, 203, 110, 0.8);
+
+  /* Text & Background */
+  --text-color: #2D3436; /* 차콜 그레이 rgb(45,52,54) */
+  --text-light: rgba(45, 52, 54, 0.7);
+  --text-muted: rgba(45, 52, 54, 0.5);
+  --background-color: #FAFAFA; /* 라이트 그레이 rgb(250,250,250) */
+  --white: #FFFFFF;
+
+  /* 모임 상태별 컬러 */
+  --status-recruiting: var(--primary-color); /* 모집중 */
+  --status-closed: var(--secondary-color); /* 모집마감 */
+  --status-ongoing: var(--accent-color); /* 진행중 */
+  --status-done: var(--text-color); /* 완료 */
+  --status-cancelled: #95A5A6; /* 취소 */
+
+  /* 신뢰도 배지 컬러 */
+  --trust-warning: #E74C3C; /* 경고 */
+  --trust-basic: #95A5A6; /* 기본 */
+  --trust-good: #27AE60; /* 좋음 */
+
+  /* 인터랙션 상태 */
+  --state-default: var(--primary-color);
+  --state-hover: var(--primary-hover);
+  --state-active: var(--accent-color);
+  --state-disabled: rgba(162, 155, 254, 0.5);
+
+  /* 그림자 */
+  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --shadow-heavy: 0 8px 16px rgba(0, 0, 0, 0.2);
+
+  /* 폰트 */
+  --font-family: 'Pretendard', 'Apple SD Gothic Neo', -apple-system, sans-serif;
+
+  /* 레이아웃 */
+  --container-max-width: 900px;
+  --border-radius: 8px;
+  --border-radius-large: 12px;
+}
+
+/* ===== 2. 기본 리셋 및 기본 스타일 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px; /* 1rem = 16px */
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--text-color);
+  background-color: var(--background-color);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== 3. 컨테이너 및 레이아웃 ===== */
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.container-fluid {
+  width: 100%;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* ===== 4. 그리드 시스템 ===== */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+.col {
+  flex: 1;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.col-2 { flex: 0 0 16.666667%; max-width: 16.666667%; }
+.col-3 { flex: 0 0 25%; max-width: 25%; }
+.col-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+.col-6 { flex: 0 0 50%; max-width: 50%; }
+.col-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+.col-12 { flex: 0 0 100%; max-width: 100%; }
+
+/* ===== 5. 타이포그래피 ===== */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 0.5em;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.125rem; }
+h6 { font-size: 1rem; }
+
+p {
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+/* ===== 6. 버튼 컴포넌트 ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--border-radius);
+  font-family: var(--font-family);
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-height: 44px; /* 터치 접근성 */
+}
+
+/* Primary 버튼 (60% 사용) */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Secondary 버튼 (30% 사용) */
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: var(--white);
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Accent 버튼 (10% 사용 - CTA) */
+.btn-accent {
+  background-color: var(--accent-color);
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.btn-accent:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Outline 버튼 */
+.btn-outline {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+.btn-outline:hover {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+/* 버튼 크기 변형 */
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  min-height: 36px;
+}
+
+.btn-lg {
+  padding: 16px 32px;
+  font-size: 1.125rem;
+  min-height: 52px;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn:disabled {
+  background-color: var(--state-disabled);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== 7. 카드 컴포넌트 ===== */
+.card {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-light);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  padding: 1.5rem;
+  background-color: var(--primary-light);
+  border-bottom: 1px solid rgba(162, 155, 254, 0.2);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-footer {
+  padding: 1rem 1.5rem;
+  background-color: var(--background-color);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* ===== 8. 상태 배지 ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-recruiting {
+  background-color: var(--status-recruiting);
+  color: var(--white);
+}
+
+.badge-closed {
+  background-color: var(--status-closed);
+  color: var(--white);
+}
+
+.badge-ongoing {
+  background-color: var(--status-ongoing);
+  color: var(--text-color);
+}
+
+.badge-done {
+  background-color: var(--status-done);
+  color: var(--white);
+}
+
+.badge-cancelled {
+  background-color: var(--status-cancelled);
+  color: var(--white);
+}
+
+/* 신뢰도 배지 */
+.badge-trust-warning {
+  background-color: var(--trust-warning);
+  color: var(--white);
+}
+
+.badge-trust-basic {
+  background-color: var(--trust-basic);
+  color: var(--white);
+}
+
+.badge-trust-good {
+  background-color: var(--trust-good);
+  color: var(--white);
+}
+
+/* ===== 9. 입력 폼 컴포넌트 ===== */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #E8E8E8;
+  border-radius: var(--border-radius);
+  font-family: var(--font-family);
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* ===== 10. 헤더 스타일 ===== */
+.header {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: var(--white);
+  padding: 1rem 0;
+  box-shadow: var(--shadow-medium);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+}
+
+.nav-link {
+  color: var(--white);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  transition: background-color 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+}
+
+/* ===== 11. 유틸리티 클래스 ===== */
+/* 텍스트 정렬 */
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+/* 텍스트 색상 */
+.text-primary { color: var(--primary-color); }
+.text-secondary { color: var(--secondary-color); }
+.text-accent { color: var(--accent-color); }
+.text-muted { color: var(--text-muted); }
+
+/* 배경 색상 */
+.bg-primary { background-color: var(--primary-color); }
+.bg-secondary { background-color: var(--secondary-color); }
+.bg-accent { background-color: var(--accent-color); }
+.bg-light { background-color: var(--background-color); }
+.bg-white { background-color: var(--white); }
+
+/* 마진/패딩 */
+.m-0 { margin: 0; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.p-0 { padding: 0; }
+.pt-1 { padding-top: 0.5rem; }
+.pt-2 { padding-top: 1rem; }
+.pt-3 { padding-top: 1.5rem; }
+.pb-1 { padding-bottom: 0.5rem; }
+.pb-2 { padding-bottom: 1rem; }
+.pb-3 { padding-bottom: 1.5rem; }
+
+/* 디스플레이 */
+.d-none { display: none; }
+.d-block { display: block; }
+.d-flex { display: flex; }
+.d-inline { display: inline; }
+.d-inline-block { display: inline-block; }
+
+/* Flex 유틸리티 */
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+.align-center { align-items: center; }
+.align-start { align-items: flex-start; }
+.align-end { align-items: flex-end; }
+
+/* 기타 */
+.w-100 { width: 100%; }
+.h-100 { height: 100%; }
+.rounded { border-radius: var(--border-radius); }
+.rounded-lg { border-radius: var(--border-radius-large); }
+.shadow { box-shadow: var(--shadow-light); }
+.shadow-md { box-shadow: var(--shadow-medium); }
+.shadow-lg { box-shadow: var(--shadow-heavy); }
+
+/* ===== 12. 반응형 디자인 ===== */
+/* 태블릿 (768px 이상) */
+@media (min-width: 768px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  h3 { font-size: 1.75rem; }
+}
+
+/* 데스크톱 (1024px 이상) */
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+
+  h1 { font-size: 3rem; }
+  h2 { font-size: 2.25rem; }
+  h3 { font-size: 2rem; }
+}
+
+/* 모바일 전용 (767px 이하) */
+@media (max-width: 767px) {
+  .col-mobile-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .btn-block-mobile {
+    width: 100%;
+  }
+
+  .text-center-mobile {
+    text-align: center;
+  }
+}
+
+/* ===== 13. 접근성 및 포커스 스타일 ===== */
+*:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== 14. 애니메이션 ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+/* ===== 15. 다크모드 지원 (추후 확장용) ===== */
+@media (prefers-color-scheme: dark) {
+  /* 다크모드 스타일은 추후 구현 */
+}
+
+/* ===== 끝 ===== */

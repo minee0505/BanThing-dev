@@ -59,6 +59,9 @@ dependencies {
 
 	// Validation 의존성 추가
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// ===== AI 챗봇 관련 의존성 =====
+	implementation 'com.google.genai:google-genai:1.16.0'
 }
 
 tasks.named('test') {

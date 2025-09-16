@@ -50,8 +50,4 @@ public class Feedback {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // 비즈니스 메서드
-//    public boolean isPositive() {
-//        return Boolean.TRUE.equals(isPositive);
-//    }
 }

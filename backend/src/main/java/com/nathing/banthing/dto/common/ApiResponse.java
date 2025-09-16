@@ -41,4 +41,14 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    // 메시지만 있는 에러 응답
+    public static <T> ApiResponse<T> error(String message) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .timestamp(LocalDateTime.now())
+                .data(null)
+                .build();
+    }
+
 }
