@@ -23,10 +23,11 @@ public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
     /**
      * 제목이나 설명에 키워드가 포함된 모임 검색
      */
-    @Query("SELECT m FROM Meeting m WHERE " +
-            "(LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(m.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-            "m.status = 'RECRUITING' AND m.deletedAt IS NULL")
+    @Query("SELECT m FROM Meeting m JOIN m.mart mart WHERE " +
+                  "(LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                  "LOWER(m.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                  "LOWER(mart.martName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+                  "m.deletedAt IS NULL")
     List<Meeting> findByKeywordAndRecruiting(@Param("keyword") String keyword);
 
     /**
@@ -42,4 +43,13 @@ public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
             "LOWER(mart.address) LIKE LOWER(CONCAT('%', :location, '%')) AND " +
             "m.status = 'RECRUITING' AND m.deletedAt IS NULL")
     List<Meeting> findByLocationAndRecruiting(@Param("location") String location);
+
+
+    /**
+     * 모든 모임을 생성 시간(createdAt) 내림차순으로 정렬하여 조회합니다. (최신순)
+     * "m.mart"를 함께 조회(JOIN FETCH)하여 N+1 문제를 방지하고
+     * Mart 정보가 누락되지 않도록 보장합니다.
+     */
+    @Query("SELECT m FROM Meeting m JOIN FETCH m.mart ORDER BY m.createdAt DESC")
+    List<Meeting> findAllWithMartByOrderByCreatedAtDesc();
 }
