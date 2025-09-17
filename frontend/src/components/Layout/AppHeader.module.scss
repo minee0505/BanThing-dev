@@ -66,6 +66,9 @@ $desktop: 1024px;
   justify-content: space-between;
   align-items: center;
   min-height: 110px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba($primary-color, 0.4);
+  margin-bottom: 10px;
 
   // 로고를 클릭하면 홈으로 이동하도록 Link 컴포넌트에도 스타일을 적용할 수 있습니다.
   .logoLink {
