@@ -1,0 +1,125 @@
+/*
+  반띵 AI 챗봇 스타일 (test.html 기반으로 개선)
+  컬러 가이드를 준수한 반응형 디자인
+*/
+
+// 컬러 변수 (프로젝트 컬러 가이드 기준)
+$primary-color: #A29BFE;     // 라벤더 (Primary 60%)
+$secondary-color: #FD79A8;   // 로즈 (Secondary 30%)
+$accent-color: #FDCB6E;      // 선샤인 옐로우 (Accent 10%)
+$text-color: #2D3436;        // 차콜 그레이
+$background-color: #FAFAFA;  // 라이트 그레이
+$white: #FFFFFF;
+$border-color: rgba($text-color, 0.1);
+$shadow-color: rgba($text-color, 0.15);
+
+// 브레이크포인트
+$mobile: 480px;
+$tablet: 768px;
+$desktop: 1024px;
+
+// 애니메이션
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-10px);
+  }
+}
+
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.header {
+  // 레이아웃 가이드에서 제안하는 Primary 색을 사용합니다.
+  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+  color: $white;
+  padding: 1rem 2rem 1rem 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 110px;
+
+  // 로고를 클릭하면 홈으로 이동하도록 Link 컴포넌트에도 스타일을 적용할 수 있습니다.
+  .logoLink {
+    text-decoration: none;
+    color: inherit;
+  }
+}
+
+// 사용자 프로필과 로그아웃 버튼을 감싸는 영역입니다.
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+// 프로필 이미지 스타일
+.profileImage {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid $white;
+}
+
+// 닉네임 스타일
+.nickname {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+// 로그인 링크와 로그아웃 버튼의 공통 스타일
+.actionButton {
+  background-color: $background-color;
+  color: $primary-color;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba($primary-color, 0.4);
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba($primary-color, 0.6);
+  }
+}
+
+.logoutButton, .loginLink {
+  // 버튼의 기본 스타일을 초기화
+  -webkit-appearance: none; // Safari, Chrome 등
+  appearance: none;
+  cursor: pointer;
+}
