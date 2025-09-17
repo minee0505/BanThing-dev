@@ -28,7 +28,7 @@ const LoginPage = () => {
     setError('');
 
     // 팝업창 열기
-    const popup = window.open(KAKAO_AUTH_URL, 'KakaoLoginPopup', 'width=400,height=600,left=100,top=100');
+    const popup = window.open(KAKAO_AUTH_URL, 'KakaoLoginPopup', 'width=460,height=600,left=100,top=100');
 
     // 팝업이 열리지 않았을 경우 (팝업 차단 등)
     if (!popup || popup.closed || typeof popup.closed === 'undefined') {

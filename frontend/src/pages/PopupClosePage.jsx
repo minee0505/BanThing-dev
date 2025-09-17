@@ -1,5 +1,7 @@
 import React, { useEffect } from "react";
 import {Link, useNavigate, useSearchParams} from 'react-router-dom';
+import { TbXboxX } from "react-icons/tb";
+import styles from './PopupClosePage.module.scss';
 
 const PopupClosePage = () => {
   const [searchParams] = useSearchParams();
@@ -30,16 +32,59 @@ const PopupClosePage = () => {
   }, [errorMessage]);
 
   return (
-    <>
-      { errorMessage ? (
-        <>
-          <p>오류가 발생했습니다.</p>
-          <Link to='/login'>로그인 페이지로 이동</Link>
-        </>
-      ) : (
-        <p>로그인 처리중입니다... 잠시만 기다려주세요</p>
-      )}
-    </>
+    <div className={`${styles.container} ${styles.popupContainer}`}>
+      <main className={styles.popupMain}>
+        <div className={styles.popupCard}>
+          {errorMessage ? (
+            <>
+              <div className={styles.errorHeader}>
+                <TbXboxX className={styles.errorIcon}/>
+                <h1 className={styles.errorTitle}>로그인 오류</h1>
+                <p className={styles.errorSubtitle}>
+                  로그인 과정에서 문제가 발생했습니다.
+                </p>
+              </div>
+
+              <div className={styles.errorContent}>
+                <div className={styles.errorMessage}>
+                  <span className={styles.errorText}>
+                    {errorMessage === 'access_denied'
+                      ? '로그인이 취소되었습니다.'
+                      : '인증 과정에서 오류가 발생했습니다.'}
+                  </span>
+                </div>
+
+                <div className={styles.actionContainer}>
+                  <Link
+                    to='/login'
+                    className={styles.retryButton}
+                  >
+                    로그인 페이지로
+                  </Link>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className={styles.successHeader}>
+                <div className={styles.loadingSpinner}></div>
+                <h1 className={styles.successTitle}>로그인 중...</h1>
+                <p className={styles.successSubtitle}>
+                  로그인을 완료하는 중입니다.
+                </p>
+              </div>
+
+              <div className={styles.successContent}>
+                <p className={styles.processingMessage}>
+                  잠시만 기다려주세요.<br />
+                  곧 메인 페이지로 이동합니다.
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+      </main>
+    </div>
   );
 };
 
