@@ -1,21 +1,18 @@
 import React from 'react';
 import styles from './MeetingCard.module.scss';
-import {FaMapMarkerAlt, FaUsers, FaCalendarAlt} from 'react-icons/fa';
+import { FaMapMarkerAlt, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 
-const MeetingCard = ({meeting}) => {
-    // 날짜 형식을 'YYYY-MM-DD HH:mm'으로 예쁘게 바꿔주는 함수
+const MeetingCard = ({ meeting }) => {
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     };
 
-    //  모임 상태(영문 대문자)를 CSS 클래스(영문 소문자)로 바꿔주는 함수
     const getStatusClass = (status) => {
         if (!status) return '';
         return styles[status.toLowerCase()] || '';
     };
 
-    //  모임 상태에 따라 표시할 한글 텍스트를 정하는 객체
     const statusToKorean = {
         RECRUITING: '모집중',
         FULL: '모집완료',
@@ -24,30 +21,48 @@ const MeetingCard = ({meeting}) => {
         CANCELLED: '모임취소',
     };
 
+    const getFullImageUrl = (thumbnailUrl) => {
+        // 1. 기본 이미지 URL 설정
+        const placeholder = 'https://via.placeholder.com/150';
+        if (!thumbnailUrl) {
+            return placeholder;
+        }
+
+        // 2. 이미 완전한 URL(http로 시작)이면 그대로 반환
+        if (thumbnailUrl.startsWith('http')) {
+            return thumbnailUrl;
+        }
+
+        // 3. .env 파일의 VITE_API_URL ('http://localhost:9000/api')에서
+        //    뒤의 '/api' 부분을 제거하여 백엔드 기본 주소('http://localhost:9000')를 만듭니다.
+        const backendUrl = import.meta.env.VITE_API_URL.replace('/api', '');
+
+        // 4. 백엔드 기본 주소와 DB에 저장된 이미지 경로를 합쳐 완전한 URL을 반환합니다.
+        return `${backendUrl}${thumbnailUrl}`;
+    };
+
     return (
         <div className={styles.card}>
-            {/*  className에 동적으로 상태 클래스를 추가합니다. */}
             <span className={`${styles.badge} ${getStatusClass(meeting.status)}`}>
-                    {statusToKorean[meeting.status] || meeting.status}
-                </span>
+                {statusToKorean[meeting.status] || meeting.status}
+            </span>
 
             <div className={styles.thumbnail}>
-                <img src={meeting.thumbnailImageUrl || 'https://via.placeholder.com/150'} alt={meeting.title}/>
-                {/* 썸네일 안에 있던 배지는 삭제 */}
+                {/* [수정] 위에서 만든 함수를 사용하여 최종 이미지 URL을 가져옵니다. */}
+                <img src={getFullImageUrl(meeting.thumbnailImageUrl)} alt={meeting.title} />
             </div>
 
             <div className={styles.content}>
                 <h3 className={styles.title}>{meeting.title}</h3>
                 <div className={styles.info}>
-                    <span><FaMapMarkerAlt/> {meeting.martName}</span>
-                    <span><FaCalendarAlt/> {formatDate(meeting.meetingDate)}</span>
+                    <span><FaMapMarkerAlt /> {meeting.martName}</span>
+                    <span><FaCalendarAlt /> {formatDate(meeting.meetingDate)}</span>
                 </div>
                 <div className={styles.footer}>
                     <span className={styles.participants}>
-                        <FaUsers/> {meeting.currentParticipants} / {meeting.maxParticipants}명
+                        <FaUsers /> {meeting.currentParticipants} / {meeting.maxParticipants}명
                     </span>
                 </div>
-
             </div>
         </div>
     );
