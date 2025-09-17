@@ -3,6 +3,7 @@ package com.nathing.banthing.dto.response;
 import com.nathing.banthing.entity.Meeting;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 
@@ -37,22 +38,30 @@ import java.time.LocalDateTime;
 public class MeetingSimpleResponse {
 
     private final Long meetingId;
+    private final Long martId;
     private final String title;
+    private final String description; //  description 필드 추가
     private final String martName;
     private final LocalDateTime meetingDate;
     private final Integer currentParticipants;
     private final Integer maxParticipants;
     private final String status;
     private final String thumbnailImageUrl;
+    private final BigDecimal latitude;
+    private final BigDecimal longitude;
 
     public MeetingSimpleResponse(Meeting meeting) {
         this.meetingId = meeting.getMeetingId();
+        this.martId = meeting.getMart().getMartId();
         this.title = meeting.getTitle();
+        this.description = meeting.getDescription();
         this.martName = meeting.getMart().getMartName();
         this.meetingDate = meeting.getMeetingDate();
         this.currentParticipants = meeting.getCurrentParticipants();
         this.maxParticipants = meeting.getMaxParticipants();
         this.status = meeting.getStatus().name();
         this.thumbnailImageUrl = meeting.getThumbnailImageUrl();
+        this.latitude = meeting.getMart().getLatitude();
+        this.longitude = meeting.getMart().getLongitude();
     }
 }

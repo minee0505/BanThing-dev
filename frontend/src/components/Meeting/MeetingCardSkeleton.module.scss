@@ -1,0 +1,72 @@
+/* MeetingCard.module.scss의 레이아웃 스타일을 그대로 가져옵니다. */
+.card {
+  display: flex;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.thumbnail {
+  flex: 0 0 120px; // 너비 120px 고정
+}
+
+.content {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  height: 22px; // 1.1rem
+  width: 80%;
+  margin-bottom: 8px;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.infoLine {
+  height: 18px; // 0.9rem
+  width: 90%;
+}
+
+.footer {
+  margin-top: auto; // 푸터를 항상 아래에 위치시킴
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.participants {
+  width: 50%;
+  height: 18px;
+}
+
+/* 뼈대 역할을 할 회색 라인 스타일 */
+.line {
+  background-color: #e0e0e0;
+  border-radius: 4px;
+}
+
+/* 반짝이는 스켈레톤 애니메이션 */
+.thumbnail, .line {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
