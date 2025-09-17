@@ -6,6 +6,7 @@ import com.nathing.banthing.dto.response.ChatbotConversationHistoryResponse;
 import com.nathing.banthing.dto.common.ApiResponse;
 import com.nathing.banthing.entity.ChatbotConversation;
 import com.nathing.banthing.service.ChatbotService;
+import com.nathing.banthing.service.ChatbotServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
