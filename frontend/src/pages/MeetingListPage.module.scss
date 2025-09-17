@@ -73,3 +73,24 @@
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
   }
 }
+
+.no-results {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  padding: 40px 20px;
+  text-align: center;
+  margin-top: 20px;
+
+  &__icon {
+    color: #FD79A8;
+    margin-bottom: 12px;
+  }
+
+  &__text {
+    font-size: 1rem;
+    color: #2D3436;
+    line-height: 1.5;
+    opacity: 0.7;
+  }
+}

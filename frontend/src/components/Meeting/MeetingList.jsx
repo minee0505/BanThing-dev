@@ -1,6 +1,8 @@
 import React from 'react';
 import MeetingCard from "./MeetingCard.jsx";
 import MeetingCardSkeleton from "./MeetingCardSkeleton.jsx";
+import styles from "../../pages/MeetingListPage.module.scss";
+import { FaRegSadTear } from 'react-icons/fa';
 
 // ✅ 1. skeletonCount prop을 받고, 기본값을 3으로 설정합니다.
 const MeetingList = ({ meetings, isLoading, skeletonCount = 3 }) => {
@@ -22,7 +24,13 @@ const MeetingList = ({ meetings, isLoading, skeletonCount = 3 }) => {
                     <MeetingCard key={meeting.meetingId} meeting={meeting} />
                 ))
             ) : (
-                <p>표시할 모임이 없습니다.</p>
+                <div className={styles['no-results']}>
+                    <FaRegSadTear size="3rem" className={styles['no-results__icon']} />
+                    <p className={styles['no-results__text']}>
+                        앗, 찾으시는 모임이 없네요.<br />
+                        새로운 모임을 만들어보는 건 어떠세요?
+                    </p>
+                </div>
             )}
         </div>
     );
