@@ -1,7 +1,9 @@
-// src/pages/CommentPage.jsx
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
+import { AuthService } from '../services/authService';
+
 import CommentList from '../components/Comment/CommentList.jsx';
 import CommentModal from '../components/Comment/CommentModal'
 
@@ -12,19 +14,39 @@ const CommentPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false); // 모달 상태
     const [selectedComment, setSelectedComment] = useState(null); // 선택된 댓글 정보
     const [editedCommentContent, setEditedCommentContent] = useState(''); // 수정할 댓글 내용
-    const token =
-        'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NDQ5Nzg3ODkwIiwiaWF0IjoxNzU4MDc5NjI2LCJleHAiOjE3NTgwODA1MjZ9.ltXrN6w-XZaLEXqt5Fog14jjWecc_iP1tTg8WFfITtk'; // TODO: 실제 인증 토큰으로 교체하세요
+    const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태 관리
+    const [currentUserId, setCurrentUserId] = useState(null); // 현재 로그인한 사용자 ID
+    const [isParticipant, setIsParticipant] = useState(false); // 모임 참여자 상태 관리
+
+
+    useEffect(() => {
+        const checkLoginStatus = async () => {
+            try {
+                const user = await AuthService.me();
+                setIsLoggedIn(true);
+                setCurrentUserId(user.data.providerId);
+
+                // 모임 참여자인지 확인하는 API 호출 (백엔드에 해당 API가 있다고 가정)
+                const participationResponse = await apiClient.get(
+                    `/meetings/${meetingId}/participants/check?providerId=${providerId}`
+                );
+                setIsParticipant(participationResponse.data.isParticipant);
+            } catch {
+                // 로그인하지 않았거나 토큰이 유효하지 않은 경우
+                setIsLoggedIn(false);
+                setCurrentUserId(null);
+            }
+        };
+
+        checkLoginStatus();
+    }, []);
 
     // 댓글 목록 불러오기 함수
     const fetchComments = async () => {
         try {
-            const response = await axios.get(
-                `http://localhost:9000/api/meetings/${meetingId}/comments`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+            // apiClient 사용: 별도의 토큰 설정 없이 자동으로 쿠키를 포함합니다.
+            const response = await apiClient.get(
+                `/meetings/${meetingId}/comments`
             );
             const sortedComments = response.data.comments.slice().reverse();
             setComments(sortedComments);
@@ -37,7 +59,9 @@ const CommentPage = () => {
         if (meetingId) {
             fetchComments();
         }
-    }, [meetingId, token]);
+    }, [meetingId]);
+
+
 
     /**
      * 댓글 작성 핸들러
@@ -52,30 +76,28 @@ const CommentPage = () => {
             return;
         }
 
+        if (!isLoggedIn) {
+            alert("댓글을 작성하려면 로그인이 필요합니다.");
+            return;
+        }
+
+        if (!isParticipant) {
+            alert("댓글을 작성하려면 모임에 참여해야 합니다.");
+            return;
+        }
+
         try {
-            // CommentCreateRequest DTO에 맞게 JSON 데이터 전송
-            const response = await axios.post(
-                `http://localhost:9000/api/meetings/${meetingId}/comments`,
+            // apiClient 사용: 별도의 토큰 설정 없이 자동으로 쿠키를 포함합니다.
+            await apiClient.post(
+                `/meetings/${meetingId}/comments`,
+                { content: newCommentContent },
                 {
-                    content: newCommentContent,
-                    // DTO에 giverId가 포함되어 있으나, 백엔드에서 @AuthenticationPrincipal을 사용하므로 생략 가능
-                    // 백엔드 컨트롤러 (@AuthenticationPrincipal String providerId)가 giverId를 자동으로 처리합니다.
-                    // 만약 DTO로 giverId를 전달해야 한다면, 여기에 추가해야 합니다.
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                 }
             );
 
-            // 성공적으로 댓글이 생성되면, 댓글 목록을 다시 불러와 화면을 업데이트합니다.
             fetchComments();
-            // 입력 필드 초기화
             setNewCommentContent('');
-            console.log("댓글이 성공적으로 작성되었습니다:", response.data);
-
         } catch (error) {
             console.error("댓글 작성 실패:", error.response ? error.response.data : error.message);
             alert("댓글 작성에 실패했습니다.");
@@ -83,7 +105,7 @@ const CommentPage = () => {
     };
 
     /**
-     * 💡 추가: 댓글 수정 핸들러
+     * 댓글 수정 핸들러
      * @param commentId 수정할 댓글 ID
      * @returns {Promise<void>}
      */
@@ -93,35 +115,51 @@ const CommentPage = () => {
             return;
         }
 
+        if (!isLoggedIn) {
+            // 댓글을 수정하려면 로그인이 필요함을 명시
+            alert("댓글을 수정하려면 로그인이 필요합니다.");
+            return;
+        }
+
+        if (!isParticipant) {
+            alert("댓글을 수정하려면 모임에 참여해야 합니다.");
+            return;
+        }
+
         try {
-            await axios.put(
-                `http://localhost:9000/api/meetings/${meetingId}/comments/${commentId}`,
+            // apiClient 사용
+            await apiClient.put(
+                `/meetings/${meetingId}/comments/${commentId}`,
                 { content: editedCommentContent },
-                { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } }
+                { headers: { 'Content-Type': 'application/json' } }
             );
 
-            fetchComments(); // 수정 후 댓글 목록 새로고침
-            handleCloseModal(); // 모달 닫기
-            console.log(`댓글 ${commentId}이(가) 성공적으로 수정되었습니다.`);
+            fetchComments();
+            handleCloseModal();
         } catch (error) {
             console.error("댓글 수정 실패:", error.response ? error.response.data : error.message);
             alert("댓글 수정에 실패했습니다.");
         }
     };
 
-    // 💡 추가: 댓글 삭제 함수
+    // 댓글 삭제 함수
     const handleCommentDelete = async (commentId) => {
+        if (!isLoggedIn) {
+            alert("댓글을 삭제하려면 로그인이 필요합니다.");
+            return;
+        }
+
+        if (!isParticipant) {
+            alert("댓글을 삭제하려면 모임에 참여해야 합니다.");
+            return;
+        }
+
         if (window.confirm('정말 이 댓글을 삭제하시겠습니까?')) {
             try {
-                await axios.delete(
-                    `http://localhost:9000/api/meetings/${meetingId}/comments/${commentId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
+                // apiClient 사용
+                await apiClient.delete(
+                    `/meetings/${meetingId}/comments/${commentId}`
                 );
-                // 댓글 목록을 다시 불러와 UI 업데이트
                 fetchComments();
             } catch (error) {
                 console.error('댓글 삭제 실패:', error);
@@ -132,6 +170,16 @@ const CommentPage = () => {
 
     // 모달을 여는 함수
     const handleOpenModal = (comment) => {
+        if (!isLoggedIn) {
+            alert("댓글 수정 및 삭제 기능은 로그인 후 이용할 수 있습니다.");
+            return;
+        }
+
+        if (!isParticipant) {
+            alert("댓글을 작성하려면 모임에 참여해야 합니다.");
+            return;
+        }
+
         setSelectedComment(comment);
         setEditedCommentContent(comment.content);
         setIsModalOpen(true);
@@ -146,21 +194,29 @@ const CommentPage = () => {
     return (
         <>
             <section>
-                {/* CommentList 컴포넌트에 onOpenModal 프롭 전달 */}
-                <CommentList comments={comments} onOpenModal={handleOpenModal} />
+                <CommentList
+                    comments={comments}
+                    onOpenModal={handleOpenModal}
+                    isLoggedIn={isLoggedIn}
+                    currentUserId={currentUserId}
+                />
             </section>
 
-            <section>
-                <h3>댓글 작성 폼</h3>
-                <form className="comment-form" onSubmit={handleCommentSubmit}>
-                    <textarea
-                        placeholder="새로운 댓글을 입력하세요."
-                        value={newCommentContent} // 상태와 입력 값 연결
-                        onChange={(e) => setNewCommentContent(e.target.value)} // 입력 값 변경 핸들러
-                    ></textarea>
-                    <button type="submit">작성</button>
-                </form>
-            </section>
+            {isLoggedIn && isParticipant ? (
+                <section>
+                    <h3>댓글 작성 폼</h3>
+                    <form className="comment-form" onSubmit={handleCommentSubmit}>
+                        <textarea
+                            placeholder="새로운 댓글을 입력하세요."
+                            value={newCommentContent}
+                            onChange={(e) => setNewCommentContent(e.target.value)}
+                        ></textarea>
+                        <button type="submit">작성</button>
+                    </form>
+                </section>
+            ) : (
+                <p>댓글 작성은 모임에 참여한 사용자만 가능합니다.</p>
+            )}
 
             <CommentModal
                 isOpen={isModalOpen}

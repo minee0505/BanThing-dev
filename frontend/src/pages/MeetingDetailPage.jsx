@@ -34,18 +34,20 @@ const MeetingDetailPage = () => {
 
     return (
         <div>
-            <h2>댓글</h2>
-            {comments.length > 0 ? (
-                <Link to={`/meetings/${meetingId}/comments`} className="comment-link">
+            <h2>댓글 ({comments.length})</h2>
+            <Link to={`/meetings/${meetingId}/comments`} className="comment-link-area">
+                {comments.length > 0 ? (
+                    // 댓글이 있을 때 첫 번째 댓글과 그 작성자를 보여줌
                     <div>
                         <p><strong>{comments[0].nickname}:</strong> {comments[0].content}</p>
-                        <hr/>
-                        <p>--- 댓글 전체 보기 ---</p>
                     </div>
-                </Link>
-            ) : (
-                <p>댓글이 없습니다.</p>
-            )}
+                ) : (
+                    // 댓글이 없을 때
+                    <div>
+                        <p>등록된 댓글이 없습니다.</p>
+                    </div>
+                )}
+            </Link>
         </div>
     );
 };

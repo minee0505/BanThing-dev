@@ -26,5 +26,7 @@ public interface MeetingParticipantsRepository extends JpaRepository<MeetingPart
 
     long countByMeetingAndApplicationStatus(Meeting meeting, MeetingParticipant.ApplicationStatus status);
 
-    Optional<Object> findByMeetingMeetingIdAndUserUserIdAndApplicationStatus(Long meetingId, Long currentUserId, MeetingParticipant.ApplicationStatus applicationStatus);
+//    Optional<Object> findByMeetingMeetingIdAndUserProviderIdAndApplicationStatus(Long meetingId, String providerId, MeetingParticipant.ApplicationStatus applicationStatus);
+
+    Optional<Object> findByMeetingMeetingIdAndUserUserIdAndApplicationStatus(Long meetingId, Long userId, MeetingParticipant.ApplicationStatus applicationStatus);
 }
