@@ -8,6 +8,7 @@ import LoginPage from "../pages/LoginPage.jsx";
 import AgreementPage from "../pages/AgreementPage.jsx";
 import PopupClosePage from '../pages/PopupClosePage.jsx';
 import LoadMeRoute from "../components/Auth/LoadMeRoute.jsx";
+import MeetingCreatePage from "../pages/MeetingCreatePage.jsx";
 
 // 라우터 설정
 export const router = createBrowserRouter([
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: <MeetingListPage /> },
+      { path: 'meetings/new', element: <MeetingCreatePage /> },
       { path: 'meetings/:id', element: <MeetingDetailPage /> },
       { path: 'meetings/:id/comments', element: <CommentPage /> },
       { path: 'login', element: <LoginPage /> },
