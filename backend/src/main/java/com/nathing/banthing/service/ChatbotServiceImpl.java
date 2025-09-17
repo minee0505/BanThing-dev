@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -149,7 +148,7 @@ public class ChatbotServiceImpl implements ChatbotService {
                 log.info("데이터베이스 조회 시작...");
                 activeMeetings = meetingsRepository.findByStatusAndDeletedAtIsNull(Meeting.MeetingStatus.RECRUITING);
                 meetingCount = activeMeetings != null ? activeMeetings.size() : 0;
-                log.info("✅ 데이터베이스 조회 성공: {}개의 활성 모임 발견", meetingCount);
+                log.info("데이터베이스 조회 성공: {}개의 활성 모임 발견", meetingCount);
 
                 // 모임 정보 상세 로그
                 if (activeMeetings != null && !activeMeetings.isEmpty()) {
@@ -164,8 +163,7 @@ public class ChatbotServiceImpl implements ChatbotService {
                     });
                 }
             } catch (Exception dbError) {
-                log.error("❌ 데이터베이스 조회 실패", dbError);
-                activeMeetings = new ArrayList<>();
+                log.error("데이터베이스 조회 실패", dbError);
             }
 
             // 3. 응답 생성 전략 결정
@@ -180,9 +178,9 @@ public class ChatbotServiceImpl implements ChatbotService {
                     log.info("프롬프트 길이: {}", fullPrompt.length());
 
                     response = generateAIResponse(fullPrompt);
-                    log.info("✅ AI 응답 생성 성공 (길이: {})", response.length());
+                    log.info("AI 응답 생성 성공 (길이: {})", response.length());
                 } catch (Exception aiError) {
-                    log.error("❌ AI API 호출 실패, 데이터베이스 기반 응답으로 전환", aiError);
+                    log.error("AI API 호출 실패, 데이터베이스 기반 응답으로 전환", aiError);
                     response = buildDatabaseBasedResponse(userMessage, activeMeetings);
                 }
             } else {
@@ -222,13 +220,16 @@ public class ChatbotServiceImpl implements ChatbotService {
     @Transactional(readOnly = true)
     public List<ChatbotConversationHistoryResponse> getChatHistory(String providerId) {
         try {
+            // 사용자 존재 여부 확인
             User user = usersRepository.findByProviderId(providerId)
                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+            // 최근 10개 대화 조회 (페이징 처리)
             var pageable = PageRequest.of(0, 10);
             List<ChatbotConversation> conversations = conversationRepository
                     .findByUser_UserIdOrderByCreatedAtDesc(user.getUserId(), pageable);
 
+            // Entity → DTO 변환
             return conversations.stream()
                     .map(this::convertToHistoryResponse)
                     .collect(Collectors.toList());
@@ -251,6 +252,7 @@ public class ChatbotServiceImpl implements ChatbotService {
                     chatbotConfig.getModelName(), fullPrompt, genConfig);
 
             String text = response.text();
+
             if (text == null || text.isBlank()) {
                 log.warn("GenAI로부터 빈 응답을 받았습니다.");
                 return "죄송합니다. 현재 답변을 생성할 수 없습니다. 다시 시도해주세요.";
@@ -264,21 +266,28 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     /**
-     * 사용자 메시지의 의도를 분석합니다. (확장된 키워드 기반)
+     * 사용자 메시지의 의도를 분석합니다. (키워드 기반 패턴 매칭)
      * 모임 검색, 서비스 가이드, 일반 질문으로 구분합니다.
+     * 의도 종류:
+     * - MEETING_SEARCH: 모임 찾기 (지역, 마트, 상품명 포함)
+     * - SERVICE_GUIDE: 서비스 이용법 (가입, 사용법, 규칙 등)
+     * - GENERAL: 일반 질문 (기타 모든 경우)
+     *
+     * @param message 사용자가 입력한 메시지
+     * @return 분석된 의도 타입
      */
     private ChatbotConversation.IntentType determineIntentType(String message) {
         String msg = message.toLowerCase();
 
-        // 모임 검색 관련 키워드 (대폭 확장)
+        // 모임 검색 관련 키워드
         if (containsAny(msg,
                 // 기본 검색 키워드
                 "모임", "찾", "검색", "소분", "함께", "나눔", "지역", "근처", "마트", "추천",
-                // 지역명 키워드
+                // 지역명 키워드 (서울 8개 지점)
                 "양재", "상봉", "마곡", "월계", "영등포", "금천", "고척", "양평",
                 // 마트 브랜드 키워드
                 "코스트코", "트레이더스", "롯데마트", "맥스",
-                // 상품 카테고리 키워드
+                // 상품 카테고리 키워드 (자주 소분되는 상품들)
                 "견과류", "아몬드", "호두", "캐슈넛", "마카다미아", "피스타치오",
                 "세제", "다우니", "섬유유연제", "세탁세제", "주방세제",
                 "냉동", "냉동식품", "만두", "냉동과일", "아이스크림",
@@ -293,7 +302,7 @@ public class ChatbotServiceImpl implements ChatbotService {
             return ChatbotConversation.IntentType.MEETING_SEARCH;
         }
 
-        // 서비스 가이드 관련 키워드 (확장)
+        // 서비스 가이드 관련 키워드
         if (containsAny(msg,
                 // 기본 가이드 키워드
                 "이용", "방법", "가이드", "가입", "시작", "어떻게", "준비", "위생", "안전",
@@ -318,13 +327,12 @@ public class ChatbotServiceImpl implements ChatbotService {
     /**
      * 로그인한 사용자를 위한 개인화된 프롬프트를 생성합니다.
      * 사용자의 닉네임과 실시간 모임 정보를 포함합니다.
-     * (신뢰도, 노쇼 횟수 등 부가 정보는 제거하여 간소화)
      */
     private String buildPersonalizedPrompt(User user) {
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append(chatbotConfig.getSystemPrompt());
 
-        // 사용자 기본 정보 (간소화 - 닉네임만)
+        // 사용자 기본 정보
         promptBuilder.append("\n\n# 현재 사용자 정보\n");
         promptBuilder.append("- 닉네임: ").append(user.getNickname()).append("\n");
 
@@ -345,6 +353,9 @@ public class ChatbotServiceImpl implements ChatbotService {
     /**
      * 실시간 모임 정보를 포함한 강화된 시스템 프롬프트를 생성합니다.
      * 게스트 사용자용 프롬프트에 실제 모임 데이터를 추가합니다.
+     *
+     * @param activeMeetings 현재 모집 중인 모임 리스트
+     * @return 모임 정보가 포함된 강화된 프롬프트
      */
     private String buildEnhancedSystemPrompt(List<Meeting> activeMeetings) {
         StringBuilder prompt = new StringBuilder();
@@ -374,6 +385,10 @@ public class ChatbotServiceImpl implements ChatbotService {
      * 데이터베이스 기반 직접 응답을 생성합니다.
      * AI API 사용이 불가능하거나 실패했을 때 사용하는 대안 응답입니다.
      * 하드코딩된 키워드 매칭 대신 지능적인 모임 매칭을 수행합니다.
+     *
+     * @param userMessage 사용자 메시지 (매칭 키워드 추출용)
+     * @param activeMeetings 현재 활성 모임 리스트
+     * @return 데이터베이스 정보 기반 구조화된 응답
      */
     private String buildDatabaseBasedResponse(String userMessage, List<Meeting> activeMeetings) {
         StringBuilder response = new StringBuilder();
@@ -382,7 +397,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         if (activeMeetings != null && !activeMeetings.isEmpty()) {
             response.append("현재 서울 지역에서 총 ").append(activeMeetings.size()).append("개의 소분 모임이 진행 중이에요!\n\n");
 
-            // 사용자 질문과 관련된 모임 지능적으로 찾기 (하드코딩 제거)
+            // 사용자 질문과 관련된 모임 찾기
             List<Meeting> matchedMeetings = findRelevantMeetings(userMessage, activeMeetings);
 
             if (!matchedMeetings.isEmpty()) {
@@ -421,7 +436,12 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     /**
      * 사용자 질문과 관련성이 높은 모임을 지능적으로 찾습니다.
-     * 하드코딩된 키워드 매칭을 제거하고 동적 매칭을 수행합니다.
+     *
+     * 매칭 전략:
+     *   - 지역명 매칭: 사용자가 언급한 지역과 마트 위치 비교
+     *   - 마트 브랜드 매칭: 코스트코, 트레이더스 등 브랜드명 비교
+     *   - 상품 키워드 매칭: 모임 제목/설명에서 상품명 검색
+     * 결과: 최대 3개 모임 반환 (관련도 높은 순)
      */
     private List<Meeting> findRelevantMeetings(String userMessage, List<Meeting> activeMeetings) {
         String lowerMessage = userMessage.toLowerCase();
@@ -436,12 +456,18 @@ public class ChatbotServiceImpl implements ChatbotService {
                     // 제목, 마트명, 설명에서 사용자 메시지의 키워드와 일치하는 것이 있는지 확인
                     return containsRelevantKeywords(lowerMessage, title, martName, description);
                 })
-                .limit(3)
+                .limit(3)   // 최대 3개만
                 .collect(Collectors.toList());
     }
 
     /**
      * 사용자 메시지와 모임 정보 간의 관련성을 판단합니다.
+     *
+     *  판단 기준:
+     *   1. 지역명 매칭 (양재, 상봉 등)
+     *   2. 마트 브랜드 매칭 (코스트코, 트레이더스 등)
+     *   3. 상품명 매칭 (견과, 세제, 냉동 등)
+     *  반환: 하나라도 매칭되면 true
      */
     private boolean containsRelevantKeywords(String userMessage, String title, String martName, String description) {
         // 지역명 매칭
