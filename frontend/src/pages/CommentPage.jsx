@@ -11,8 +11,9 @@ const CommentPage = () => {
     const [newCommentContent, setNewCommentContent] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false); // 모달 상태
     const [selectedComment, setSelectedComment] = useState(null); // 선택된 댓글 정보
+    const [editedCommentContent, setEditedCommentContent] = useState(''); // 수정할 댓글 내용
     const token =
-        'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NDQ5Nzg3ODkwIiwiaWF0IjoxNzU4MDI2OTc1LCJleHAiOjE3NTgwMjc4NzV9.515d5XZcSlcGMfqPeGusWCvVRCRuNhmMR43FTzonOcg'; // TODO: 실제 인증 토큰으로 교체하세요
+        'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NDQ5Nzg3ODkwIiwiaWF0IjoxNzU4MDc5NjI2LCJleHAiOjE3NTgwODA1MjZ9.ltXrN6w-XZaLEXqt5Fog14jjWecc_iP1tTg8WFfITtk'; // TODO: 실제 인증 토큰으로 교체하세요
 
     // 댓글 목록 불러오기 함수
     const fetchComments = async () => {
@@ -81,9 +82,58 @@ const CommentPage = () => {
         }
     };
 
+    /**
+     * 💡 추가: 댓글 수정 핸들러
+     * @param commentId 수정할 댓글 ID
+     * @returns {Promise<void>}
+     */
+    const handleCommentUpdate = async (commentId) => {
+        if (!editedCommentContent.trim()) {
+            alert("수정할 댓글 내용을 입력해주세요.");
+            return;
+        }
+
+        try {
+            await axios.put(
+                `http://localhost:9000/api/meetings/${meetingId}/comments/${commentId}`,
+                { content: editedCommentContent },
+                { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } }
+            );
+
+            fetchComments(); // 수정 후 댓글 목록 새로고침
+            handleCloseModal(); // 모달 닫기
+            console.log(`댓글 ${commentId}이(가) 성공적으로 수정되었습니다.`);
+        } catch (error) {
+            console.error("댓글 수정 실패:", error.response ? error.response.data : error.message);
+            alert("댓글 수정에 실패했습니다.");
+        }
+    };
+
+    // 💡 추가: 댓글 삭제 함수
+    const handleCommentDelete = async (commentId) => {
+        if (window.confirm('정말 이 댓글을 삭제하시겠습니까?')) {
+            try {
+                await axios.delete(
+                    `http://localhost:9000/api/meetings/${meetingId}/comments/${commentId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+                // 댓글 목록을 다시 불러와 UI 업데이트
+                fetchComments();
+            } catch (error) {
+                console.error('댓글 삭제 실패:', error);
+                alert("댓글 삭제에 실패했습니다.");
+            }
+        }
+    };
+
     // 모달을 여는 함수
     const handleOpenModal = (comment) => {
         setSelectedComment(comment);
+        setEditedCommentContent(comment.content);
         setIsModalOpen(true);
     };
 
@@ -105,14 +155,22 @@ const CommentPage = () => {
                 <form className="comment-form" onSubmit={handleCommentSubmit}>
                     <textarea
                         placeholder="새로운 댓글을 입력하세요."
-                        value={newCommentContent} // 💡 상태와 입력 값 연결
-                        onChange={(e) => setNewCommentContent(e.target.value)} // 💡 입력 값 변경 핸들러
+                        value={newCommentContent} // 상태와 입력 값 연결
+                        onChange={(e) => setNewCommentContent(e.target.value)} // 입력 값 변경 핸들러
                     ></textarea>
                     <button type="submit">작성</button>
                 </form>
             </section>
 
-            <CommentModal isOpen={isModalOpen} onClose={handleCloseModal} comment={selectedComment} />
+            <CommentModal
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                comment={selectedComment}
+                editedContent={editedCommentContent}
+                onEditChange={setEditedCommentContent}
+                onUpdate={handleCommentUpdate}
+                onDelete={handleCommentDelete}
+            />
         </>
     );
 };

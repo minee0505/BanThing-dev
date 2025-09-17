@@ -66,7 +66,7 @@ public class CommentController {
     }
 
     /**
-     * 특정 댓글을 삭제합니다.
+     * 특정 댓글을 논리적으로 삭제합니다.
      * @param commentId 삭제할 댓글 ID
      * @return HTTP 상태 코드 (204 No Content)
      */

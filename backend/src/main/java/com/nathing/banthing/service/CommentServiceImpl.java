@@ -30,6 +30,13 @@ public class CommentServiceImpl implements CommentService {
     private final MeetingParticipantsRepository meetingParticipantRepository;
     private final UsersRepository usersRepository;
 
+
+    /**
+     해당 모임ID의 댓글 조회(논리적 삭제되지 않은 댓글만)
+     * @param meetingId 모임 ID
+     * @param providerId 현재 로그인한 사용자 ID
+     * @return
+     */
     @Override
     public CommentListDto getCommentsByMeetingId(Long meetingId, String providerId) {
         // 1. 모임 존재 여부 확인
@@ -60,6 +67,14 @@ public class CommentServiceImpl implements CommentService {
         return commentListDto;
     }
 
+
+    /**
+     댓글 생성 성비스
+     * @param meetingId 모임 ID
+     * @param providerId
+     * @param content
+     * @return
+     */
     @Override
     @Transactional
     public CommentReadDto createComment(Long meetingId, String providerId, String content) {
@@ -116,6 +131,14 @@ public class CommentServiceImpl implements CommentService {
         return dto;
     }
 
+
+    /**
+     댓글 수정 서비스
+     * @param commentId 수정할 댓글 ID
+     * @param providerId
+     * @param content 새로운 댓글 내용
+     * @return
+     */
     @Override
     @Transactional
     public CommentReadDto updateComment(Long commentId, String providerId, String content) {
@@ -137,6 +160,12 @@ public class CommentServiceImpl implements CommentService {
         return convertToDto(comment);
     }
 
+
+    /**
+     댓글 논리적 삭제 서비스
+     * @param commentId 삭제할 댓글 ID
+     * @param providerId
+     */
     @Override
     @Transactional
     public void deleteComment(Long commentId, String providerId) {
@@ -150,7 +179,7 @@ public class CommentServiceImpl implements CommentService {
             throw new IllegalArgumentException("댓글을 삭제할 권한이 없습니다. 작성자만 삭제할 수 있습니다.");
         }*/
 
-        // 3. 댓글 삭제
-        commentRepository.delete(comment);
+        // 3. 댓글 논리적 삭제
+        comment.delete();
     }
 }
