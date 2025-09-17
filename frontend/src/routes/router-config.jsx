@@ -7,12 +7,17 @@ import CommentPage from "../pages/CommentPage.jsx";
 import LoginPage from "../pages/LoginPage.jsx";
 import AgreementPage from "../pages/AgreementPage.jsx";
 import PopupClosePage from '../pages/PopupClosePage.jsx';
+import LoadMeRoute from "../components/Auth/LoadMeRoute.jsx";
 
 // 라우터 설정
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <AppLayout />,
+    element: (
+      <LoadMeRoute>
+        <AppLayout />
+      </LoadMeRoute>
+    ),
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: <MeetingListPage /> },

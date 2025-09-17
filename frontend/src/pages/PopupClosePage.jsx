@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
-import {Link, useSearchParams} from 'react-router-dom';
+import {Link, useNavigate, useSearchParams} from 'react-router-dom';
 
 const PopupClosePage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const errorMessage = searchParams.get('error');
 
   // 팝업 창의 상태(성공 또는 실패)를 확인하고 부모 창을 처리하는 로직
@@ -15,7 +16,7 @@ const PopupClosePage = () => {
         window.close();
       } else {
         // 팝업이 아닐 경우 그냥 현재창에서 이동
-        window.location.href = "http://localhost:5173/";
+        navigate('/');
       }
     } else { // 에러가 있을때 = 로그인 실패
       if (window.opener) {
