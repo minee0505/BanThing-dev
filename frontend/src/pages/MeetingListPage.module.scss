@@ -4,3 +4,72 @@
   margin: 0 auto;
   padding: 20px;
 }
+
+// 검색창과 버튼을 감싸는 영역
+.actionBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+// 검색창 디자인
+.searchBar {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  background-color: #ffffff; // 흰색 배경
+  border-radius: 25px;
+  padding: 12px 20px;
+  // 그림자 값을 직접 지정합니다.
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease-in-out;
+
+  &:focus-within {
+    // 포커스 시 그림자를 조금 더 진하게
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+  }
+
+  .searchIcon {
+    color: #999;
+    margin-right: 12px;
+  }
+
+  input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    font-size: 1rem;
+
+    &::placeholder {
+      color: #aaa;
+    }
+  }
+}
+
+// '모임 생성' 버튼 디자인
+.createButton {
+  background-color: #A29BFE; // Primary color
+  color: #ffffff; // 흰색
+  border: none;
+  border-radius: 25px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  // 그림자 값을 직접 지정합니다.
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background-color: rgba(162, 155, 254, 0.8); // Primary hover color
+    transform: translateY(-2px);
+    // 호버 시 그림자를 조금 더 진하게
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+  }
+}
