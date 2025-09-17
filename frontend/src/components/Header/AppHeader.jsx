@@ -20,11 +20,15 @@ const AppHeader = () => {
     navigate('/login');
   };
 
+  const handleProfile = () => {
+    navigate('/profile');
+  };
+
   return (
     <header className={`${styles.header} ${styles.container}`}>
       <Logo />
       {isAuthenticated ? (
-        <div className={styles.userSection}>
+        <div onClick={handleProfile} className={styles.userSection}>
           <div className={styles.profileSection}>
             <img
               src={profileImageUrl}
