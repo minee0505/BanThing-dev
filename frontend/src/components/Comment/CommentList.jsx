@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-const CommentList = ({ comments, onOpenModal }) => {
+const CommentList = ({ comments, onOpenModal, isLoggedIn, currentUserId, isParticipant }) => {
     return (
         <div className="comment-list-container">
             <h3>댓글 ({comments.length}개)</h3>
@@ -12,10 +12,11 @@ const CommentList = ({ comments, onOpenModal }) => {
                             <p><strong>{comment.nickname}</strong></p>
                             <p>{comment.content}</p>
                         </div>
-                        {/* 💡 onClick 이벤트 추가 */}
-                        <button className="comment-options-btn" onClick={() => onOpenModal(comment)}>
-                            ...
-                        </button>
+                        {isLoggedIn && currentUserId === comment.userId && isParticipant && (
+                            <button className="comment-options-btn" onClick={() => onOpenModal(comment)}>
+                                ...
+                            </button>
+                        )}
                     </div>
                 ))
             ) : (
