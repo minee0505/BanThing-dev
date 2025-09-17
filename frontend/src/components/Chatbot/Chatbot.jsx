@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sendMessageToChatbot, getChatbotHistory, isUserAuthenticated } from '../../services/chatbotApi';
 import './Chatbot.scss';
+import { FaRobot } from "react-icons/fa6";
+import { BsSendPlus } from "react-icons/bs";
+import { IoMdClose } from "react-icons/io";
+import { FaHourglassHalf } from "react-icons/fa";
+import { MdWavingHand } from "react-icons/md";
 
 const Chatbot = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(true); // 🚀 항상 true로 설정 (로그인 없이도 사용 가능)
+    const [isAuthenticated, setIsAuthenticated] = useState(true); // 항상 true로 설정 (로그인 없이도 사용 가능)
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -119,11 +124,6 @@ const Chatbot = () => {
     };
 
     const toggleChatbot = () => {
-        // 로그인 체크 제거 - 누구나 챗봇 사용 가능 (추후에 수정하기)
-        // if (!isAuthenticated) {
-        //     alert('로그인 후 이용해주세요.');
-        //     return;
-        // }
         setIsOpen(!isOpen);
     };
 
@@ -136,20 +136,7 @@ const Chatbot = () => {
         ));
     };
 
-    // 로그인 안 한 사용자도 챗봇 사용 가능 - 조건부 렌더링 제거 (추후에 수정하기)
-    // if (!isAuthenticated) {
-    //     return (
-    //         <div className="chatbot-container">
-    //             <button
-    //                 className="chatbot-trigger chatbot-trigger--disabled"
-    //                 onClick={toggleChatbot}
-    //                 aria-label="AI 도우미 (로그인 필요)"
-    //             >
-    //                 <span className="chatbot-icon">🤖</span>
-    //             </button>
-    //         </div>
-    //     );
-    // }
+
 
     return (
         <div className="chatbot-container">
@@ -159,7 +146,10 @@ const Chatbot = () => {
                 aria-label="AI 도우미"
             >
                 <span className="chatbot-icon">
-                    {isOpen ? '✕' : '🤖'}
+                    {isOpen
+                        ? <IoMdClose />
+                        : <FaRobot />
+                    }
                 </span>
             </button>
 
@@ -167,7 +157,9 @@ const Chatbot = () => {
                 <div className="chatbot-window">
                     <div className="chatbot-header">
                         <div className="chatbot-header__title">
-                            <span className="chatbot-header__icon">🤖</span>
+                            <span className="chatbot-header__icon">
+                                <FaRobot />
+                            </span>
                             <span className="chatbot-header__text">반띵 AI 도우미</span>
                         </div>
                         <button
@@ -175,14 +167,14 @@ const Chatbot = () => {
                             onClick={toggleChatbot}
                             aria-label="닫기"
                         >
-                            ✕
+                            <IoMdClose />
                         </button>
                     </div>
 
                     <div className="chatbot-messages">
                         {messages.length === 0 ? (
                             <div className="chatbot-welcome">
-                                <div className="chatbot-welcome__icon">👋</div>
+                                <div className="chatbot-welcome__icon"><MdWavingHand /></div>
                                 <div className="chatbot-welcome__text">
                                     안녕하세요! 반띵 AI 도우미입니다.<br />
                                     소분 모임 찾기, 이용 방법 등을<br />
@@ -252,7 +244,10 @@ const Chatbot = () => {
                                 aria-label="전송"
                             >
                                 <span className="chatbot-input__send-icon">
-                                    {isLoading ? '⏳' : '📤'}
+                                    {isLoading
+                                        ? <FaHourglassHalf />
+                                        : <BsSendPlus  />
+                                    }
                                 </span>
                             </button>
                         </div>
