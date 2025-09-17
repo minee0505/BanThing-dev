@@ -5,71 +5,113 @@ import { searchMeetings } from '../services/meetingApi.js';
 import styles from './MeetingListPage.module.scss';
 import Chatbot from '../components/Chatbot/Chatbot.jsx';
 import { FaSearch, FaPlus } from 'react-icons/fa';
+import Pagination from '../components/Meeting/Pagination.jsx';
 
 const MeetingListPage = () => {
     const [meetings, setMeetings] = useState([]);
     const [selectedMartId, setSelectedMartId] = useState(null);
+    const [selectedMartName, setSelectedMartName] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [skeletonCount, setSkeletonCount] = useState(3);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const meetingsPerPage = 5;
+    const [skeletonCount, setSkeletonCount] = useState(meetingsPerPage);
 
-    //  모든 로딩 및 데이터 패치 로직을 하나의 useEffect로 통합하고,
-    // 의존성 배열에서 `meetings`를 제거하여 무한 루프를 방지합니다.
     useEffect(() => {
-        const fetchMeetings = async () => {
-            setIsLoading(true);
-
-            // 디바운스 적용: 300ms 이후에 API 호출 시작
-            const timer = setTimeout(async () => {
-                try {
-                    const result = await searchMeetings(searchTerm);
-                    if (result.success) {
-                        setMeetings(result.data);
-                        // 필터링된 모임 개수에 따라 스켈레톤 카운트 설정
-                        let count;
-                        if (selectedMartId) {
-                            count = result.data.filter(m => m.martId === selectedMartId).length;
-                        } else {
-                            count = Math.min(result.data.length, 3);
-                        }
-                        setSkeletonCount(Math.max(count, 1));
-                    } else {
-                        setMeetings([]);
-                        setSkeletonCount(1);
-                    }
-                } catch (error) {
-                    console.error("모임 목록을 불러오는 중 에러 발생:", error);
+        setIsLoading(true);
+        const fetchAllMeetings = async () => {
+            try {
+                const result = await searchMeetings('');
+                if (result.success) {
+                    const newMeetings = result.data;
+                    setMeetings(newMeetings);
+                    setSkeletonCount(Math.min(newMeetings.length, meetingsPerPage));
+                } else {
                     setMeetings([]);
                     setSkeletonCount(1);
-                } finally {
-                    setIsLoading(false);
                 }
-            }, 300);
-
-            return () => clearTimeout(timer); // cleanup 함수
+            } catch (error) {
+                console.error("모임 목록을 불러오는 중 에러 발생:", error);
+                setMeetings([]);
+                setSkeletonCount(1);
+            } finally {
+                setIsLoading(false);
+            }
         };
-        const timer = setTimeout(() => {
-        fetchMeetings();
-        }, 300);
-
-        return () => clearTimeout(timer);
-
-    }, [searchTerm, selectedMartId]); //  수정: meetings를 제거하고, searchTerm과 selectedMartId만 남깁니다.
+        fetchAllMeetings();
+    }, []);
 
     const handleSearchChange = (e) => {
+        setIsLoading(true);
         setSearchTerm(e.target.value);
+        setCurrentPage(1);
+        setTimeout(() => setIsLoading(false), 300);
     };
 
     const handleMarkerClick = useCallback((martId) => {
-        // 마커 클릭 시 selectedMartId를 업데이트합니다.
-        // 이 상태 변경이 위 useEffect를 다시 실행시키고, 지도가 다시 그려집니다.
-        setSelectedMartId(prevId => (prevId === martId ? null : martId));
+        setIsLoading(true);
+        const newSelectedMartId = selectedMartId === martId ? null : martId;
+
+        if (newSelectedMartId) {
+            const mart = meetings.find(m => m.martId === newSelectedMartId);
+            setSelectedMartName(mart ? mart.martName : null);
+        } else {
+            setSelectedMartName(null);
+        }
+
+        setSelectedMartId(newSelectedMartId);
+        setCurrentPage(1);
+        setTimeout(() => setIsLoading(false), 300);
+    }, [meetings, selectedMartId]);
+
+    const handleClearSelectedMart = useCallback(() => {
+        setIsLoading(true);
+        setSelectedMartId(null);
+        setSelectedMartName(null);
+        setSearchTerm('');
+        setCurrentPage(1);
+        setTimeout(() => setIsLoading(false), 300);
     }, []);
 
     const filteredMeetings = useMemo(() => {
-        if (!selectedMartId) return meetings;
-        return meetings.filter(meeting => meeting.martId === selectedMartId);
-    }, [meetings, selectedMartId]);
+        let tempMeetings = meetings;
+
+        if (selectedMartId) {
+            tempMeetings = tempMeetings.filter(meeting => meeting.martId === selectedMartId);
+        }
+
+        if (searchTerm) {
+            const lowercasedTerm = searchTerm.toLowerCase();
+            tempMeetings = tempMeetings.filter(meeting =>
+                (meeting.title && meeting.title.toLowerCase().includes(lowercasedTerm)) ||
+                (meeting.description && meeting.description.toLowerCase().includes(lowercasedTerm)) ||
+                (meeting.martName && meeting.martName.toLowerCase().includes(lowercasedTerm))
+            );
+        }
+
+        return tempMeetings;
+    }, [meetings, selectedMartId, searchTerm]);
+
+    const { currentMeetings, totalPages } = useMemo(() => {
+        const indexOfLastMeeting = currentPage * meetingsPerPage;
+        const indexOfFirstMeeting = indexOfLastMeeting - meetingsPerPage;
+        const currentMeetingsSlice = filteredMeetings.slice(indexOfFirstMeeting, indexOfLastMeeting);
+        const totalPages = Math.ceil(filteredMeetings.length / meetingsPerPage);
+        return { currentMeetings: currentMeetingsSlice, totalPages };
+    }, [currentPage, filteredMeetings, meetingsPerPage]);
+
+    const paginate = (pageNumber) => {
+        setIsLoading(true);
+        setCurrentPage(pageNumber);
+        setTimeout(() => setIsLoading(false), 300);
+    };
+
+    useEffect(() => {
+        if (isLoading) {
+            const count = filteredMeetings.slice((currentPage - 1) * meetingsPerPage, currentPage * meetingsPerPage).length;
+            setSkeletonCount(Math.max(1, count > 0 ? count : (searchTerm || selectedMartId) ? 1 : meetingsPerPage));
+        }
+    }, [isLoading, currentPage, filteredMeetings, searchTerm, selectedMartId]);
 
     return (
         <div className={styles.container}>
@@ -88,13 +130,25 @@ const MeetingListPage = () => {
                 </button>
             </div>
 
-            <KakaoMap meetings={meetings} onMarkerClick={handleMarkerClick} />
+            <KakaoMap
+                meetings={meetings}
+                onMarkerClick={handleMarkerClick}
+                selectedMartName={selectedMartName}
+                onClearSelectedMart={handleClearSelectedMart}
+            />
 
             <MeetingList
-                meetings={filteredMeetings}
+                meetings={currentMeetings}
                 isLoading={isLoading}
                 skeletonCount={skeletonCount}
             />
+            {totalPages > 1 && !isLoading && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    paginate={paginate}
+                />
+            )}
             <Chatbot />
         </div>
     );

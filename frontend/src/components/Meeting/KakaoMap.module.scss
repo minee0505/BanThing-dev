@@ -1,16 +1,12 @@
 .map-container {
-  /* ✅ 중앙 정렬 및 최대 너비 설정 추가 */
+  position: relative;
   width: 100%;
-  max-width: 900px;  /* test.html의 container와 동일한 너비 */
-  margin: 20px auto; /* 상하 여백 20px, 좌우는 자동으로 중앙 정렬 */
-
-  /* 기존 카드 형태 스타일 유지 */
+  max-width: 900px;
+  margin: 20px auto;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-
-  /* 반응형 높이 설정 */
-  height: 300px; /* 모바일 기본 높이 */
+  height: 300px;
 
   @media (min-width: 768px) {
     height: 400px;
@@ -24,4 +20,39 @@
 .map-instance {
   width: 100%;
   height: 100%;
+}
+
+.selectedMart {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 8px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2D3436;
+
+  .clearButton {
+    background: none;
+    border: none;
+    color: #2D3436;
+    font-size: 1.5rem; /* 아이콘 크기 키움 */
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0 4px;
+    margin-left: 8px;
+    line-height: 1;
+    transition: color 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      color: #FD79A8; // secondary-color
+      transform: scale(1.2); /* 호버 시 약간 커지는 효과 */
+    }
+  }
 }

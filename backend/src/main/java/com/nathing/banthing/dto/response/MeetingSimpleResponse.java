@@ -40,6 +40,7 @@ public class MeetingSimpleResponse {
     private final Long meetingId;
     private final Long martId;
     private final String title;
+    private final String description; //  description 필드 추가
     private final String martName;
     private final LocalDateTime meetingDate;
     private final Integer currentParticipants;
@@ -53,6 +54,7 @@ public class MeetingSimpleResponse {
         this.meetingId = meeting.getMeetingId();
         this.martId = meeting.getMart().getMartId();
         this.title = meeting.getTitle();
+        this.description = meeting.getDescription();
         this.martName = meeting.getMart().getMartName();
         this.meetingDate = meeting.getMeetingDate();
         this.currentParticipants = meeting.getCurrentParticipants();

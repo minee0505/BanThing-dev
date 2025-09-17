@@ -4,12 +4,12 @@ import MeetingCardSkeleton from "./MeetingCardSkeleton.jsx";
 import styles from "../../pages/MeetingListPage.module.scss";
 import { FaRegSadTear } from 'react-icons/fa';
 
-// ✅ 1. skeletonCount prop을 받고, 기본값을 3으로 설정합니다.
+// skeletonCount prop을 받아 사용하도록 수정되었습니다.
 const MeetingList = ({ meetings, isLoading, skeletonCount = 3 }) => {
     if (isLoading) {
         return (
             <div>
-                {/* ✅ 2. skeletonCount만큼 스켈레톤 UI를 반복 렌더링합니다. */}
+                {/* skeletonCount만큼 스켈레톤 UI를 반복 렌더링합니다. */}
                 {[...Array(skeletonCount)].map((_, index) => (
                     <MeetingCardSkeleton key={index} />
                 ))}
