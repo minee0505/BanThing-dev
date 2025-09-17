@@ -3,6 +3,7 @@ import Logo from '../Others/Logo.jsx';
 import {Link, useNavigate} from 'react-router-dom';
 import {useAuthStore} from "../../stores/authStore.js";
 import styles from './AppHeader.module.scss';
+import { RiLogoutBoxLine, RiLoginBoxLine } from "react-icons/ri";
 
 const AppHeader = () => {
   const navigate = useNavigate();
@@ -15,29 +16,33 @@ const AppHeader = () => {
     navigate('/', { replace: true });
   };
 
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
   return (
     <header className={`${styles.header} ${styles.container}`}>
       <Logo />
       {isAuthenticated ? (
         <div className={styles.userSection}>
-          <img
-            src={profileImageUrl}
-            alt="프로필 이미지"
-            className={styles.profileImage}
-          />
-          <p className={styles.nickname}>{nickname}</p>
-          <button
-            type='button'
+          <div className={styles.profileSection}>
+            <img
+              src={profileImageUrl}
+              alt="프로필 이미지"
+              className={styles.profileImage}
+            />
+            <p className={styles.nickname}>{nickname}</p>
+          </div>
+          <RiLogoutBoxLine
             onClick={handleLogout}
-            className={`${styles.logoutButton} ${styles.actionButton}`}
-          >
-            로그아웃
-          </button>
+            className={styles.actionButton}
+          />
         </div>
       ) : (
-        <Link to='/login' className={styles.actionButton}>
-          로그인
-        </Link>
+        <RiLoginBoxLine
+          onClick={handleLogin}
+          className={styles.actionButton}
+        />
       )
       }
     </header>

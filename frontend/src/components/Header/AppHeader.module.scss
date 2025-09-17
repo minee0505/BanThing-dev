@@ -84,10 +84,30 @@ $desktop: 1024px;
   gap: 1rem;
 }
 
+// 프로필 정보 구역 (이미지 + 닉네임)
+.profileSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: rgba($white, 0.1);
+  padding: 0.6rem 1.2rem;
+  border-radius: 32px;
+  border: 2px solid rgba($white, 0.3);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba($text-color, 0.1);
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba($white, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba($text-color, 0.15);
+  }
+}
+
 // 프로필 이미지 스타일
 .profileImage {
-  width: 60px;
-  height: 60px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid $white;
@@ -100,30 +120,22 @@ $desktop: 1024px;
   margin: 0;
 }
 
-// 로그인 링크와 로그아웃 버튼의 공통 스타일
+// 로그인/로그아웃 아이콘의 공통 스타일
 .actionButton {
-  background-color: $background-color;
-  color: $primary-color;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  font-weight: bold;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba($primary-color, 0.4);
+  background-color: var(--white);
+  color: var(--primary-color);
+  width: 36px;
+  height: 36px;
+  min-height: 38px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
 
   &:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba($primary-color, 0.6);
   }
-}
-
-.logoutButton, .loginLink {
-  // 버튼의 기본 스타일을 초기화
-  -webkit-appearance: none; // Safari, Chrome 등
-  appearance: none;
-  cursor: pointer;
 }
