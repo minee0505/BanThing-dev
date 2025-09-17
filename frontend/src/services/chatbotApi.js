@@ -1,31 +1,14 @@
-// File: frontend/src/services/chatbotApi.js
-import axios from 'axios';
 
-// Vite 환경에서는 import.meta.env 사용
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:9000/api';
-
-const chatbotApi = axios.create({
-    baseURL: API_URL,
-    timeout: 10000,
-    withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json'
-    }
-});
-
-chatbotApi.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            window.location.href = '/login';
-        }
-        return Promise.reject(error);
-    }
-);
+import apiClient from './apiClient';
 
 export const sendMessageToChatbot = async (message) => {
     try {
-        const response = await chatbotApi.post('/chatbot/message', { message });
+        const response = await apiClient.post('/chatbot/message', { message }, {
+            timeout: 10000, // 개별 요청에 타임아웃 설정
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
 
         if (response.data.success) {
             return { success: true, data: response.data.data, message: response.data.message };
@@ -63,7 +46,7 @@ export const sendMessageToChatbot = async (message) => {
 
 export const getChatbotHistory = async () => {
     try {
-        const response = await chatbotApi.get('/chatbot/history');
+        const response = await apiClient.get('/chatbot/history');
 
         if (response.data.success) {
             return { success: true, data: response.data.data, message: response.data.message };
@@ -79,5 +62,3 @@ export const getChatbotHistory = async () => {
 export const isUserAuthenticated = () => {
     return document.cookie.includes('ACCESS_TOKEN');
 };
-
-export default chatbotApi;
