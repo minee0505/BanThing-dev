@@ -46,8 +46,9 @@ public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
 
     /**
      * 모든 모임을 생성 시간(createdAt) 내림차순으로 정렬하여 조회합니다. (최신순)
-     * (@Where 어노테이션에 의해 삭제된 모임은 자동으로 제외됩니다.)
-     * @return 정렬된 모임 목록
+     * "m.mart"를 함께 조회(JOIN FETCH)하여 N+1 문제를 방지하고
+     * Mart 정보가 누락되지 않도록 보장합니다.
      */
-    List<Meeting> findAllByOrderByCreatedAtDesc();
+    @Query("SELECT m FROM Meeting m JOIN FETCH m.mart ORDER BY m.createdAt DESC")
+    List<Meeting> findAllWithMartByOrderByCreatedAtDesc();
 }

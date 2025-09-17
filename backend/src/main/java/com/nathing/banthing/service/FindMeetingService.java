@@ -49,8 +49,8 @@ public class FindMeetingService {
      * @return 전체 모임의 핵심 정보 리스트
      */
     public List<MeetingSimpleResponse> findAllMeetings() {
-        // ✅ 수정된 부분: 최신순 정렬 메서드를 호출하도록 변경합니다.
-        return meetingsRepository.findAllByOrderByCreatedAtDesc().stream()
+        //  수정된 부분: 최신순 정렬 메서드를 호출하도록 변경합니다.
+        return meetingsRepository.findAllWithMartByOrderByCreatedAtDesc().stream()
                 .map(MeetingSimpleResponse::new)
                 .collect(Collectors.toList());
     }

@@ -77,7 +77,7 @@ const MeetingListPage = () => {
                 </button>
             </div>
 
-            <KakaoMap onMarkerClick={handleMarkerClick} />
+            <KakaoMap meetings={meetings} onMarkerClick={handleMarkerClick} />
 
             <MeetingList
                 meetings={filteredMeetings}

@@ -1,26 +1,23 @@
 import React, { useEffect, useRef } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import { TbShoppingCartFilled } from "react-icons/tb";
-import { getAllMarts } from '../../services/MartApi.js';
+import { getAllMeetings } from '../../services/meetingApi.js'; // 🚨 수정: getAllMarts 대신 getAllMeetings 임포트
 import styles from './KakaoMap.module.scss';
 
-const KakaoMap = ({ onMarkerClick }) => {
+const KakaoMap = ({ onMarkerClick, meetings }) => {
     const mapContainer = useRef(null);
     const isMapInitialized = useRef(false);
 
     useEffect(() => {
-        if (isMapInitialized.current) return;
+        if (isMapInitialized.current || !meetings || meetings.length === 0) return;
 
         const initializeMap = async () => {
             console.log("️ 지도 초기화를 시작합니다.");
 
-            const result = await getAllMarts();
-            if (!result.success || result.data.length === 0) {
-                console.error(" 마트 데이터를 가져오지 못했거나 데이터가 없습니다.");
-                return;
-            }
-            const martsData = result.data;
-            console.log(` 마트 데이터 ${result.data.length}건을 성공적으로 가져왔습니다.`);
+            // Note: 이미 MeetingListPage에서 meetings를 props로 받아오므로,
+            // 별도로 API를 다시 호출할 필요가 없습니다. (성능 최적화)
+            const meetingsData = meetings;
+            console.log(` 모임 데이터 ${meetingsData.length}건을 성공적으로 가져왔습니다.`);
 
             try {
                 await loadKakaoMapScript();
@@ -38,7 +35,16 @@ const KakaoMap = ({ onMarkerClick }) => {
                     };
                     const map = new window.kakao.maps.Map(mapContainer.current, options);
 
-                    martsData.forEach((mart) => {
+                    // 🚨 수정: 마트별로 모임을 그룹화하여 중복 핀을 방지합니다.
+                    const uniqueMarts = new Map();
+                    meetingsData.forEach(meeting => {
+                        if (!uniqueMarts.has(meeting.martId)) {
+                            uniqueMarts.set(meeting.martId, meeting);
+                        }
+                    });
+
+                    // 🚨 수정: 고유한 마트 정보만 순회하며 핀을 찍습니다.
+                    uniqueMarts.forEach((meeting) => {
                         const iconString = ReactDOMServer.renderToString(
                             <TbShoppingCartFilled color="#FD79A8" size="32" />
                         );
@@ -46,19 +52,16 @@ const KakaoMap = ({ onMarkerClick }) => {
                         const imageSize = new window.kakao.maps.Size(32, 32);
                         const markerImage = new window.kakao.maps.MarkerImage(dataUrl, imageSize);
 
-                        // ✅ 1. 먼저 마커를 생성해서 변수에 담습니다.
                         const marker = new window.kakao.maps.Marker({
-                            position: new window.kakao.maps.LatLng(mart.latitude, mart.longitude),
-                            title: mart.martName,
+                            position: new window.kakao.maps.LatLng(meeting.latitude, meeting.longitude),
+                            title: meeting.martName, // Note: martName은 MeetingSimpleResponse에 포함되어 있음
                             image: markerImage,
                         });
 
-                        // ✅ 2. 생성된 마커에 클릭 이벤트를 추가합니다.
                         window.kakao.maps.event.addListener(marker, 'click', () => {
-                            onMarkerClick(mart.martId);
+                            onMarkerClick(meeting.martId);
                         });
 
-                        // ✅ 3. 마지막으로 마커를 지도에 표시합니다.
                         marker.setMap(map);
                     });
 
@@ -69,7 +72,7 @@ const KakaoMap = ({ onMarkerClick }) => {
         };
 
         initializeMap();
-    }, []);
+    }, [meetings]); // 🚨 수정: meetings 데이터가 변경될 때마다 지도를 다시 그립니다.
 
     return (
         <div className={styles['map-container']}>
