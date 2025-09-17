@@ -45,16 +45,25 @@ public class FindMeetingService {
     private final MeetingsRepository meetingsRepository;
 
     /**
-     * 전체 모임 목록 조회
-     *
+     * 전체 모임 목록 조회 (생성 시간 최신순으로 정렬)
      * @return 전체 모임의 핵심 정보 리스트
      */
-    public List<MeetingSimpleResponse> findAllMeetings() {
-        return meetingsRepository.findAll().stream()
+    public List<MeetingSimpleResponse> searchMeetings(String keyword) {
+        List<Meeting> meetings;
+
+        // ️ 검색어가 비어 있지 않으면 키워드 검색을 수행합니다.
+        if (keyword != null && !keyword.isBlank()) {
+            // meetingsRepository에 이미 제목이나 설명에 키워드가 포함된 모임을 찾는 메서드가 있습니다.
+            meetings = meetingsRepository.findByKeywordAndRecruiting(keyword);
+        } else {
+            // 검색어가 없으면 전체 모임을 최신순으로 조회합니다.
+            meetings = meetingsRepository.findAllWithMartByOrderByCreatedAtDesc();
+        }
+
+        return meetings.stream()
                 .map(MeetingSimpleResponse::new)
                 .collect(Collectors.toList());
     }
-
     /**
      * 특정 모임 상세 조회
      *

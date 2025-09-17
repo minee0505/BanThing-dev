@@ -2,6 +2,7 @@ import React from 'react';
 import Logo from '../Others/Logo.jsx';
 import {Link, useNavigate} from 'react-router-dom';
 import {useAuthStore} from "../../stores/authStore.js";
+import styles from './AppHeader.module.scss';
 
 const AppHeader = () => {
   const navigate = useNavigate();
@@ -15,23 +16,31 @@ const AppHeader = () => {
   };
 
   return (
-    <>
+    <header className={`${styles.header} ${styles.container}`}>
       <Logo />
       {isAuthenticated ? (
-        <>
+        <div className={styles.userSection}>
           <img
             src={profileImageUrl}
             alt="프로필 이미지"
-            style={{ width: 60, height: 60, borderRadius: '50%' }}
+            className={styles.profileImage}
           />
-          <p>{nickname}</p>
-          <button type='button' onClick={handleLogout}>로그아웃</button>
-        </>
+          <p className={styles.nickname}>{nickname}</p>
+          <button
+            type='button'
+            onClick={handleLogout}
+            className={`${styles.logoutButton} ${styles.actionButton}`}
+          >
+            로그아웃
+          </button>
+        </div>
       ) : (
-        <Link to='/login'>로그인</Link>
+        <Link to='/login' className={styles.actionButton}>
+          로그인
+        </Link>
       )
       }
-    </>
+    </header>
   );
 };
 

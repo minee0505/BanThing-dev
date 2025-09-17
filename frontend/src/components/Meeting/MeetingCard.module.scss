@@ -1,0 +1,126 @@
+.card {
+  position: relative;
+  display: flex;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.thumbnail {
+  flex: 0 0 120px; // 너비 120px 고정
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // 이미지가 비율에 맞게 꽉 차도록
+  }
+}
+
+.badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: #A29BFE; /* primary-color */
+  color: white;
+  z-index: 1;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.content {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  // 제목이 너무 길 경우 ...으로 표시
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 12px;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.footer {
+  margin-top: auto; // 푸터를 항상 아래에 위치시킴
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.participants {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #FD79A8; /* secondary-color */
+}
+
+/* 모임 상태별 배지 스타일 */
+.badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+
+  // &는 부모 선택자(.badge)를 가리킴
+  &.recruiting {
+    background-color: #A29BFE; /* recruiting */
+    color: white;
+  }
+
+  &.full {
+    background-color: #FD79A8; /* closed/full */
+    color: white;
+  }
+
+  &.ongoing {
+    background-color: #FDCB6E; /* ongoing */
+    color: #2D3436; /* text-color */
+  }
+
+  &.completed {
+    background-color: #2D3436; /* done/completed */
+    color: white;
+  }
+
+  &.cancelled {
+    background-color: #95A5A6; /* cancelled */
+    color: white;
+  }
+}
