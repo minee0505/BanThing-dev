@@ -67,6 +67,7 @@ public class MeetingController {
     private final ManageMeetingService manageMeetingService;
 
 
+
     /**
      * 모임 생성 API
      *
@@ -93,10 +94,13 @@ public class MeetingController {
      * @return 전체 모임 목록
      */
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<MeetingSimpleResponse>>> getAllMeetings() {
-        List<MeetingSimpleResponse> meetings = findMeetingService.findAllMeetings();
+    public ResponseEntity<ApiResponse<List<MeetingSimpleResponse>>> getAllMeetings(
+            @RequestParam(required = false) String keyword) { //  수정: keyword를 쿼리 파라미터로 받습니다.
 
-        ApiResponse<List<MeetingSimpleResponse>> apiResponse = ApiResponse.success("전체 모임 목록이 성공적으로 조회되었습니다.", meetings);
+        //  수정: 서비스 계층의 새로운 검색 메서드를 호출합니다.
+        List<MeetingSimpleResponse> meetings = findMeetingService.searchMeetings(keyword);
+
+        ApiResponse<List<MeetingSimpleResponse>> apiResponse = ApiResponse.success("모임 목록이 성공적으로 조회되었습니다.", meetings);
 
         return ResponseEntity.ok(apiResponse);
     }

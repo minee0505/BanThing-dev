@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import { TbShoppingCartFilled } from "react-icons/tb";
-import { getAllMeetings } from '../../services/meetingApi.js'; // 🚨 수정: getAllMarts 대신 getAllMeetings 임포트
 import styles from './KakaoMap.module.scss';
 
 const KakaoMap = ({ onMarkerClick, meetings }) => {
@@ -9,13 +8,13 @@ const KakaoMap = ({ onMarkerClick, meetings }) => {
     const isMapInitialized = useRef(false);
 
     useEffect(() => {
+        // ⭐️⭐️⭐️ API를 직접 호출하지 않고, meetings 데이터가 존재하고 지도가 초기화되지 않았을 때만 로직을 실행합니다.
         if (isMapInitialized.current || !meetings || meetings.length === 0) return;
 
         const initializeMap = async () => {
             console.log("️ 지도 초기화를 시작합니다.");
 
-            // Note: 이미 MeetingListPage에서 meetings를 props로 받아오므로,
-            // 별도로 API를 다시 호출할 필요가 없습니다. (성능 최적화)
+            // 이제 meetings prop으로 데이터를 받으므로, API를 따로 호출하는 코드는 필요 없습니다.
             const meetingsData = meetings;
             console.log(` 모임 데이터 ${meetingsData.length}건을 성공적으로 가져왔습니다.`);
 
@@ -54,7 +53,7 @@ const KakaoMap = ({ onMarkerClick, meetings }) => {
 
                         const marker = new window.kakao.maps.Marker({
                             position: new window.kakao.maps.LatLng(meeting.latitude, meeting.longitude),
-                            title: meeting.martName, // Note: martName은 MeetingSimpleResponse에 포함되어 있음
+                            title: meeting.martName,
                             image: markerImage,
                         });
 
@@ -72,7 +71,7 @@ const KakaoMap = ({ onMarkerClick, meetings }) => {
         };
 
         initializeMap();
-    }, [meetings]); // 🚨 수정: meetings 데이터가 변경될 때마다 지도를 다시 그립니다.
+    }, [meetings, onMarkerClick]); // 🚨 수정: meetings prop이 변경될 때마다 지도를 다시 그립니다.
 
     return (
         <div className={styles['map-container']}>

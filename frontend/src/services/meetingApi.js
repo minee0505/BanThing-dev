@@ -7,9 +7,12 @@ const api = axios.create({
     withCredentials: true,
 });
 
-export const getAllMeetings = async () => {
+export const searchMeetings = async (keyword) => {
     try {
-        const response = await api.get('/meetings/search');
+        // 검색어가 있으면 쿼리 파라미터에 추가합니다.
+        const query = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
+        const response = await api.get(`/meetings/search${query}`);
+
         if (response.data && response.data.success) {
             return { success: true, data: response.data.data };
         }

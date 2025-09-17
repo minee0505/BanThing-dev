@@ -48,9 +48,19 @@ public class FindMeetingService {
      * 전체 모임 목록 조회 (생성 시간 최신순으로 정렬)
      * @return 전체 모임의 핵심 정보 리스트
      */
-    public List<MeetingSimpleResponse> findAllMeetings() {
-        //  수정된 부분: 최신순 정렬 메서드를 호출하도록 변경합니다.
-        return meetingsRepository.findAllWithMartByOrderByCreatedAtDesc().stream()
+    public List<MeetingSimpleResponse> searchMeetings(String keyword) {
+        List<Meeting> meetings;
+
+        // ️ 검색어가 비어 있지 않으면 키워드 검색을 수행합니다.
+        if (keyword != null && !keyword.isBlank()) {
+            // meetingsRepository에 이미 제목이나 설명에 키워드가 포함된 모임을 찾는 메서드가 있습니다.
+            meetings = meetingsRepository.findByKeywordAndRecruiting(keyword);
+        } else {
+            // 검색어가 없으면 전체 모임을 최신순으로 조회합니다.
+            meetings = meetingsRepository.findAllWithMartByOrderByCreatedAtDesc();
+        }
+
+        return meetings.stream()
                 .map(MeetingSimpleResponse::new)
                 .collect(Collectors.toList());
     }

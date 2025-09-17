@@ -23,10 +23,11 @@ public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
     /**
      * 제목이나 설명에 키워드가 포함된 모임 검색
      */
-    @Query("SELECT m FROM Meeting m WHERE " +
-            "(LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(m.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-            "m.status = 'RECRUITING' AND m.deletedAt IS NULL")
+    @Query("SELECT m FROM Meeting m JOIN m.mart mart WHERE " +
+                  "(LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                  "LOWER(m.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                  "LOWER(mart.martName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+                  "m.deletedAt IS NULL")
     List<Meeting> findByKeywordAndRecruiting(@Param("keyword") String keyword);
 
     /**
