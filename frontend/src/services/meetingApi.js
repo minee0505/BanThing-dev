@@ -1,17 +1,10 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:9000/api';
-
-const api = axios.create({
-    baseURL: API_URL,
-    withCredentials: true,
-});
+import apiClient from './apiClient';
 
 export const searchMeetings = async (keyword) => {
     try {
-        // 검색어가 있으면 쿼리 파라미터에 추가합니다.
         const query = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
-        const response = await api.get(`/meetings/search${query}`);
+
+        const response = await apiClient.get(`/meetings/search${query}`);
 
         if (response.data && response.data.success) {
             return { success: true, data: response.data.data };

@@ -1,16 +1,11 @@
-import axios from 'axios';
+import apiClient from './apiClient';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:9000/api';
-
-const martApi = axios.create({
-    baseURL: API_URL,
-    withCredentials: true,
-});
-
-export const getAllMarts = async () => {
+export const getAllMarts = async (keyword) => {
     try {
-        const response = await martApi.get('/marts');
-        // 백엔드의 ApiResponse 형식에 맞춰 실제 데이터(data.data)를 반환
+        const query = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
+
+        const response = await apiClient.get(`/meetings/search${query}`);
+
         if (response.data && response.data.success) {
             return { success: true, data: response.data.data };
         } else {
