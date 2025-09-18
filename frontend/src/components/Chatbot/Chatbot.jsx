@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { sendMessageToChatbot, getChatbotHistory, isUserAuthenticated } from '../../services/chatbotApi';
-import './Chatbot.scss';
+import styles from './Chatbot.module.scss';
 import { FaRobot } from "react-icons/fa6";
 import { BsSendPlus } from "react-icons/bs";
 import { IoMdClose } from "react-icons/io";
@@ -12,33 +12,12 @@ const Chatbot = () => {
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(true); // 항상 true로 설정 (로그인 없이도 사용 가능)
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
-    useEffect(() => {
-        // 로그인 체크 비활성화 - 누구나 챗봇 사용 가능 (추후에 수정하기)
-        // const authStatus = isUserAuthenticated();
-        // setIsAuthenticated(authStatus);
-
-        // 로그인한 사용자만 히스토리 로드
-        const authStatus = isUserAuthenticated();
-        if (authStatus) {
-            loadChatHistory();
-        }
-    }, []);
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    useEffect(() => {
-        if (isOpen && inputRef.current) {
-            inputRef.current.focus();
-        }
-    }, [isOpen]);
-
-    const loadChatHistory = async () => {
+    // 채팅 기록 로드 함수를 useCallback으로 메모이제이션
+    const loadChatHistory = useCallback(async () => {
         try {
             const result = await getChatbotHistory();
             if (result.success) {
@@ -62,12 +41,46 @@ const Chatbot = () => {
             }
         } catch (error) {
             console.error('대화 기록 로드 실패:', error);
-            // 로그인하지 않은 사용자는 환영 메시지만 표시
             console.log('로그인하지 않은 사용자 - 히스토리 없이 시작');
         }
-    };
+    }, []);
 
-    const sendMessage = async () => {
+    // 인증 상태 확인
+    useEffect(() => {
+        const checkAuthStatus = async () => {
+            try {
+                const authStatus = await isUserAuthenticated();
+                setIsAuthenticated(authStatus);
+
+                // 로그인한 사용자만 히스토리 로드
+                if (authStatus) {
+                    await loadChatHistory();
+                }
+            } catch (error) {
+                console.error('인증 상태 확인 실패:', error);
+                setIsAuthenticated(false);
+            }
+        };
+
+        checkAuthStatus();
+    }, [loadChatHistory]);
+
+    // 메시지 스크롤 처리
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages]);
+
+    // 채팅창 오픈 시 포커스
+    useEffect(() => {
+        if (isOpen && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isOpen]);
+
+    // 메시지 전송 함수
+    const sendMessage = useCallback(async () => {
         if (!inputMessage.trim() || isLoading) return;
 
         const userMessage = inputMessage.trim();
@@ -97,10 +110,9 @@ const Chatbot = () => {
         } catch (error) {
             console.error('메시지 전송 실패:', error);
 
-            // 로그인하지 않은 사용자도 기본 응답 제공
             const errorMessage = {
                 type: 'bot',
-                content: isUserAuthenticated()
+                content: isAuthenticated
                     ? '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
                     : '현재 AI 서버에 연결할 수 없습니다. 로그인 후 이용하시면 더 정확한 답변을 받으실 수 있어요! 😊',
                 timestamp: new Date(),
@@ -110,83 +122,100 @@ const Chatbot = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [inputMessage, isLoading, isAuthenticated]);
 
-    const handleKeyPress = (e) => {
+    // 키보드 이벤트 처리
+    const handleKeyPress = useCallback((e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
         }
-    };
+    }, [sendMessage]);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    const toggleChatbot = () => {
-        setIsOpen(!isOpen);
-    };
-
-    const formatMessage = (content) => {
+    // 메시지 포맷팅
+    const formatMessage = useCallback((content) => {
         return content.split('\n').map((line, index) => (
             <React.Fragment key={index}>
                 {line}
                 {index < content.split('\n').length - 1 && <br />}
             </React.Fragment>
         ));
-    };
+    }, []);
 
+    // 회원가입 버튼 클릭 핸들러
+    const handleSignupClick = useCallback(() => {
+        window.location.href = 'http://localhost:9000/oauth2/authorization/kakao';
+    }, []);
 
+    // 회원가입 관련 키워드 감지
+    const shouldShowSignupButton = useCallback((message) => {
+        const signupKeywords = ['회원가입', '가입', '로그인', '시작', '가입하기', '회원'];
+        return signupKeywords.some(keyword => message.includes(keyword));
+    }, []);
+
+    // 챗봇 토글
+    const toggleChatbot = useCallback(() => {
+        setIsOpen(prevOpen => !prevOpen);
+    }, []);
 
     return (
-        <div className="chatbot-container">
+        <div className={styles.container}>
             <button
-                className={`chatbot-trigger ${isOpen ? 'chatbot-trigger--active' : ''}`}
+                className={`${styles.trigger} ${isOpen ? styles.active : ''}`}
                 onClick={toggleChatbot}
                 aria-label="AI 도우미"
+                type="button"
             >
-                <span className="chatbot-icon">
-                    {isOpen
-                        ? <IoMdClose />
-                        : <FaRobot />
-                    }
+                <span className={styles.icon}>
+                    {isOpen ? <IoMdClose /> : <FaRobot />}
                 </span>
             </button>
 
             {isOpen && (
-                <div className="chatbot-window">
-                    <div className="chatbot-header">
-                        <div className="chatbot-header__title">
-                            <span className="chatbot-header__icon">
+                <div className={styles.window}>
+                    <div className={styles.header}>
+                        <div className={styles.headerTitle}>
+                            <span className={styles.headerIcon}>
                                 <FaRobot />
                             </span>
-                            <span className="chatbot-header__text">반띵 AI 도우미</span>
+                            <span>반띵 AI 도우미</span>
                         </div>
                         <button
-                            className="chatbot-header__close"
+                            className={styles.headerClose}
                             onClick={toggleChatbot}
                             aria-label="닫기"
+                            type="button"
                         >
                             <IoMdClose />
                         </button>
                     </div>
 
-                    <div className="chatbot-messages">
+                    <div className={styles.messages}>
                         {messages.length === 0 ? (
-                            <div className="chatbot-welcome">
-                                <div className="chatbot-welcome__icon"><MdWavingHand /></div>
-                                <div className="chatbot-welcome__text">
+                            <div className={styles.welcome}>
+                                <div className={styles.welcomeIcon}>
+                                    <MdWavingHand />
+                                </div>
+                                <div className={styles.welcomeText}>
                                     안녕하세요! 반띵 AI 도우미입니다.<br />
                                     소분 모임 찾기, 이용 방법 등을<br />
                                     도와드릴 수 있어요!
-                                    {/* 🚀 로그인 안 한 사용자를 위한 추가 안내 */}
-                                    {!isUserAuthenticated() && (
+
+                                    {!isAuthenticated && (
                                         <>
                                             <br /><br />
                                             <span style={{ fontSize: '12px', opacity: '0.7' }}>
                                                 💡 로그인하시면 대화 기록이 저장되고<br />
                                                 더 정확한 답변을 받으실 수 있어요!
                                             </span>
+                                            <br />
+                                            <button
+                                                className={styles.signupButton}
+                                                onClick={handleSignupClick}
+                                                type="button"
+                                            >
+                                                카카오로 시작하기
+                                            </button>
                                         </>
                                     )}
                                 </div>
@@ -195,12 +224,25 @@ const Chatbot = () => {
                             messages.map((message, index) => (
                                 <div
                                     key={index}
-                                    className={`chatbot-message chatbot-message--${message.type} ${message.isError ? 'chatbot-message--error' : ''}`}
+                                    className={`${styles.message} ${styles[message.type]} ${message.isError ? styles.error : ''}`}
                                 >
-                                    <div className="chatbot-message__content">
+                                    <div className={styles.messageContent}>
                                         {formatMessage(message.content)}
+
+                                        {/* 챗봇 메시지에서 회원가입 관련 키워드 감지 시 버튼 표시 */}
+                                        {message.type === 'bot' && !isAuthenticated && shouldShowSignupButton(message.content) && (
+                                            <div style={{ marginTop: '12px' }}>
+                                                <button
+                                                    className={styles.signupButton}
+                                                    onClick={handleSignupClick}
+                                                    type="button"
+                                                >
+                                                    카카오로 시작하기
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="chatbot-message__time">
+                                    <div className={styles.messageTime}>
                                         {message.timestamp.toLocaleTimeString([], {
                                             hour: '2-digit',
                                             minute: '2-digit'
@@ -211,9 +253,9 @@ const Chatbot = () => {
                         )}
 
                         {isLoading && (
-                            <div className="chatbot-message chatbot-message--bot">
-                                <div className="chatbot-message__content">
-                                    <div className="chatbot-typing">
+                            <div className={`${styles.message} ${styles.bot}`}>
+                                <div className={styles.messageContent}>
+                                    <div className={styles.typing}>
                                         <span></span>
                                         <span></span>
                                         <span></span>
@@ -225,29 +267,27 @@ const Chatbot = () => {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    <div className="chatbot-input">
-                        <div className="chatbot-input__wrapper">
+                    <div className={styles.input}>
+                        <div className={styles.inputWrapper}>
                             <textarea
                                 ref={inputRef}
                                 value={inputMessage}
                                 onChange={(e) => setInputMessage(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 placeholder="메시지를 입력하세요..."
-                                className="chatbot-input__field"
+                                className={styles.inputField}
                                 rows="1"
                                 disabled={isLoading}
                             />
                             <button
                                 onClick={sendMessage}
                                 disabled={!inputMessage.trim() || isLoading}
-                                className="chatbot-input__send"
+                                className={styles.sendButton}
                                 aria-label="전송"
+                                type="button"
                             >
-                                <span className="chatbot-input__send-icon">
-                                    {isLoading
-                                        ? <FaHourglassHalf />
-                                        : <BsSendPlus  />
-                                    }
+                                <span>
+                                    {isLoading ? <FaHourglassHalf /> : <BsSendPlus />}
                                 </span>
                             </button>
                         </div>
