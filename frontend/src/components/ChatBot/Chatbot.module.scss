@@ -1,0 +1,610 @@
+// 컬러 변수 (프로젝트 컬러 가이드 기준)
+$primary-color: #A29BFE;     // 라벤더 (Primary 60%)
+$secondary-color: #FD79A8;   // 로즈 (Secondary 30%)
+$accent-color: #FDCB6E;      // 선샤인 옐로우 (Accent 10%)
+$text-color: #2D3436;        // 차콜 그레이
+$background-color: #FAFAFA;  // 라이트 그레이
+$white: #FFFFFF;
+$border-color: rgba($primary-color, 0.2);
+$shadow-color: rgba($text-color, 0.15);
+
+// 브레이크포인트
+$mobile: 480px;
+$tablet: 768px;
+$desktop: 1024px;
+
+// 애니메이션
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px);
+  }
+  60% {
+    transform: translateY(-4px);
+  }
+}
+
+// 메인 컨테이너
+.container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1000;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  @media (max-width: $mobile) {
+    bottom: 20px;
+    right: 20px;
+  }
+}
+
+// 토글 버튼 - 더 상동감 있게
+.trigger {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba($primary-color, 0.4);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 8px 25px rgba($primary-color, 0.6);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.active {
+    background: linear-gradient(135deg, $secondary-color 0%, $primary-color 100%);
+    animation: pulse 2s infinite;
+  }
+
+  @media (max-width: $mobile) {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+.icon {
+  font-size: 28px;
+  color: $white;
+  transition: all 0.3s ease;
+
+  .trigger:hover & {
+    transform: scale(1.2) rotate(-5deg);
+  }
+
+  @media (max-width: $mobile) {
+    font-size: 24px;
+  }
+}
+
+// 챗봇 창 - 더 세련되게
+.window {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  width: 380px;
+  height: 500px;
+  background: $white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15),
+  0 0 0 1px rgba($primary-color, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  @media (max-width: $tablet) {
+    width: 350px;
+    height: 450px;
+  }
+
+  @media (max-width: $mobile) {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+  }
+}
+
+// 헤더 - 더 상동감 있게
+.header {
+  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: $white;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shimmer 3s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 16px;
+
+  .statusIndicator {
+    width: 8px;
+    height: 8px;
+    background: #4CAF50;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+}
+
+.headerSubtitle {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.headerIcon {
+  font-size: 22px;
+  animation: bounce 2s infinite;
+}
+
+.headerClose {
+  background: rgba($white, 0.1);
+  border: none;
+  color: $white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba($white, 0.2);
+    transform: rotate(90deg);
+  }
+}
+
+// 메시지 영역 - 더 부드럽게
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%);
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba($primary-color, 0.3);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: rgba($primary-color, 0.5);
+    }
+  }
+}
+
+// 환영 메시지 - 더 친근하게
+.welcome {
+  text-align: center;
+  padding: 40px 20px;
+  color: $text-color;
+}
+
+.welcomeIcon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: bounce 2s infinite;
+  filter: drop-shadow(0 2px 4px rgba($primary-color, 0.3));
+}
+
+.welcomeTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: $primary-color;
+}
+
+.welcomeText {
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.8;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.signupButton {
+  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+  border: none;
+  color: $white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba($primary-color, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba($primary-color, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// 메시지 - 완전히 새로운 디자인
+.message {
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.4s ease;
+  margin-bottom: 4px;
+
+  &.user {
+    align-items: flex-end;
+
+    .messageContent {
+      background: linear-gradient(135deg, $primary-color 0%, lighten($primary-color, 10%) 100%);
+      color: $white;
+      margin-left: 40px;
+      border-radius: 18px 18px 6px 18px;
+      box-shadow: 0 2px 8px rgba($primary-color, 0.3);
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: -6px;
+        width: 0;
+        height: 0;
+        border: 6px solid transparent;
+        border-left-color: $primary-color;
+        border-bottom: none;
+        border-right: none;
+      }
+    }
+
+    .messageTime {
+      text-align: right;
+      margin-right: 8px;
+    }
+  }
+
+  &.bot {
+    align-items: flex-start;
+
+    .messageContent {
+      background: $white;
+      color: $text-color;
+      margin-right: 40px;
+      border-radius: 18px 18px 18px 6px;
+      border: 1px solid rgba($primary-color, 0.1);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: -6px;
+        width: 0;
+        height: 0;
+        border: 6px solid transparent;
+        border-right-color: $white;
+        border-bottom: none;
+        border-left: none;
+      }
+    }
+
+    .messageTime {
+      text-align: left;
+      margin-left: 8px;
+    }
+
+    &.error .messageContent {
+      background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+      border-color: #fcc;
+      color: #c66;
+    }
+  }
+}
+
+.messageContent {
+  max-width: 280px;
+  padding: 14px 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+
+  @media (max-width: $mobile) {
+    max-width: 240px;
+    font-size: 13px;
+    padding: 12px 16px;
+  }
+}
+
+.messageTime {
+  font-size: 11px;
+  color: rgba($text-color, 0.6);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+// 타이핑 인디케이터 - 더 귀엽게
+.typing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: $white;
+  border-radius: 18px 18px 18px 6px;
+  border: 1px solid rgba($primary-color, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-right: 40px;
+  max-width: fit-content;
+
+  span {
+    width: 6px;
+    height: 6px;
+    background: $primary-color;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+
+    &:nth-child(1) { animation-delay: 0s; }
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+}
+
+// 입력 영역 - 더 모던하게
+.input {
+  background: $white;
+  border-top: 1px solid rgba($primary-color, 0.1);
+  padding: 16px 20px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex: 1;
+}
+
+.inputField {
+  flex: 1;
+  border: 2px solid rgba($primary-color, 0.2);
+  border-radius: 24px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-family: inherit;
+  color: $text-color;
+  background: rgba($background-color, 0.5);
+  resize: none;
+  outline: none;
+  transition: all 0.3s ease;
+  max-height: 100px;
+  min-height: 20px;
+
+  &:focus {
+    border-color: $primary-color;
+    background: $white;
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+  }
+
+  &::placeholder {
+    color: rgba($text-color, 0.5);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: rgba($background-color, 0.3);
+  }
+}
+
+.sendButton {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #A29BFE 0%, #FD79A8 100%);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(162, 155, 254, 0.4);
+
+  svg {
+    font-size: 16px;
+    color: #ffffff;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+  }
+
+  &:hover:not(:disabled) {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 4px 12px rgba(162, 155, 254, 0.5);
+    background: linear-gradient(135deg, #9085FD 0%, #F865A3 100%);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    background: linear-gradient(135deg, #D1D5DB 0%, #9CA3AF 100%);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(209, 213, 219, 0.3);
+
+    svg {
+      color: #F3F4F6;
+    }
+  }
+}
+
+// 빠른 응답 버튼들
+.quickReplies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+
+  .quickReply {
+    background: rgba($primary-color, 0.1);
+    border: 1px solid rgba($primary-color, 0.2);
+    color: $primary-color;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $primary-color;
+      color: $white;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+// 로딩 스피너
+.loadingSpinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba($primary-color, 0.3);
+  border-radius: 50%;
+  border-top-color: $primary-color;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// 접근성 개선
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// 다크모드 대응 (기본 준비)
+@media (prefers-color-scheme: dark) {
+  // 다크모드는 추후 구현
+}
+
+// 추가 유틸리티 클래스
+.textGradient {
+  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glassEffect {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}

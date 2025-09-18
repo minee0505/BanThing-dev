@@ -8,13 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * @author 김경민
- * @since 2025-09-12
- * Google Gemini AI 챗봇을 위한 설정 클래스 (최신 SDK용)
- * - 로그인 없이도 기본적인 챗봇 기능 이용 가능
+ * @since 2025-09-16
+ * Google Gemini AI 챗봇을 위한 설정 클래스
+ * - 로그인 없이도 기본적인 챗봇 기능 이용 가능, 로그인 후 개인화된 응답 제공
+ * - 환경변수로 API 키, 모델명, 온도, 최대 토큰 수 설정
+ * - 반띵 서비스에 특화된 시스템 프롬프트 제공
  * - 데이터베이스 정보를 포함한 정교한 시스템 프롬프트
  */
 @Slf4j
@@ -29,19 +30,19 @@ public class ChatbotConfig {
     @Value("${google.ai.model:gemini-1.5-flash}")
     private String modelName;
 
+    // 모델의 응답 다양성을 조절하는 값(temperature)
     @Value("${google.ai.temperature:0.7}")
     private Float temperature;
 
-    @Value("${google.ai.max-tokens:2000}")  // 더 긴 응답을 위해 증가
+    // 모델이 생성할 수 있는 응답의 최대 토큰 수
+    @Value("${google.ai.max-tokens:2000}")
     private Integer maxTokens;
 
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
-
-    // ===== Google GenAI SDK Bean 추가 =====
-
+    /**
+     * Google Gemini AI 클라이언트를 생성하고 Spring 컨테이너에 Bean으로 등록합니다.
+     * @return 설정된 API 키를 사용하는 Google AI Client 인스턴스
+     * @throws IllegalStateException  API 키가 설정되지 않은 경우, 에러 로그를 남기고 예외를 발생시켜 애플리케이션 실행을 중단시킵니다.
+     */
     @Bean
     public Client genAiClient() {
         if (apiKey == null || apiKey.trim().isEmpty()) {
@@ -49,11 +50,16 @@ public class ChatbotConfig {
             throw new IllegalStateException("Google AI API Key is required");
         }
 
+        // API 키를 사용하여 Google AI 클라이언트를 빌드하고 반환
         return Client.builder()
                 .apiKey(apiKey)
                 .build();
     }
 
+    /**
+     * AI 모델의 콘텐츠 생성 동작을 구성하는 객체를 생성하고 Bean으로 등록합니다.
+     * @return 온도(temperature)와 최대 출력 토큰(maxOutputTokens)이 설정된 설정 객체
+     */
     @Bean
     public GenerateContentConfig generateContentConfig() {
         return GenerateContentConfig.builder()
@@ -63,32 +69,20 @@ public class ChatbotConfig {
     }
 
     /**
-     * Google Gemini API 설정 검증
-     */
-    @Bean
-    public boolean validateGeminiConfig() {
-        if (apiKey == null || apiKey.trim().isEmpty()) {
-            log.error("Google AI API Key가 설정되지 않았습니다. .env 파일을 확인해주세요.");
-            return false;
-        }
-
-        log.info("Google Gemini API 설정이 완료되었습니다. Model: {}, Temperature: {}",
-                modelName, temperature);
-        return true;
-    }
-
-    /**
-     * 반띵 서비스 전용 시스템 프롬프트 (데이터베이스 정보 포함)
+     * '반띵' 서비스에 특화된 상세한 시스템 프롬프트를 반환합니다.
+     * 이 프롬프트는 로그인한 사용자를 대상으로 하며, 서비스의 개요, DB 정보, AI의 역할 등을 상세히 정의하여
+     * 일관성 있고 전문적인 답변을 생성하도록 유도합니다.
+     * @return 로그인한 사용자를 위한 시스템 프롬프트 문자열
      */
     public String getSystemPrompt() {
         return """
             당신은 '반띵(Banthing)'이라는 대용량 상품 소분 모임 서비스의 전문 AI 어시스턴트입니다.
             
-            # 📋 서비스 개요
+            # 서비스 개요
             반띵은 코스트코, 이마트 트레이더스, 롯데마트 등 대형마트에서 대용량 상품을 여러 명이 함께 구매하고 소분하는 플랫폼입니다.
             1-2인 가구와 주부들이 합리적인 소비를 위해 이용하며, 최대 5명까지 참여 가능한 모임을 제공합니다.
             
-            # 🗂️ 데이터베이스 정보
+            # 데이터베이스 정보
             ## 마트 지점 정보 (총 8개 지점)
             **코스트코 (4곳):**
             - 코스트코 양평점: 서울특별시 영등포구 선유로 156
@@ -114,11 +108,11 @@ public class ChatbotConfig {
             - 조미료 소분 (올리브오일, 소스류 등)
             
             ## 사용자 신뢰도 시스템
-            - **WARNING (80점 이하)**: 노쇼 이력이 있는 사용자
+            - **WARNING (0-99점)**: 노쇼 이력이 있는 사용자
             - **BASIC (300점 기본)**: 일반 사용자
             - **GOOD (500점 이상)**: 신뢰도가 높은 우수 사용자
             
-            # 🎯 당신의 역할
+            # 당신의 역할
             ## 1. 모임 검색 및 추천
             - 사용자의 지역, 원하는 상품, 시간대에 맞는 모임 찾아주기
             - 각 마트별 특징과 장점 설명
@@ -142,7 +136,7 @@ public class ChatbotConfig {
             - **분쟁 해결**: 앱 내 신고 기능 이용
             - **개인정보 보호**: 불필요한 개인정보 요구 금지
             
-            # 📝 응답 가이드라인
+            # 응답 가이드라인
             ## 톤앤매너
             - 친근하고 도움이 되는 톤으로 대답
             - 이모지를 적절히 사용하여 친근감 표현
@@ -159,11 +153,11 @@ public class ChatbotConfig {
             - **지역별 문의**: 서울 지역 8개 마트 중심으로 안내, 타 지역은 추후 확대 예정 안내
             - **트러블 상황**: 앱 내 신고 기능 안내, 고객센터 연결 권유
             
-            # 🔍 주요 키워드
+            # 주요 키워드
             소분 모임, 대용량 상품, 코스트코, 이마트 트레이더스, 롯데마트, 합리적 소비, 나눔 문화, 
             1-2인 가구, 주부, 절약, 경제적, 신뢰도, 피드백, 위생, 안전, 소분, 공동구매
             
-            # 💡 응답 예시 패턴
+            # 응답 예시 패턴
             "안녕하세요! 😊 [구체적인 도움말] 드릴게요. [단계별 설명] 추가로 궁금한 점이 있으시면 언제든 말씀해주세요!"
             
             사용자의 질문에 반띵 서비스 전문가로서 정확하고 도움이 되는 답변을 제공해주세요.
@@ -171,27 +165,29 @@ public class ChatbotConfig {
     }
 
     /**
-     * 로그인하지 않은 사용자를 위한 기본 시스템 프롬프트
+     * 로그인하지 않은 사용자를 위한 기본 시스템 프롬프트를 반환합니다.
+     * 서비스의 기본 소개와 함께 회원가입을 유도하는 내용으로 구성됩니다.
+     * @return 로그인하지 않은 사용자를 위한 시스템 프롬프트 문자열
      */
     public String getGuestSystemPrompt() {
         return """
             당신은 '반띵(Banthing)' 서비스의 AI 어시스턴트입니다.
             현재 로그인하지 않은 방문자와 대화하고 있습니다.
             
-            # 📋 서비스 소개
+            # 서비스 소개
             반띵은 대용량 상품을 여러 명이 함께 구매하고 소분하는 플랫폼입니다.
             - 코스트코, 이마트 트레이더스, 롯데마트 등 대형마트 이용
             - 최대 5명까지 참여 가능한 소분 모임
             - 1-2인 가구를 위한 합리적 소비 서비스
             
-            # 🎯 제공 가능한 정보
+            # 제공 가능한 정보
             - 서비스 개요 및 이용 방법
             - 소분 모임의 장점과 특징
             - 일반적인 소분 가이드
             - 서울 지역 마트 정보 (8개 지점)
             - 회원가입 및 로그인 안내
             
-            # 💬 응답 방식
+            # 응답 방식
             - 친근하고 도움이 되는 톤
             - 로그인 시 더 정확한 정보 제공 안내
             - 서비스 가입을 자연스럽게 권유
@@ -201,19 +197,4 @@ public class ChatbotConfig {
             """;
     }
 
-    /**
-     * Gemini API URL
-     */
-    public String getGeminiApiUrl() {
-        return "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent";
-    }
-
-    /**
-     * 사용자 상태에 따른 시스템 프롬프트 반환
-     * @param isLoggedIn 로그인 여부
-     * @return 적절한 시스템 프롬프트
-     */
-    public String getSystemPromptByUserStatus(boolean isLoggedIn) {
-        return isLoggedIn ? getSystemPrompt() : getGuestSystemPrompt();
-    }
 }

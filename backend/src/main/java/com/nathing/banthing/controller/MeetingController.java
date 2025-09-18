@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -76,20 +77,20 @@ public class MeetingController {
 
 
     /**
-     * 모임 생성 API
-     *
-     * @param request 모임 생성 요청 데이터
+     * 모임 생성 API (파일 업로드 기능 추가)
+     * @param request 모임 생성 요청 데이터 (JSON)
+     * @param imageFile 업로드된 이미지 파일 (선택)
+     * @param providerId 사용자 ID
      * @return 생성된 모임 ID를 포함한 응답
      */
     @PostMapping
     public ResponseEntity<ApiResponse<MeetingCreateResponse>> createMeeting(
-            @Valid @RequestBody MeetingCreateRequest request,
+            @RequestPart("request") @Valid MeetingCreateRequest request,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile,
             @AuthenticationPrincipal String providerId) {
 
-        Meeting newMeeting = createMeetingService.createMeeting(request, providerId);
-
+        Meeting newMeeting = createMeetingService.createMeeting(request, imageFile, providerId);
         MeetingCreateResponse responseDto = new MeetingCreateResponse(newMeeting);
-
         ApiResponse<MeetingCreateResponse> apiResponse = ApiResponse.success("모임이 성공적으로 생성되었습니다.", responseDto);
 
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);

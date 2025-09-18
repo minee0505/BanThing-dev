@@ -18,6 +18,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ChatbotMessageRequest {
 
+    /**
+     * 사용자가 챗봇에게 보내는 메시지 내용
+     * 필수값이며 최대 1000자까지 허용
+     */
     @NotBlank(message = "메시지는 필수입니다.")
     @Size(max = 1000, message = "메시지는 1000자를 초과할 수 없습니다.")
     private String message;

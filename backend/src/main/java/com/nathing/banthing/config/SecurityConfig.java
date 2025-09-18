@@ -39,6 +39,8 @@ public class SecurityConfig {
             "/api/chatbot/message", // 챗봇 메시지 전송
             "/api/chatbot/guest", // 게스트용 챗봇 엔드포인트
             // 앞으로 추가될 퍼블릭 엔드포인트를 여기에 나열합니다.
+            "/media/**",
+            "/images/**",
 
     };
 

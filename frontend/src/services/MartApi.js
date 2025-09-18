@@ -1,10 +1,12 @@
 import apiClient from './apiClient';
 
-export const getAllMarts = async (keyword) => {
+/**
+ * 서버에 등록된 모든 마트 목록을 조회합니다.
+ * @returns {Promise<{success: boolean, data?: object[], message?: string}>}
+ */
+export const getAllMarts = async () => {
     try {
-        const query = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
-
-        const response = await apiClient.get(`/meetings/search${query}`);
+        const response = await apiClient.get('/marts');
 
         if (response.data && response.data.success) {
             return { success: true, data: response.data.data };
