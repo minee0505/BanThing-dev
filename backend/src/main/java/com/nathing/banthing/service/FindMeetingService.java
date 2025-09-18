@@ -1,12 +1,18 @@
 package com.nathing.banthing.service;
 
 import com.nathing.banthing.dto.response.MeetingDetailResponse;
+import com.nathing.banthing.dto.response.MeetingParticipatedPageResponse;
 import com.nathing.banthing.dto.response.MeetingSimpleResponse;
 import com.nathing.banthing.entity.Meeting;
+import com.nathing.banthing.entity.User;
 import com.nathing.banthing.exception.BusinessException;
 import com.nathing.banthing.exception.ErrorCode;
 import com.nathing.banthing.repository.MeetingsRepository;
+import com.nathing.banthing.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +32,7 @@ import java.util.stream.Collectors;
  * 주요 기능:
  * 1. 전체 모임 목록 조회
  * 2. 특정 모임 ID를 기반으로 상세 정보 조회
+ * 3. 주어진 사용자의 참여한 모임 목록을 페이징 처리하여 조회
  * <p>
  * 사용된 의존성:
  * - MeetingsRepository: 모임 데이터에 접근하기 위한 JPA 리포지토리 인터페이스입니다.
@@ -40,9 +47,10 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-
+@Slf4j
 public class FindMeetingService {
     private final MeetingsRepository meetingsRepository;
+    private final UsersRepository usersRepository;
 
     /**
      * 전체 모임 목록 조회 (생성 시간 최신순으로 정렬)
@@ -75,5 +83,43 @@ public class FindMeetingService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
         return new MeetingDetailResponse(meeting);
+    }
+
+    /**
+     * 주어진 사용자의 참여한 모임 목록을 페이징 처리하여 조회
+     * 사용자 고유 식별자와 페이징 정보 기반으로 조회를 수행하며, 조회된 모임 정보를 DTO 형식으로 반환합니다.
+     *
+     * @param providerId 사용자의 고유 식별자(Provider ID)
+     * @param pageable 페이징 처리를 위한 Pageable 객체
+     * @return 사용자가 참여한 모임 목록 및 페이징 정보를 포함한 MeetingParticipatedPageResponse 객체
+     *
+     * @author 강관주
+     * @since 2025-09-18
+     */
+    public MeetingParticipatedPageResponse getParticipatedMeetings(
+            String providerId,
+            Pageable pageable) {
+
+        log.info("참여한 모임 목록 조회 서비스 메서드 - 페이징: {}", pageable);
+
+        // 사용자 정보 조회
+        User user = usersRepository.findByProviderId(providerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        // 사용자가 참여한 모임을 페이징 정보와 함께 목록을 불러옴
+        Page<Meeting> meetingPage = meetingsRepository.findApprovedMeetingsWithMartByUserId(user.getUserId(), pageable);
+
+        // Meeting 엔티티 리스트를 MeetingDetailResponse 리스트로 변환
+        List<MeetingDetailResponse> items = meetingPage.getContent().stream()
+                .map(MeetingDetailResponse::new)
+                .toList();
+
+
+        return MeetingParticipatedPageResponse.builder()
+                .content(items)
+                .page(pageable.getPageNumber())
+                .size(pageable.getPageSize())
+                .totalElements(meetingPage.getTotalElements())
+                .build();
     }
 }
