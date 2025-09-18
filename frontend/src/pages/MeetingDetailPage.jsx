@@ -40,18 +40,9 @@ const MeetingDetailPage = () => {
 
         fetchMeetingDetail();
         fetchParticipants();
-
+        fetchComments();
     }, [id, isAuthenticated, navigate]);
 
-    useEffect(() => {
-        if (!isAuthenticated) {
-            navigate('/login');
-            return;
-        }
-        if (activeTab === 'comments') {
-            fetchComments();
-        }
-    }, [activeTab, isAuthenticated, navigate]);
 
     // 댓글 목록 불러오기 함수-송민재
     const fetchComments = async () => {
@@ -474,10 +465,10 @@ const MeetingDetailPage = () => {
                                         />
                                         <button
                                             type="submit"
-                                            disabled={!newComment.trim()}
+                                            disabled={isSubmittingComment || !newComment.trim()}
                                             className={styles.commentSubmit}
                                         >
-                                            등록
+                                            {isSubmittingComment ? '등록 중...' : '등록'}
                                         </button>
                                     </div>
                                 </form>
