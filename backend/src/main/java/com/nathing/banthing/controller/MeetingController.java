@@ -5,6 +5,7 @@ import com.nathing.banthing.dto.request.MeetingCreateRequest;
 import com.nathing.banthing.dto.request.MeetingUpdateRequest;
 import com.nathing.banthing.dto.response.*;
 import com.nathing.banthing.entity.Meeting;
+import com.nathing.banthing.entity.MeetingParticipant;
 import com.nathing.banthing.repository.MeetingsRepository;
 import com.nathing.banthing.service.*;
 import jakarta.validation.Valid;
@@ -169,34 +170,35 @@ public class MeetingController {
     }
 
     /**
-     * 특정 사용자 참여 모임 목록 조회 API
+     * 주어진 사용자의 특정 참여 상태 모임 목록을 페이징 처리하여 조회하는 API
      *
-     * @param page 페이지 번호를 나타냅니다. 0부터 시작합니다.
-     * @param size 페이지 당 표시할 모임 수를 나타냅니다.
-     * @param providerId 현재 인증된 사용자의 제공자 ID를 나타냅니다.
-     * @return 사용자가 참여한 모임 목록을 포함하는 ResponseEntity 객체를 반환합니다.
+     * @param page 페이지 번호 (0부터 시작)
+     * @param size 한 페이지에 표시할 모임 수
+     * @param status 모임 참여 상태 (대기 중, 승인됨 등)
+     * @param providerId 사용자 식별자로 인증된 사용자 정보를 나타냄
+     * @return ResponseEntity 객체로 성공적인 모임 조회 결과를 포함하는 응답
      *
      * @author 강관주
      * @since 2025-09-18
      */
-    @GetMapping("/participated")
+    @GetMapping("/condition")
     public ResponseEntity<?> getParticipatedMeetings(
             @RequestParam int page,
             @RequestParam int size,
+            @RequestParam MeetingParticipant.ApplicationStatus status,
             @AuthenticationPrincipal String providerId) {
-        log.info("참여한 모임 목록 조회 API 호출 - 페이지: {}, 크기: {}", page, size);
+        log.info("참여한 모임 목록 조회 API 호출 - 페이지: {}, 크기: {}, 상태: {}", page, size, status);
 
         // 페이지 변환
         Pageable pageable = PageRequest.of(page, size);
 
         // 서비스 계층 호출
-        MeetingProfilePageResponse dto = findMeetingService.getParticipatedMeetings(providerId, pageable);
+        MeetingProfilePageResponse dto = findMeetingService.getParticipatedMeetings(providerId, status, pageable);
 
         // 공통 응답 포맷으로 감싸기
         ApiResponse<MeetingProfilePageResponse> response = ApiResponse.success("모임 목록이 성공적으로 조회되었습니다.", dto);
 
         return ResponseEntity.ok(response);
-
     }
 
 

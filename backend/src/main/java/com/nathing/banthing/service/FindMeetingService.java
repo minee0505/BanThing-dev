@@ -4,6 +4,7 @@ import com.nathing.banthing.dto.response.MeetingDetailResponse;
 import com.nathing.banthing.dto.response.MeetingProfilePageResponse;
 import com.nathing.banthing.dto.response.MeetingSimpleResponse;
 import com.nathing.banthing.entity.Meeting;
+import com.nathing.banthing.entity.MeetingParticipant;
 import com.nathing.banthing.entity.User;
 import com.nathing.banthing.exception.BusinessException;
 import com.nathing.banthing.exception.ErrorCode;
@@ -86,34 +87,39 @@ public class FindMeetingService {
     }
 
     /**
-     * 주어진 사용자의 참여한 모임 목록을 페이징 처리하여 조회
-     * 사용자 고유 식별자와 페이징 정보 기반으로 조회를 수행하며, 조회된 모임 정보를 DTO 형식으로 반환합니다.
+     * 주어진 사용자의 특정 참여 상태 모임 목록을 페이징 처리하여 조회합니다.
+     * 사용자는 Provider ID를 통해 식별되며, 특정 신청 상태의 모임만 조회할 수 있습니다.
      *
-     * @param providerId 사용자의 고유 식별자(Provider ID)
+     * @param providerId 사용자의 고유 식별자 (Provider ID)
+     * @param status 신청 상태 (참가 상태 필터링을 위한 ApplicationStatus 열거형)
      * @param pageable 페이징 처리를 위한 Pageable 객체
-     * @return 사용자가 참여한 모임 목록 및 페이징 정보를 포함한 MeetingParticipatedPageResponse 객체
+     * @return 사용자의 특정 참여 상태 모임 목록 및 페이징 정보를 포함한 MeetingProfilePageResponse 객체
      *
      * @author 강관주
      * @since 2025-09-18
      */
     public MeetingProfilePageResponse getParticipatedMeetings(
             String providerId,
+            MeetingParticipant.ApplicationStatus status,
             Pageable pageable) {
-
-        log.info("참여한 모임 목록 조회 서비스 메서드 - 페이징: {}", pageable);
+        status.name();
+        log.info("참여 상태 모임 목록 조회 서비스 메서드 - 페이징: {}", pageable);
 
         // 사용자 정보 조회
         User user = usersRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        // 사용자가 참여한 모임을 페이징 정보와 함께 목록을 불러옴
-        Page<Meeting> meetingPage = meetingsRepository.findApprovedMeetingsWithMartByUserId(user.getUserId(), pageable);
+        // 사용자의 특정 참여 상태 모임을 페이징 정보와 함께 목록을 불러옴
+        Page<Meeting> meetingPage = meetingsRepository.findMeetingsWithMartByUserIdAndStatus(
+                user.getUserId()
+                , status.name()
+                , pageable
+        );
 
         // Meeting 엔티티 리스트를 MeetingDetailResponse 리스트로 변환
         List<MeetingDetailResponse> items = meetingPage.getContent().stream()
                 .map(MeetingDetailResponse::new)
                 .toList();
-
 
         return MeetingProfilePageResponse.builder()
                 .content(items)

@@ -1,13 +1,12 @@
 package com.nathing.banthing.repository;
 
 import com.nathing.banthing.entity.Meeting;
+import com.nathing.banthing.entity.MeetingParticipant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.util.List;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -75,7 +74,7 @@ public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
         FROM meetings m
         JOIN meeting_participants mp ON m.meeting_id = mp.meeting_id
         JOIN marts ma ON m.mart_id = ma.mart_id
-        WHERE mp.user_id = :userId AND mp.application_status = 'APPROVED'
+        WHERE mp.user_id = :userId AND mp.application_status = :status
             AND m.deleted_at IS NULL
         ORDER BY m.created_at DESC
     """,
@@ -83,9 +82,13 @@ public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
         SELECT count(m.meeting_id)
         FROM meetings m
         JOIN meeting_participants mp ON m.meeting_id = mp.meeting_id
-        WHERE mp.user_id = :userId AND mp.application_status = 'APPROVED'
+        WHERE mp.user_id = :userId AND mp.application_status = :status
             AND m.deleted_at IS NULL
     """,
     nativeQuery = true)
-    Page<Meeting> findApprovedMeetingsWithMartByUserId(@Param("userId") Long userId, Pageable pageable);
+    Page<Meeting> findMeetingsWithMartByUserIdAndStatus(
+            @Param("userId") Long userId,
+            @Param("status") String status,
+            Pageable pageable
+    );
 }
