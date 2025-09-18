@@ -2,16 +2,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import {getMeetingDetail, joinMeeting, leaveMeeting, getParticipants, getComments} from '../services/meetingDetailApi';
+import {
+    getMeetingDetail,
+    joinMeeting,
+    leaveMeeting,
+    getParticipants,
+    getComments,
+    postComment
+} from '../services/meetingDetailApi';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaClock, FaEdit, FaTrash } from 'react-icons/fa';
 import Chatbot from '../components/Chatbot/Chatbot';
 import styles from './MeetingDetailPage.module.scss';
 import {AuthService} from "../services/authService.js";
 
 const MeetingDetailPage = () => {
-    const { id } = useParams();
+    const { id } = useParams(); // 미팅id
     const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuthStore();
+    const { isAuthenticated, user } = useAuthStore(); // 로그인 여부
 
     const [meeting, setMeeting] = useState(null);
     const [participants, setParticipants] = useState({ approved: [], pending: [] });
@@ -21,7 +28,9 @@ const MeetingDetailPage = () => {
     const [error, setError] = useState(null);
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
-    // const [isSubmittingComment, setIsSubmittingComment] = useState(false); // 댓글 전송 상태 추가
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false); // 댓글 전송 상태
+    // 댓글 버튼 클릭됐는지 유스스테이트 환경변수
+
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -31,13 +40,24 @@ const MeetingDetailPage = () => {
 
         fetchMeetingDetail();
         fetchParticipants();
-        fetchComments(); // 댓글 목록 불러오기 함수
+
     }, [id, isAuthenticated, navigate]);
 
-    // 댓글 목록 불러오기 함수
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        if (activeTab === 'comments') {
+            fetchComments();
+        }
+    }, [activeTab, isAuthenticated, navigate]);
+
+    // 댓글 목록 불러오기 함수-송민재
     const fetchComments = async () => {
         try {
             const result = await getComments(id); // API 호출 함수 (새로 구현 필요)
+            console.log(result);
             if (result.success) {
                 setComments(result.data.reverse());
             } else {
@@ -117,7 +137,7 @@ const MeetingDetailPage = () => {
         }
     };
 
-    const handleCommentSubmit = (e) => {
+    /*const handleCommentSubmit = (e) => {
         e.preventDefault();
         if (!newComment.trim()) return;
 
@@ -131,6 +151,44 @@ const MeetingDetailPage = () => {
 
         setComments(prev => [...prev, comment]);
         setNewComment('');
+    };*/
+
+    /**
+     * 댓글 작성 핸들러
+     * @param {Event} e - 폼 제출 이벤트 객체
+     * @returns {Promise<void>}
+     */
+    const handleCommentSubmit = async (e) => {
+        e.preventDefault(); // 기본 폼 제출 동작 방지
+
+        // 1. 로그인 상태와 댓글 내용 유효성 검사
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        if (!newComment.trim()) {
+            alert("댓글 내용을 입력해주세요.");
+            return;
+        }
+
+        // 2. 댓글 전송 중 상태로 변경하여 중복 제출 방지
+        setIsSubmittingComment(true);
+
+        try {
+            // 'id'는 URL 파라미터에서 가져온 미팅 ID, 'newComment'는 댓글 상태 변수입니다.
+            const result = await postComment(id, { content: newComment });
+            if (result.success) {
+                fetchComments();
+                setNewComment('');
+            } else {
+                alert(result.message || "댓글 작성에 실패했습니다.");
+            }
+        } catch (error) {
+            console.error("댓글 작성 실패:", error);
+            alert("댓글 작성 중 오류가 발생했습니다.");
+        } finally {
+            setIsSubmittingComment(false);
+        }
     };
 
     const formatDate = (dateString) => {
@@ -380,9 +438,13 @@ const MeetingDetailPage = () => {
                                     </div>
                                 ) : (
                                     comments.map(comment => (
-                                        <div key={comment.id} className={styles.commentItem}>
+                                        <div key={comment.commentId} className={styles.commentItem}>
                                             <div className={styles.commentAvatar}>
-                                                {comment.nickname ? comment.nickname.charAt(0) : "?"}
+                                                {comment.profileImageUrl ? (
+                                                    <img src={comment.profileImageUrl} alt={comment.nickname} />
+                                                ) : (
+                                                    comment.nickname.charAt(0)
+                                                )}
                                             </div>
                                             <div className={styles.commentContent}>
                                                 <div className={styles.commentAuthor}>

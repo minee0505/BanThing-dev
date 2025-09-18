@@ -155,7 +155,6 @@ export const leaveMeeting = async (meetingId) => {
     }
 };
 
-
 /**
  * 모임 댓글 조회
  * @param meetingId
@@ -200,6 +199,50 @@ export const getComments = async (meetingId) => {
         return {
             success: false,
             message: '서버와 통신 중 오류가 발생했습니다.',
+            data: null
+        };
+    }
+}
+
+/**
+ * 모임 댓글 작성
+ * @param meetingId
+ * @param comment
+ * @returns {Promise<{success: boolean, data: *, message}>}
+ */
+export const postComment = async (meetingId, comment) => {
+    try {
+        const response = await apiClient.post(`/meetings/${meetingId}/comments`, comment);
+        console.log("postComment",response)
+        if (response.data) {
+            return {
+                success: true,
+                data: response.data.comments,
+                message: response.data.message
+            };
+        } else {}
+    } catch (error) {
+        console.error('댓글 작성 API 호출 실패:', error);
+
+        if (error.response?.status === 400) {
+            return {
+                success: false,
+                message: error.response.data?.message || '댓글 작성을 할 수 없습니다.',
+                data: null
+            };
+        }
+
+        if (error.response?.status === 401) {
+            return {
+                success: false,
+                message: '로그인이 필요합니다.',
+                data: null
+            };
+        }
+
+        return {
+            success: false,
+            message: '댓글 작성 중 오류가 발생했습니다.',
             data: null
         };
     }

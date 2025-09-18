@@ -22,9 +22,9 @@ public class CommentController {
     private final UserService userService; // UserService 주입
 
     /**
-     * 특정 모임의 댓글 목록을 조회합니다.
+     * 특정 모임에 새로운 댓글을 작성합니다.
      * @param meetingId 모임 ID
-     * @return 댓글 목록 DTO와 HTTP 상태 코드
+     * @return 생성된 댓글 DTO와 HTTP 상태 코드
      */
     @PostMapping
     public ResponseEntity<CommentReadDto> createComment(
@@ -36,15 +36,14 @@ public class CommentController {
     }
 
     /**
-     * 특정 모임에 새로운 댓글을 작성합니다.
+     * 특정 모임의 댓글 목록을 조회합니다.
      * @param meetingId 모임 ID
-     * @return 생성된 댓글 DTO와 HTTP 상태 코드
+     * @return 댓글 목록 DTO와 HTTP 상태 코드
      */
     @GetMapping
     public ResponseEntity<CommentListDto> getCommentsByMeetingId(
             @PathVariable Long meetingId,
             @AuthenticationPrincipal String providerId) {
-
         CommentListDto comments = commentService.getCommentsByMeetingId(meetingId, providerId);
         return ResponseEntity.ok(comments);
     }
