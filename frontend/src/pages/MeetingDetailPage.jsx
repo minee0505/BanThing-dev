@@ -1,5 +1,5 @@
 // MeetingDetailPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import {
@@ -32,6 +32,8 @@ const MeetingDetailPage = () => {
     const [isSubmittingComment, setIsSubmittingComment] = useState(false); // 댓글 전송 상태
     const [isModalOpen, setIsModalOpen] = useState(false); // 모달 상태
     const [selectedComment, setSelectedComment] = useState(null); // 선택된 댓글 정보
+    const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
+    const buttonRef = useRef(null);
     const [editedCommentContent, setEditedCommentContent] = useState(''); // 수정할 댓글 내용
 
 
@@ -319,12 +321,17 @@ const MeetingDetailPage = () => {
     };*/
 
     // 모달을 여는 함수
-    const handleOpenModal = (comment) => {
-
-
-
-        setEditedCommentContent(comment.content);
+    const handleOpenModal = (comment, e) => {
+        console.log("모달 열기 버튼 클릭됨");
+        console.log("선택된 댓글:", comment);
+        const rect = e.target.getBoundingClientRect(); // 버튼의 위치와 크기 정보를 가져옴
+        setModalPosition({
+            x: rect.left,
+            y: rect.top,
+        });
+        setSelectedComment(comment);
         setIsModalOpen(true);
+        console.log("isModalOpen 상태 변경:", isModalOpen); // 이 로그는 변경 전 값을 표시할 수 있음
     };
 
     // 모달을 닫는 함수
@@ -333,11 +340,6 @@ const MeetingDetailPage = () => {
         setSelectedComment(null);
     };
 
-
-    // 렌더링 로직 바로 위에 console.log 추가
-    /*console.log('로그인된 사용자 ID:', user.userId);
-    console.log('댓글 작성자 ID:', comments.map(comment => comment.userId));
-    console.log('두 ID가 일치하는가?', comments.map(comment => user.userId === comment.userId));*/
 
     return (
         <div className={styles.container}>
@@ -522,7 +524,7 @@ const MeetingDetailPage = () => {
                                                 { user.userId === comment.userId && (
                                                     <button
                                                         className={styles.commentMoreButton}
-                                                        onClick={() => handleOpenModal(comment)} // 모달 열기 함수 호출
+                                                        onClick={(e) => handleOpenModal(comment, e)} // 모달 열기 함수 호출
                                                     >
                                                         ...
                                                     </button>
@@ -588,6 +590,17 @@ const MeetingDetailPage = () => {
             </div>
 
             <Chatbot />
+            {isModalOpen && (
+                <CommentModal
+                    isOpen={isModalOpen}
+                    onClose={handleCloseModal}
+                    comment={selectedComment}
+                    /*onUpdate={handleCommentUpdate}
+                    onDelete={handleCommentDelete}*/
+                    modalPosition={modalPosition}
+                    style
+                />
+            )}
         </div>
     );
 };

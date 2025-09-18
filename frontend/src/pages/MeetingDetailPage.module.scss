@@ -559,13 +559,20 @@ $desktop: 1024px;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid $border-color;
+  position: relative;
 
   &:last-child {
     border-bottom: none;
     margin-bottom: 0;
   }
 }
+.commentMoreButton {
+  position: absolute; // 👈 이 부분을 추가합니다.
+  right: 10px;       // 👈 오른쪽에서 50px만큼 왼쪽으로 이동합니다.
+  top: 40%;           // 👈 수직 중앙 정렬을 위해 추가합니다.
+  transform: translateY(-50%); // 👈 수직 중앙 정렬을 위해 추가합니다.
 
+}
 /*.commentAvatar {
   width: 40px;
   height: 40px;
