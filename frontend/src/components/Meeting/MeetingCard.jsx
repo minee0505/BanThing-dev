@@ -1,12 +1,22 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './MeetingCard.module.scss';
 import {FaMapMarkerAlt, FaUsers, FaCalendarAlt} from 'react-icons/fa';
 
 const MeetingCard = ({meeting}) => {
+    // 미팅 카드 클릭 시 상세페이지로의 연결을 위함 함수
+    const navigate = useNavigate();
+
     // 날짜 형식을 'YYYY-MM-DD HH:mm'으로 예쁘게 바꿔주는 함수
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    };
+
+    // 미팅 카드 클릭 시 상세페이지로의 연결을 위함 함수
+    const handleCardClick = () => {
+        console.log('Meeting data:', meeting); // 디버깅용
+        navigate(`/meetings/${meeting.meetingId || meeting.meeting_id || meeting.id}`);
     };
 
     //  모임 상태(영문 대문자)를 CSS 클래스(영문 소문자)로 바꿔주는 함수
@@ -25,7 +35,11 @@ const MeetingCard = ({meeting}) => {
     };
 
     return (
-        <div className={styles.card}>
+        <div
+            className={styles.card}
+            onClick={handleCardClick}
+            style={{ cursor: 'pointer' }}
+        >
             {/*  className에 동적으로 상태 클래스를 추가합니다. */}
             <span className={`${styles.badge} ${getStatusClass(meeting.status)}`}>
                     {statusToKorean[meeting.status] || meeting.status}
