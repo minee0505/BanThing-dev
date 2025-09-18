@@ -14,6 +14,7 @@ import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaClock, FaEdit, FaTrash } from
 import Chatbot from '../components/Chatbot/Chatbot';
 import styles from './MeetingDetailPage.module.scss';
 import {AuthService} from "../services/authService.js";
+import CommentModal from "../components/Comment/CommentModal.jsx";
 
 const MeetingDetailPage = () => {
     const { id } = useParams(); // 미팅id
@@ -29,7 +30,10 @@ const MeetingDetailPage = () => {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
     const [isSubmittingComment, setIsSubmittingComment] = useState(false); // 댓글 전송 상태
-    // 댓글 버튼 클릭됐는지 유스스테이트 환경변수
+    const [isModalOpen, setIsModalOpen] = useState(false); // 모달 상태
+    const [selectedComment, setSelectedComment] = useState(null); // 선택된 댓글 정보
+    const [editedCommentContent, setEditedCommentContent] = useState(''); // 수정할 댓글 내용
+
 
 
     useEffect(() => {
@@ -46,9 +50,10 @@ const MeetingDetailPage = () => {
 
     // 댓글 목록 불러오기 함수-송민재
     const fetchComments = async () => {
+        console.log("user", user);
+
         try {
             const result = await getComments(id); // API 호출 함수 (새로 구현 필요)
-            console.log(result);
             if (result.success) {
                 setComments(result.data.reverse());
             } else {
@@ -152,11 +157,7 @@ const MeetingDetailPage = () => {
     const handleCommentSubmit = async (e) => {
         e.preventDefault(); // 기본 폼 제출 동작 방지
 
-        // 1. 로그인 상태와 댓글 내용 유효성 검사
-        if (!isAuthenticated) {
-            navigate('/login');
-            return;
-        }
+        // 1. 댓글 내용 유효성 검사
         if (!newComment.trim()) {
             alert("댓글 내용을 입력해주세요.");
             return;
@@ -266,6 +267,77 @@ const MeetingDetailPage = () => {
     }
 
 
+
+    /**
+     * 댓글 수정 핸들러
+     * @param commentId 수정할 댓글 ID
+     * @returns {Promise<void>}
+     */
+    /*const handleCommentUpdate = async (commentId) => {
+
+
+        try {
+            // apiClient 사용
+            await apiClient.put(
+                `/meetings/${meetingId}/comments/${commentId}`,
+                { content: editedCommentContent },
+                { headers: { 'Content-Type': 'application/json' } }
+            );
+
+            fetchComments();
+            handleCloseModal();
+        } catch (error) {
+            console.error("댓글 수정 실패:", error.response ? error.response.data : error.message);
+            alert("댓글 수정에 실패했습니다.");
+        }
+    };*/
+
+    // 댓글 삭제 함수
+    /*const handleCommentDelete = async (commentId) => {
+        if (!isLoggedIn) {
+            alert("댓글을 삭제하려면 로그인이 필요합니다.");
+            return;
+        }
+
+        if (!isParticipant) {
+            alert("댓글을 삭제하려면 모임에 참여해야 합니다.");
+            return;
+        }
+
+        if (window.confirm('정말 이 댓글을 삭제하시겠습니까?')) {
+            try {
+                // apiClient 사용
+                await apiClient.delete(
+                    `/meetings/${meetingId}/comments/${commentId}`
+                );
+                fetchComments();
+            } catch (error) {
+                console.error('댓글 삭제 실패:', error);
+                alert("댓글 삭제에 실패했습니다.");
+            }
+        }
+    };*/
+
+    // 모달을 여는 함수
+    const handleOpenModal = (comment) => {
+
+
+
+        setEditedCommentContent(comment.content);
+        setIsModalOpen(true);
+    };
+
+    // 모달을 닫는 함수
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedComment(null);
+    };
+
+
+    // 렌더링 로직 바로 위에 console.log 추가
+    /*console.log('로그인된 사용자 ID:', user.userId);
+    console.log('댓글 작성자 ID:', comments.map(comment => comment.userId));
+    console.log('두 ID가 일치하는가?', comments.map(comment => user.userId === comment.userId));*/
 
     return (
         <div className={styles.container}>
@@ -447,6 +519,14 @@ const MeetingDetailPage = () => {
                                                 <div className={styles.commentText}>
                                                     {comment.content}
                                                 </div>
+                                                { user.userId === comment.userId && (
+                                                    <button
+                                                        className={styles.commentMoreButton}
+                                                        onClick={() => handleOpenModal(comment)} // 모달 열기 함수 호출
+                                                    >
+                                                        ...
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     ))
