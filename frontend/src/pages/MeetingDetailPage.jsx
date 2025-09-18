@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { getMeetingDetail, joinMeeting, leaveMeeting, getParticipants } from '../services/meetingDetailApi';
+import {getMeetingDetail, joinMeeting, leaveMeeting, getParticipants, getComments} from '../services/meetingDetailApi';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaClock, FaEdit, FaTrash } from 'react-icons/fa';
 import Chatbot from '../components/Chatbot/Chatbot';
 import styles from './MeetingDetailPage.module.scss';
+import {AuthService} from "../services/authService.js";
 
 const MeetingDetailPage = () => {
     const { id } = useParams();
@@ -20,6 +21,7 @@ const MeetingDetailPage = () => {
     const [error, setError] = useState(null);
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
+    // const [isSubmittingComment, setIsSubmittingComment] = useState(false); // 댓글 전송 상태 추가
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -29,7 +31,22 @@ const MeetingDetailPage = () => {
 
         fetchMeetingDetail();
         fetchParticipants();
+        fetchComments(); // 댓글 목록 불러오기 함수
     }, [id, isAuthenticated, navigate]);
+
+    // 댓글 목록 불러오기 함수
+    const fetchComments = async () => {
+        try {
+            const result = await getComments(id); // API 호출 함수 (새로 구현 필요)
+            if (result.success) {
+                setComments(result.data.reverse());
+            } else {
+                setError(result.message || '댓글 정보를 불러올 수 없습니다.')
+            }
+        } catch (error) {
+            console.error('댓글을 불러오는 데 실패했습니다.', error);
+        }
+    };
 
     const fetchMeetingDetail = async () => {
         try {
@@ -199,6 +216,8 @@ const MeetingDetailPage = () => {
         );
     }
 
+
+
     return (
         <div className={styles.container}>
             <div className={styles.detailCard}>
@@ -363,11 +382,11 @@ const MeetingDetailPage = () => {
                                     comments.map(comment => (
                                         <div key={comment.id} className={styles.commentItem}>
                                             <div className={styles.commentAvatar}>
-                                                {comment.author.charAt(0)}
+                                                {comment.nickname ? comment.nickname.charAt(0) : "?"}
                                             </div>
                                             <div className={styles.commentContent}>
                                                 <div className={styles.commentAuthor}>
-                                                    {comment.author}
+                                                    {comment.nickname}
                                                     <span className={styles.commentTime}>
                                                         {new Date(comment.createdAt).toLocaleString()}
                                                     </span>

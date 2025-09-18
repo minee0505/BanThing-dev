@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './MeetingCard.module.scss';
 import {FaMapMarkerAlt, FaUsers, FaCalendarAlt} from 'react-icons/fa';
+import {Link} from "react-router-dom";
 
 const MeetingCard = ({meeting}) => {
     // 미팅 카드 클릭 시 상세페이지로의 연결을 위함 함수

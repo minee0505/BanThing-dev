@@ -21,8 +21,8 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: <MeetingListPage /> },
-      { path: 'meetings/:meetingId', element: <MeetingDetailPage /> },
-      { path: 'meetings/:meetingId/comments', element: <CommentPage /> },
+      { path: 'meetings/:id', element: <MeetingDetailPage /> },
+      { path: 'meetings/:id/comments', element: <CommentPage /> },
       { path: 'login', element: <LoginPage /> },
     ],
   },

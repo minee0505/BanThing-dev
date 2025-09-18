@@ -6,6 +6,7 @@ import { AuthService } from '../services/authService';
 
 import CommentList from '../components/Comment/CommentList.jsx';
 import CommentModal from '../components/Comment/CommentModal'
+import styles from "./MeetingDetailPage.module.scss";
 
 const CommentPage = () => {
     const { meetingId } = useParams();
@@ -227,6 +228,36 @@ const CommentPage = () => {
                 onUpdate={handleCommentUpdate}
                 onDelete={handleCommentDelete}
             />
+
+
+
+            <div className={styles.commentsList}>
+                {comments.length === 0 ? (
+                    <div className={styles.noComments}>
+                        <p>아직 댓글이 없습니다.</p>
+                        <p>첫 번째 댓글을 남겨보세요!</p>
+                    </div>
+                ) : (
+                    comments.map(comment => (
+                        <div key={comment.id} className={styles.commentItem}>
+                            <div className={styles.commentAvatar}>
+                                {comment.author.charAt(0)}
+                            </div>
+                            <div className={styles.commentContent}>
+                                <div className={styles.commentAuthor}>
+                                    {comment.author}
+                                    <span className={styles.commentTime}>
+                                                        {new Date(comment.createdAt).toLocaleString()}
+                                                    </span>
+                                </div>
+                                <div className={styles.commentText}>
+                                    {comment.content}
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
         </>
     );
 };

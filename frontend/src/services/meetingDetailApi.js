@@ -155,6 +155,55 @@ export const leaveMeeting = async (meetingId) => {
     }
 };
 
+
+/**
+ * 모임 댓글 조회
+ * @param meetingId
+ * @returns {Promise<null>}
+ */
+export const getComments = async (meetingId) => {
+    try {
+        const response = await apiClient.get(`/meetings/${meetingId}/comments`);
+        console.log("comments",response)
+        if (response.data) {
+            return {
+                success: true,
+                data: response.data.comments,
+                message: response.data.message
+            };
+        } else {
+            return {
+                success: false,
+                message: response.data?.message || '댓글 목록을 불러올 수 없습니다.',
+                data: null
+            }
+        }
+    }catch (error) {
+        console.error('댓글 조회 API 호출 실패:', error);
+
+        if (error.response?.status === 404) {
+            return {
+                success: false,
+                message: '존재하지 않는 댓글입니다.',
+                data: null
+            };
+        }
+
+        if (error.response?.status === 401) {
+            return {
+                success: false,
+                message: '로그인이 필요합니다.',
+                data: null
+            };
+        }
+
+        return {
+            success: false,
+            message: '서버와 통신 중 오류가 발생했습니다.',
+            data: null
+        };
+    }
+}
 /**
  * 모임 참여자 목록 조회
  * @param {number|string} meetingId - 모임 ID
