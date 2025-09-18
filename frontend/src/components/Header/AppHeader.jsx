@@ -21,7 +21,7 @@ const AppHeader = () => {
   };
 
   const handleProfile = () => {
-    navigate('/profile');
+    navigate(`/profile/${user?.id || user?.userId}`);
   };
 
   return (

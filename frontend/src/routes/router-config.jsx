@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
       { path: 'meetings/:id', element: <MeetingDetailPage /> },
       { path: 'meetings/:id/comments', element: <CommentPage /> },
       { path: 'login', element: <LoginPage /> },
-      { path: 'profile', element: <ProfilePage /> },
+      { path: 'profile/:id', element: <ProfilePage /> },
     ],
   },
   {
