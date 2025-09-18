@@ -3,9 +3,7 @@ package com.nathing.banthing.service;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
-
 import com.nathing.banthing.config.ChatbotConfig;
-import com.nathing.banthing.dto.request.ChatbotMessageRequest;
 import com.nathing.banthing.dto.response.ChatbotConversationHistoryResponse;
 import com.nathing.banthing.dto.response.ChatbotMessageResponse;
 import com.nathing.banthing.entity.ChatbotConversation;
@@ -18,10 +16,6 @@ import com.nathing.banthing.repository.ChatbotConversationsRepository;
 import com.nathing.banthing.repository.ChatbotMeetingsSuggestionRepository;
 import com.nathing.banthing.repository.MeetingsRepository;
 import com.nathing.banthing.repository.UsersRepository;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author 김경민
+ * @since 2025-09-16
+ * 반띵 AI 챗봇 서비스 구현체
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -46,58 +45,6 @@ public class ChatbotServiceImpl implements ChatbotService {
     private final ChatbotConversationsRepository conversationRepository;
     private final ChatbotMeetingsSuggestionRepository suggestionRepository;
     private final MeetingsRepository meetingsRepository;
-
-    @PersistenceContext
-    private EntityManager em;
-
-    @Override
-    public ChatbotMessageResponse processMessage(ChatbotMessageRequest request, Long userId) {
-        try {
-            User user = usersRepository.findById(userId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-            String aiResponse = generateAIResponse(chatbotConfig.getSystemPrompt() + "\n\n사용자 질문: " + request.getMessage());
-            ChatbotConversation.IntentType intentType = determineIntentType(request.getMessage());
-            ChatbotConversation conversation = saveConversation(user, request.getMessage(), aiResponse, intentType);
-
-            List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestions = new ArrayList<>();
-            if (intentType == ChatbotConversation.IntentType.MEETING_SEARCH) {
-                suggestions = createMeetingSuggestions(conversation, request.getMessage());
-            }
-
-            return ChatbotMessageResponse.builder()
-                    .response(aiResponse)
-                    .intentType(intentType)
-                    .suggestedMeetings(suggestions)
-                    .build();
-
-        } catch (Exception e) {
-            log.error("챗봇 메시지 처리 중 오류 발생", e);
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ChatbotConversationHistoryResponse> getConversationHistory(Long userId, int limit) {
-        if (!usersRepository.existsById(userId)) {
-            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
-        }
-
-        var pageable = PageRequest.of(0, Math.max(limit, 0));
-        List<ChatbotConversation> conversations = conversationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId, pageable);
-
-        return conversations.stream()
-                .map(this::convertToHistoryResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public void clearConversation(Long userId) {
-        em.createQuery("delete from ChatbotConversation c where c.user.userId = :uid")
-                .setParameter("uid", userId)
-                .executeUpdate();
-    }
 
     @Override
     public boolean healthCheck() {
@@ -115,8 +62,38 @@ public class ChatbotServiceImpl implements ChatbotService {
         }
     }
 
-    // ===== 새로운 메서드들 (로그인 선택적) =====
+    @Override
+    @Transactional
+    public ChatbotMessageResponse processAuthenticatedMessage(String providerId, String userMessage) {
+        try {
+            User user = usersRepository.findByProviderId(providerId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+            // 개인화된 프롬프트 생성 (사용자 정보 + 실시간 모임 정보 포함)
+            String systemPrompt = buildPersonalizedPrompt(user);
+            String aiResponse = generateAIResponse(systemPrompt + "\n\n사용자 질문: " + userMessage);
+
+            ChatbotConversation.IntentType intentType = determineIntentType(userMessage);
+            ChatbotConversation conversation = saveConversation(user, userMessage, aiResponse, intentType);
+
+            // 모임 검색 의도일 때만 추천 모임 생성
+            List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestions = new ArrayList<>();
+            if (intentType == ChatbotConversation.IntentType.MEETING_SEARCH) {
+                suggestions = createMeetingSuggestions(conversation, userMessage);
+            }
+
+            return ChatbotMessageResponse.builder()
+                    .response(aiResponse)
+                    .suggestedMeetings(suggestions)
+                    .intentType(intentType)
+                    .conversationId(conversation.getConversationId())
+                    .build();
+
+        } catch (Exception e) {
+            log.error("로그인 사용자 메시지 처리 중 오류 발생", e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @Override
     public ChatbotMessageResponse processGuestMessage(String userMessage) {
@@ -203,35 +180,6 @@ public class ChatbotServiceImpl implements ChatbotService {
                     .suggestedMeetings(new ArrayList<>())
                     .intentType(ChatbotConversation.IntentType.GENERAL)
                     .build();
-        }
-    }
-
-    @Override
-    @Transactional
-    public ChatbotMessageResponse processAuthenticatedMessage(String providerId, String userMessage) {
-        try {
-            User user = usersRepository.findByProviderId(providerId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-            String systemPrompt = buildPersonalizedPrompt(user);
-            String aiResponse = generateAIResponse(systemPrompt + "\n\n사용자 질문: " + userMessage);
-            ChatbotConversation.IntentType intentType = determineIntentType(userMessage);
-            ChatbotConversation conversation = saveConversation(user, userMessage, aiResponse, intentType);
-
-            List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestions = new ArrayList<>();
-            if (intentType == ChatbotConversation.IntentType.MEETING_SEARCH) {
-                suggestions = createMeetingSuggestions(conversation, userMessage);
-            }
-
-            return ChatbotMessageResponse.builder()
-                    .response(aiResponse)
-                    .suggestedMeetings(suggestions)
-                    .intentType(intentType)
-                    .build();
-
-        } catch (Exception e) {
-            log.error("로그인 사용자 메시지 처리 중 오류 발생", e);
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -350,56 +298,6 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
 
-    /**
-     * 오류 시 대체 응답
-     */
-    private String getFallbackResponse(String userMessage) {
-        // 사용자가 특정 지역이나 상품을 물어봤는지 간단히 체크
-        String lowerMessage = userMessage.toLowerCase();
-
-        if (lowerMessage.contains("양재") || lowerMessage.contains("견과류")) {
-            return """
-                안녕하세요! 😊 양재 코스트코에서 견과류 소분 모임을 찾고 계시는군요!
-                
-                현재 시스템에 일시적인 문제가 있어 정확한 모임 정보를 확인하기 어려운 상황입니다.
-                
-                양재 코스트코는 서울특별시 서초구 양재대로 159에 위치해 있으며,
-                견과류 소분 모임은 평소에 자주 열리는 인기 모임 중 하나예요!
-                
-                로그인하시면 더 정확한 실시간 모임 정보를 확인하실 수 있습니다.
-                """;
-        }
-
-        if (lowerMessage.contains("상봉") || lowerMessage.contains("냉동")) {
-            return """
-                안녕하세요! 😊 상봉 코스트코 냉동식품 소분 모임을 찾고 계시는군요!
-                
-                현재 시스템에 일시적인 문제가 있지만, 상봉점은 냉동식품 소분이 활발한 지점이에요.
-                
-                상봉 코스트코는 서울특별시 중랑구 망우로 336에 위치해 있습니다.
-                냉동만두, 냉동과일 등 다양한 냉동식품 소분 모임이 정기적으로 열려요!
-                
-                로그인하시면 실시간 모임 현황을 확인하실 수 있습니다.
-                """;
-        }
-
-        // 기본 응답
-        return """
-            안녕하세요! 반띵 AI 도우미입니다. 😊
-            
-            현재 일시적인 시스템 문제로 정확한 모임 정보를 조회하기 어려운 상황입니다.
-            
-            하지만 평소에는 서울 지역 8개 마트에서 다양한 소분 모임이 활발히 진행되고 있어요:
-            
-            🏪 이용 가능한 마트:
-            • 코스트코 (양평점, 양재점, 상봉점, 고척점)
-            • 이마트 트레이더스 (월계점, 마곡점)  
-            • 롯데마트 맥스 (금천점, 영등포점)
-            
-            로그인하시면 실시간 모임 현황과 정확한 정보를 받으실 수 있습니다!
-            """;
-    }
-
     @Override
     @Transactional(readOnly = true)
     public List<ChatbotConversationHistoryResponse> getChatHistory(String providerId) {
@@ -478,22 +376,6 @@ public class ChatbotServiceImpl implements ChatbotService {
         }
 
         return promptBuilder.toString();
-    }
-
-    private String getDefaultGuestResponse() {
-        return """
-                안녕하세요! 반띵 AI 도우미입니다.
-                
-                현재 AI 서버와 연결이 불안정하지만, 기본 정보를 안내해드릴게요:
-                
-                반띵 서비스는 대용량 상품을 여러 명이 나눠 구매하는 플랫폼이에요.
-                
-                서울 지역 8개 마트에서 다양한 소분 모임이 활발히 진행되고 있어요!
-                
-                로그인하시면 더 정확한 정보와 개인 맞춤 추천을 받으실 수 있어요.
-                
-                궁금한 점이 있으시면 언제든 말씀해주세요!
-                """;
     }
 
     private List<ChatbotMessageResponse.MeetingSuggestionResponse> createMeetingSuggestions(

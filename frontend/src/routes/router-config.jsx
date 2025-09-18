@@ -8,6 +8,8 @@ import LoginPage from "../pages/LoginPage.jsx";
 import AgreementPage from "../pages/AgreementPage.jsx";
 import PopupClosePage from '../pages/PopupClosePage.jsx';
 import LoadMeRoute from "../components/Auth/LoadMeRoute.jsx";
+import MeetingCreatePage from "../pages/MeetingCreatePage.jsx";
+import PrivateRoute from "../components/Auth/PrivateRoute.jsx";
 import ProfilePage from "../pages/ProfilePage.jsx";
 
 // 라우터 설정
@@ -15,13 +17,22 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <LoadMeRoute>
-        <AppLayout />
-      </LoadMeRoute>
+        <LoadMeRoute>
+          <AppLayout />
+        </LoadMeRoute>
     ),
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: <MeetingListPage /> },
+      // [수정] MeetingCreatePage를 PrivateRoute로 감싸줍니다.
+      {
+        path: 'meetings/new',
+        element: (
+            <PrivateRoute>
+              <MeetingCreatePage />
+            </PrivateRoute>
+        )
+      },
       { path: 'meetings/:id', element: <MeetingDetailPage /> },
       { path: 'meetings/:id/comments', element: <CommentPage /> },
       { path: 'login', element: <LoginPage /> },
