@@ -9,6 +9,11 @@ import com.nathing.banthing.repository.MeetingsRepository;
 import com.nathing.banthing.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,6 +38,7 @@ import java.util.List;
  * - 참가 신청 및 신청 목록 조회
  * - 참가 신청 승인
  * - 모집 마감 기능
+ * - 특정 사용자 참여 모임 목록 조회
  *
  * 각 메서드는 클라이언트가 API 호출을 통해 모임 데이터를 관리할 수 있도록 하며,
  * 데이터의 유효성 검증 및 인증, 권한 체크 등의 작업을 포함합니다.
@@ -56,6 +62,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/meetings")
 @RequiredArgsConstructor
+@Slf4j
 public class MeetingController {
 
     private final CreateMeetingService createMeetingService;
@@ -160,6 +167,37 @@ public class MeetingController {
         ApiResponse<Void> apiResponse = ApiResponse.success("모임이 성공적으로 삭제되었습니다.", null);
 
         return ResponseEntity.ok(apiResponse);
+    }
+
+    /**
+     * 특정 사용자 참여 모임 목록 조회 API
+     *
+     * @param page 페이지 번호를 나타냅니다. 0부터 시작합니다.
+     * @param size 페이지 당 표시할 모임 수를 나타냅니다.
+     * @param providerId 현재 인증된 사용자의 제공자 ID를 나타냅니다.
+     * @return 사용자가 참여한 모임 목록을 포함하는 ResponseEntity 객체를 반환합니다.
+     *
+     * @author 강관주
+     * @since 2025-09-18
+     */
+    @GetMapping("/participated")
+    public ResponseEntity<?> getParticipatedMeetings(
+            @RequestParam int page,
+            @RequestParam int size,
+            @AuthenticationPrincipal String providerId) {
+        log.info("참여한 모임 목록 조회 API 호출 - 페이지: {}, 크기: {}", page, size);
+
+        // 페이지 변환
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 서비스 계층 호출
+        MeetingParticipatedPageResponse dto = findMeetingService.getParticipatedMeetings(providerId, pageable);
+
+        // 공통 응답 포맷으로 감싸기
+        ApiResponse<MeetingParticipatedPageResponse> response = ApiResponse.success("모임 목록이 성공적으로 조회되었습니다.", dto);
+
+        return ResponseEntity.ok(response);
+
     }
 
 
