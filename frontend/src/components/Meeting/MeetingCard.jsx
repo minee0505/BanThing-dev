@@ -1,11 +1,21 @@
 import React from 'react';
+// [추가] dev 브랜치의 useNavigate 기능을 가져옵니다.
+import { useNavigate } from 'react-router-dom';
 import styles from './MeetingCard.module.scss';
 import { FaMapMarkerAlt, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 
 const MeetingCard = ({ meeting }) => {
+    // [추가] dev 브랜치의 상세 페이지 이동 기능을 위한 navigate 함수입니다.
+    const navigate = useNavigate();
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    };
+
+    // [추가] dev 브랜치의 카드 클릭 핸들러 함수입니다.
+    const handleCardClick = () => {
+        navigate(`/meetings/${meeting.meetingId || meeting.meeting_id || meeting.id}`);
     };
 
     const getStatusClass = (status) => {
@@ -21,34 +31,32 @@ const MeetingCard = ({ meeting }) => {
         CANCELLED: '모임취소',
     };
 
+    // [추가] feature 브랜치의 이미지 전체 URL을 만들어주는 함수입니다.
     const getFullImageUrl = (thumbnailUrl) => {
-        // 1. 기본 이미지 URL 설정
         const placeholder = 'https://via.placeholder.com/150';
         if (!thumbnailUrl) {
             return placeholder;
         }
-
-        // 2. 이미 완전한 URL(http로 시작)이면 그대로 반환
         if (thumbnailUrl.startsWith('http')) {
             return thumbnailUrl;
         }
-
-        // 3. .env 파일의 VITE_API_URL ('http://localhost:9000/api')에서
-        //    뒤의 '/api' 부분을 제거하여 백엔드 기본 주소('http://localhost:9000')를 만듭니다.
         const backendUrl = import.meta.env.VITE_API_URL.replace('/api', '');
-
-        // 4. 백엔드 기본 주소와 DB에 저장된 이미지 경로를 합쳐 완전한 URL을 반환합니다.
         return `${backendUrl}${thumbnailUrl}`;
     };
 
     return (
-        <div className={styles.card}>
+        // [수정] dev 브랜치의 onClick, style 속성을 추가하여 카드 전체를 클릭할 수 있게 합니다.
+        <div
+            className={styles.card}
+            onClick={handleCardClick}
+            style={{ cursor: 'pointer' }}
+        >
             <span className={`${styles.badge} ${getStatusClass(meeting.status)}`}>
                 {statusToKorean[meeting.status] || meeting.status}
             </span>
 
             <div className={styles.thumbnail}>
-                {/* [수정] 위에서 만든 함수를 사용하여 최종 이미지 URL을 가져옵니다. */}
+                {/* [수정] feature 브랜치의 getFullImageUrl 함수를 사용하여 최종 이미지 URL을 가져옵니다. */}
                 <img src={getFullImageUrl(meeting.thumbnailImageUrl)} alt={meeting.title} />
             </div>
 
