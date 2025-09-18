@@ -189,19 +189,17 @@ public class MeetingController {
 
 
     /**
-     * 모임 참가자 목록 조회 API (호스트 전용)
-     * 호스트에게는 확정된 멤버와 신청 대기자 목록을 모두 반환합니다.
-     *
-     * @param meetingId 신청 목록을 조회할 모임의 ID
-     * @param providerId 현재 로그인한 사용자의 ID (자동 주입)
-     * @return 참가자 목록 (확정/대기 포함)
+     * [수정] 모임 참가자 목록 조회 API
+     * - 호스트에게는 확정된 멤버와 신청 대기자 목록을 모두 반환합니다.
+     * - 일반 참여자에게는 확정된 멤버 목록만 반환합니다.
      */
     @GetMapping("/{meetingId}/participants")
     public ResponseEntity<ApiResponse<ParticipantListResponse>> getParticipants(
             @PathVariable Long meetingId,
             @AuthenticationPrincipal String providerId) {
 
-        ParticipantListResponse participants = joinMeetingService.getParticipantsByStatusForHost(meetingId, providerId);
+        // 호출하는 서비스 메서드 이름만 수정
+        ParticipantListResponse participants = joinMeetingService.getParticipants(meetingId, providerId);
 
         ApiResponse<ParticipantListResponse> apiResponse = ApiResponse.success("참가자 목록이 성공적으로 조회되었습니다.", participants);
 
