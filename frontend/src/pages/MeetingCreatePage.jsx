@@ -22,6 +22,16 @@ const MeetingCreatePage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
+    const getTodayString = () => {
+        const now = new Date();
+        // 한국 시간대에 맞게 UTC 시간에서 9시간을 더해줍니다.
+        now.setHours(now.getHours() + 9);
+        // ISO 형식(예: 2025-09-18T18:30:00.000Z)으로 변환 후,
+        // 초와 밀리초 부분을 잘라내어 'YYYY-MM-DDTHH:mm' 형식으로 맞춥니다.
+        return now.toISOString().slice(0, 16);
+    };
+    const today = getTodayString();
+
     useEffect(() => {
         const fetchMarts = async () => {
             const result = await getAllMarts();
@@ -46,7 +56,6 @@ const MeetingCreatePage = () => {
         }
     };
 
-    // ▼▼▼ [수정] 이 부분이 핵심입니다 ▼▼▼
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -71,7 +80,6 @@ const MeetingCreatePage = () => {
             setError(result.message || '모임 생성 중 오류가 발생했습니다.');
         }
     };
-    // ▲▲▲ [수정] 여기까지 ▲▲▲
 
     return (
         <div className={styles.container}>
@@ -96,7 +104,16 @@ const MeetingCreatePage = () => {
                         </div>
                         <div className={`${styles.formGroup} ${styles.formGroupHalf}`}>
                             <label htmlFor="meetingDate" className={styles.formLabel}>모임 시간</label>
-                            <input type="datetime-local" id="meetingDate" name="meetingDate" className={styles.formInput} value={formData.meetingDate} onChange={handleChange} required />
+                            <input
+                                type="datetime-local"
+                                id="meetingDate"
+                                name="meetingDate"
+                                className={styles.formInput}
+                                value={formData.meetingDate}
+                                onChange={handleChange}
+                                required
+                                min={today}
+                            />
                         </div>
                     </div>
                     <div className={styles.formGroup}>
