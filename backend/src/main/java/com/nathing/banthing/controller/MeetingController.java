@@ -10,10 +10,8 @@ import com.nathing.banthing.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -192,10 +190,10 @@ public class MeetingController {
         Pageable pageable = PageRequest.of(page, size);
 
         // 서비스 계층 호출
-        MeetingParticipatedPageResponse dto = findMeetingService.getParticipatedMeetings(providerId, pageable);
+        MeetingProfilePageResponse dto = findMeetingService.getParticipatedMeetings(providerId, pageable);
 
         // 공통 응답 포맷으로 감싸기
-        ApiResponse<MeetingParticipatedPageResponse> response = ApiResponse.success("모임 목록이 성공적으로 조회되었습니다.", dto);
+        ApiResponse<MeetingProfilePageResponse> response = ApiResponse.success("모임 목록이 성공적으로 조회되었습니다.", dto);
 
         return ResponseEntity.ok(response);
 

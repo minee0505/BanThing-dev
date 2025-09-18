@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * MeetingParticipatedPageResponse 클래스는 사용자가 참여한 모임 정보를 페이징 처리하여 응답으로 반환하기 위한 DTO(Data Transfer Object)입니다.
+ * MeetingProfilePageResponse 클래스는 사용자가 참여한 모임 정보를 페이징 처리하여 응답으로 반환하기 위한 DTO(Data Transfer Object)입니다.
  *
  * 이 클래스는 모임 상세 정보 리스트, 페이지 번호, 페이지 크기, 총 요소 수와 같은 페이징 관련 정보를 포함합니다.
  * 주로 Controller 계층에서 클라이언트로 반환할 응답 객체로 사용됩니다.
@@ -24,7 +24,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MeetingParticipatedPageResponse {
+public class MeetingProfilePageResponse {
     private List<MeetingDetailResponse> content;
     private int page;
     private int size;

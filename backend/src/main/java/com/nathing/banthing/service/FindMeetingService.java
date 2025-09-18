@@ -1,7 +1,7 @@
 package com.nathing.banthing.service;
 
 import com.nathing.banthing.dto.response.MeetingDetailResponse;
-import com.nathing.banthing.dto.response.MeetingParticipatedPageResponse;
+import com.nathing.banthing.dto.response.MeetingProfilePageResponse;
 import com.nathing.banthing.dto.response.MeetingSimpleResponse;
 import com.nathing.banthing.entity.Meeting;
 import com.nathing.banthing.entity.User;
@@ -96,7 +96,7 @@ public class FindMeetingService {
      * @author 강관주
      * @since 2025-09-18
      */
-    public MeetingParticipatedPageResponse getParticipatedMeetings(
+    public MeetingProfilePageResponse getParticipatedMeetings(
             String providerId,
             Pageable pageable) {
 
@@ -115,11 +115,12 @@ public class FindMeetingService {
                 .toList();
 
 
-        return MeetingParticipatedPageResponse.builder()
+        return MeetingProfilePageResponse.builder()
                 .content(items)
                 .page(pageable.getPageNumber())
                 .size(pageable.getPageSize())
                 .totalElements(meetingPage.getTotalElements())
                 .build();
     }
+
 }
