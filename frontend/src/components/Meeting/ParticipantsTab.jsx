@@ -37,7 +37,7 @@ const ParticipantsTab = ({ participants, isHost, onApprove, onReject, styles }) 
                                 )}
                             </div>
                             <div className={styles.participantStats}>
-                                신뢰도: {participant.TrusterScore}점
+                                신뢰도: {participant.trustScore}점
                             </div>
                         </div>
                     </div>
@@ -66,7 +66,7 @@ const ParticipantsTab = ({ participants, isHost, onApprove, onReject, styles }) 
                                         <span className={styles.pendingLabel}>대기중</span>
                                     </div>
                                     <div className={styles.participantStats}>
-                                        신뢰도: {participant.trusterScore}점
+                                        신뢰도: {participant.trustScore}점
                                     </div>
                                 </div>
                                 {/* 승인/거절 버튼에 핸들러 함수를 연결합니다. */}

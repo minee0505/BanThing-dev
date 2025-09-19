@@ -38,7 +38,7 @@ public class MeetingParticipantResponse {
     private Long userId;
     private String nickname;
     private String profileImageUrl;
-    private int trusterScore;
+    private int trustScore;
     private int noShowCount;
     private String applicationStatus; // PENDING, APPROVED 등
 
@@ -48,7 +48,7 @@ public class MeetingParticipantResponse {
         this.userId = participant.getUser().getUserId();
         this.nickname = participant.getUser().getNickname();
         this.profileImageUrl = participant.getUser().getProfileImageUrl();
-        this.trusterScore = participant.getUser().getTrustScore();
+        this.trustScore = participant.getUser().getTrustScore();
         this.noShowCount = participant.getUser().getNoShowCount();
         this.applicationStatus = participant.getApplicationStatus().name();
     }

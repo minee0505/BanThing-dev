@@ -315,9 +315,9 @@ const MeetingDetailPage = () => {
                         <div className={styles.hostDetails}>
                             <div className={styles.hostName}>
                                 <span>{meeting.hostInfo.nickname} (호스트)</span>
-                                <span className={getTrustBadgeClass(450)}>좋음</span>
+                                <span className={meeting.hostInfo.trustScore}>좋음</span>
                             </div>
-                            <div className={styles.hostStats}>신뢰도 점수: 450점</div>
+                            <div className={styles.hostStats}>신뢰도 점수: {meeting.hostInfo.trustScore}점</div>
                         </div>
                         {isHost() && (
                             <div className={styles.hostActions}>
@@ -440,7 +440,7 @@ const MeetingDetailPage = () => {
                                     // hostInfo에는 userId가 없으므로, 고유값인 nickname을 key로 사용하도록 전달합니다.
                                     userId: meeting.hostInfo.nickname,
                                     participantType: 'HOST',
-                                    TrusterScore: meeting.hostInfo.TrusterScore || 450
+                                    trustScore: meeting.hostInfo.trustScore
                                 };
 
                                 // 3. 기존 확정 목록에서 혹시라도 중복될 수 있는 호스트를 제거하고,
