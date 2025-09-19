@@ -2,6 +2,7 @@ import React from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import {useAuthStore} from "../../stores/authStore.js";
 import styles from './AppHeader.module.scss';
+import { RiLogoutBoxLine, RiLoginBoxLine } from "react-icons/ri";
 
 const AppHeader = () => {
   const navigate = useNavigate();
@@ -12,6 +13,14 @@ const AppHeader = () => {
   const handleLogout = async () => {
     await logout();
     navigate('/', { replace: true });
+  };
+
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  const handleProfile = () => {
+    navigate(`/profile/${user?.id || user?.userId}`);
   };
 
   return (
@@ -25,25 +34,29 @@ const AppHeader = () => {
         </div>
       </Link>
       {isAuthenticated ? (
-        <div className={styles.userSection}>
-          <img
-            src={profileImageUrl}
-            alt="프로필 이미지"
-            className={styles.profileImage}
-          />
-          <p className={styles.nickname}>{nickname}</p>
-          <button
-            type='button'
-            onClick={handleLogout}
-            className={`${styles.logoutButton} ${styles.actionButton}`}
-          >
-            로그아웃
-          </button>
+        <div onClick={handleProfile} className={styles.userSection}>
+          <div className={styles.profileSection}>
+            <img
+              src={profileImageUrl}
+              alt="프로필 이미지"
+              className={styles.profileImage}
+            />
+            <p className={styles.nickname}>{nickname}</p>
+          </div>
+          <div className={styles.door}>
+            <RiLogoutBoxLine
+              onClick={handleLogout}
+              className={styles.actionButton}
+            />
+          </div>
         </div>
       ) : (
-        <Link to='/login' className={styles.actionButton}>
-          로그인
-        </Link>
+        <div className={styles.door}>
+          <RiLoginBoxLine
+            onClick={handleLogin}
+            className={styles.actionButton}
+          />
+        </div>
       )
       }
     </header>

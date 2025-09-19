@@ -178,39 +178,58 @@ $desktop: 1024px;
   }
 }
 
+// 프로필 정보 구역 (이미지 + 닉네임)
+.profileSection {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: rgba($white, 0.1);
+  padding: 4px 8px;
+  border-radius: 32px;
+  border: 2px solid rgba($white, 0.3);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba($text-color, 0.1);
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba($white, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba($text-color, 0.15);
+  }
+}
+
 // 프로필 이미지 스타일
 .profileImage {
-  width: 50px;
-  height: 50px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: none; // 보라색 테두리 제거
-
-  @media (max-width: $mobile) {
-    width: 40px;
-    height: 40px;
-  }
+  border: 2px solid $white;
 }
 
 // 닉네임 스타일
 .nickname {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: bold;
   margin: 0;
-  color: $text-color;
-
-  @media (max-width: $mobile) {
-    font-size: 0.9rem;
-  }
 }
-
-// 로그인 링크와 로그아웃 버튼의 공통 스타일
-.actionButton {
+.door {
   background: linear-gradient(135deg, $primary-color, $secondary-color);
+  padding: 5px;
+  border: none;
+  border-radius: 12px;
+}
+// 로그인/로그아웃 아이콘의 공통 스타일
+.actionButton {
+
+  width: 36px;
+  height: 36px;
+  min-height: 38px;
   color: $white;
   border: none;
-  padding: 0.7rem 1.4rem;
-  border-radius: 12px;
+  //padding: 0.7rem 1.4rem;
+
   font-weight: 600;
   text-decoration: none;
   transition: all 0.3s ease;
@@ -218,8 +237,7 @@ $desktop: 1024px;
   box-shadow: 0 4px 16px rgba($primary-color, 0.25);
   display: flex;
   align-items: center;
-  font-size: 0.95rem;
-  position: relative;
+  justify-content: center;
   overflow: hidden;
 
   // 호버 시 내부 그라데이션 효과
