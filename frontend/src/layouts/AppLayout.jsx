@@ -1,6 +1,6 @@
 import React from 'react';
 import {Outlet} from "react-router-dom";
-import AppHeader from "../components/Layout/AppHeader.jsx";
+import AppHeader from "../components/Header/AppHeader.jsx";
 
 const AppLayout = () => {
   return (
