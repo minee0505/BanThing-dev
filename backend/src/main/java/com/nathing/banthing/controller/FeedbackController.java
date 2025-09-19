@@ -23,7 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/feedbacks")
 @RequiredArgsConstructor
-public class FeedbackConrtoller {
+public class FeedbackController {
     private final FeedbackService feedbackService;
     private final FeedbackScoreService feedbackScoreService;
 

@@ -36,4 +36,20 @@ public class UserService {
 
         return UserInfoResponse.from(user);
     }
+
+
+    /**
+
+     * @param providerId
+     * @return 로그인된 유저 id
+     *
+     * @author 송민재
+     * @since 2025-09-16
+     */
+    @Transactional(readOnly = true)
+    public Long getUserIdByProviderId(String providerId) {
+        User user = usersRepository.findByProviderId(providerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        return user.getUserId();
+    }
 }

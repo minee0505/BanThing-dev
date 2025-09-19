@@ -82,6 +82,10 @@ public class Meeting {
     @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Feedback> feedbacks = new ArrayList<>();
 
+    // 송민재 작성, comments테이블과 연관관계
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
     public enum MeetingStatus {
         RECRUITING, FULL, ONGOING, COMPLETED, CANCELLED
     }

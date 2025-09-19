@@ -72,7 +72,11 @@ public enum ErrorCode {
     MEETING_NOT_FOUND("MEETING_NOT_FOUND", "모임을 찾을 수 없습니다.", 404),
 
     // 태그 관련 에러 코드
-    HASHTAG_EXISTS("HASHTAG_EXISTS", "이미 존재하는 해시태그입니다.", 409);
+    HASHTAG_EXISTS("HASHTAG_EXISTS", "이미 존재하는 해시태그입니다.", 409),
+
+    // 댓글 관련 에러 코드
+    COMMENT_NOT_FOUND("COMMENT_NOT_FOUND", "댓글을 찾을 수 없습니다.", 404),
+    FORBIDDEN_COMMENT("FORBIDDEN_COMMENT", "댓글 수정 권한이 없습니다.", 403);
 
     private final String code;
     private final String message;
