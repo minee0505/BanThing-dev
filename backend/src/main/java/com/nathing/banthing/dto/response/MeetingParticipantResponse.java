@@ -34,19 +34,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MeetingParticipantResponse {
 
+    private Long participantId;
     private Long userId;
     private String nickname;
     private String profileImageUrl;
-    private int TrusterScore;
+    private int trustScore;
     private int noShowCount;
     private String applicationStatus; // PENDING, APPROVED 등
 
     // 생성자나 from 메서드를 통해 엔티티를 DTO로 변환
     public MeetingParticipantResponse(MeetingParticipant participant) {
+        this.participantId = participant.getParticipantId();
         this.userId = participant.getUser().getUserId();
         this.nickname = participant.getUser().getNickname();
         this.profileImageUrl = participant.getUser().getProfileImageUrl();
-        this.TrusterScore = participant.getUser().getTrustScore();
+        this.trustScore = participant.getUser().getTrustScore();
         this.noShowCount = participant.getUser().getNoShowCount();
         this.applicationStatus = participant.getApplicationStatus().name();
     }

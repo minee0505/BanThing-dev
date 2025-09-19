@@ -7,21 +7,15 @@ import apiClient from './apiClient';
  * @returns {Promise<{success: boolean, data?: object, message?: string}>}
  */
 export const createMeeting = async (meetingData, imageFile) => {
-    // FormData 객체를 생성합니다.
     const formData = new FormData();
-
-    // 1. DTO 데이터를 JSON 문자열로 변환하여 'request' 파트에 추가합니다.
-    //    CORS 문제 등을 피하기 위해 Blob으로 감싸서 보냅니다.
     formData.append('request', new Blob([JSON.stringify(meetingData)], { type: "application/json" }));
 
-    // 2. 이미지 파일이 있으면 'imageFile' 파트에 추가합니다.
     if (imageFile) {
         formData.append('imageFile', imageFile);
     }
 
     try {
         const response = await apiClient.post('/meetings', formData, {
-            // FormData를 전송할 때는 Content-Type을 'multipart/form-data'로 설정해야 합니다.
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -34,6 +28,24 @@ export const createMeeting = async (meetingData, imageFile) => {
         }
     } catch (error) {
         console.error('모임 생성 API 호출 실패:', error);
-        return { success: false, message: '서버와 통신 중 오류가 발생했습니다.' };
+
+        // axios 에러 객체의 상세 내용을 확인합니다.
+        if (error.response) {
+            // 서버가 응답을 했지만, 상태 코드가 2xx가 아닌 경우
+            console.error('서버 응답 데이터:', error.response.data);
+            console.error('서버 응답 상태:', error.response.status);
+            console.error('서버 응답 헤더:', error.response.headers);
+            // 서버가 보낸 에러 메시지를 우선적으로 사용합니다.
+            const serverMessage = error.response.data?.message || '서버에서 오류가 발생했습니다.';
+            return { success: false, message: serverMessage };
+        } else if (error.request) {
+            // 요청은 이루어졌으나, 응답을 받지 못한 경우 (네트워크 문제 등)
+            console.error('서버로부터 응답을 받지 못했습니다:', error.request);
+            return { success: false, message: '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.' };
+        } else {
+            // 요청을 설정하는 중에 에러가 발생한 경우
+            console.error('Axios 요청 설정 오류:', error.message);
+            return { success: false, message: '요청을 보내는 중 문제가 발생했습니다.' };
+        }
     }
 };

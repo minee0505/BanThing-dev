@@ -1,8 +1,6 @@
 package com.nathing.banthing.service;
 
-import com.nathing.banthing.dto.response.MeetingDetailResponse;
-import com.nathing.banthing.dto.response.MeetingProfilePageResponse;
-import com.nathing.banthing.dto.response.MeetingSimpleResponse;
+import com.nathing.banthing.dto.response.*;
 import com.nathing.banthing.entity.Meeting;
 import com.nathing.banthing.entity.MeetingParticipant;
 import com.nathing.banthing.entity.User;
@@ -127,6 +125,45 @@ public class FindMeetingService {
                 .size(pageable.getPageSize())
                 .totalElements(meetingPage.getTotalElements())
                 .build();
+    }
+
+
+    /**
+     * 지정된 모임 ID에 해당하는 참가자 목록을 반환하는 메서드입니다.
+     *
+     * @param meetingId 모임 ID로, 해당 모임의 참가자 목록을 조회하기 위해 사용됩니다.
+     *                  null이 아니어야 하며, 데이터베이스에 존재하는 유효한 ID여야 합니다.
+     * @return ParticipantListResponse 객체로, 승인된 참가자 리스트와 대기 중인 참가자 리스트를 포함합니다.
+     *         반환 객체는 다음과 같은 정보를 제공합니다:
+     *         - approved: 'APPROVED' 상태의 참가자 목록
+     *         - pending: 'PENDING' 상태의 참가자 목록
+     *         'REJECTED' 상태의 참가자는 반환 목록에서 제외됩니다.
+     * @throws BusinessException MEETING_NOT_FOUND 오류 코드와 함께, 제공된 meetingId가
+     *                          데이터베이스에 존재하지 않을 경우 예외를 발생시킵니다.
+     */
+    public ParticipantListResponse getParticipants(Long meetingId) {
+        Meeting meeting = meetingsRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        List<MeetingParticipant> participants = meeting.getParticipants();
+
+        // 'REJECTED' 상태인 참가자는 처음부터 필터링해서 제외합니다.
+        List<MeetingParticipant> visibleParticipants = participants.stream()
+                .filter(p -> p.getApplicationStatus() != MeetingParticipant.ApplicationStatus.REJECTED)
+                .collect(Collectors.toList());
+
+        List<MeetingParticipantResponse> approved = visibleParticipants.stream()
+                .filter(p -> p.getApplicationStatus() == MeetingParticipant.ApplicationStatus.APPROVED)
+                .map(MeetingParticipantResponse::new)
+                .collect(Collectors.toList());
+
+        List<MeetingParticipantResponse> pending = visibleParticipants.stream()
+                .filter(p -> p.getApplicationStatus() == MeetingParticipant.ApplicationStatus.PENDING)
+                .map(MeetingParticipantResponse::new)
+                .collect(Collectors.toList());
+
+
+        return new ParticipantListResponse(approved, pending);
     }
 
 }

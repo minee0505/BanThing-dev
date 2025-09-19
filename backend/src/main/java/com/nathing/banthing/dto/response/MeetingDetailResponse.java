@@ -55,8 +55,10 @@ public class MeetingDetailResponse {
     private static class HostInfo {
         private final String nickname;
         private final String profileImageUrl;
+        private final int trustScore;
 
         public HostInfo(com.nathing.banthing.entity.User host) {
+            this.trustScore = host.getTrustScore();
             this.nickname = host.getNickname();
             this.profileImageUrl = host.getProfileImageUrl();
         }

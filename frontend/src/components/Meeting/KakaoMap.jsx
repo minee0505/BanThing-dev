@@ -3,6 +3,19 @@ import ReactDOMServer from 'react-dom/server';
 import { TbMapPinFilled, TbShoppingCartFilled } from "react-icons/tb";
 import styles from './KakaoMap.module.scss';
 
+/**
+ * 카카오맵을 표시하고 마트 위치에 마커를 생성하는 컴포넌트
+ *
+ * @param {Function} onMarkerClick - 마커 클릭 시 실행되는 콜백 함수
+ * @param {Array} meetings - 마트와 모임 정보를 포함하는 데이터 배열
+ * @param {string} selectedMartName - 현재 선택된 마트의 이름
+ * @param {Function} onClearSelectedMart - 선택된 마트를 초기화하는 콜백 함수
+ * @returns {Element} 카카오맵 컴포넌트
+ * @constructor
+ *
+ * @author 고동현
+ * @since 2025.09.17
+ */
 const KakaoMap = ({ onMarkerClick, meetings, selectedMartName, onClearSelectedMart }) => {
     const mapContainer = useRef(null);
     const isMapInitialized = useRef(false);
@@ -80,7 +93,7 @@ const KakaoMap = ({ onMarkerClick, meetings, selectedMartName, onClearSelectedMa
     );
 };
 
-// ... (loadKakaoMapScript 헬퍼 함수는 이전과 동일)
+// 카카오맵 SDK 스크립트를 동적으로 로드하는 헬퍼 함수
 const loadKakaoMapScript = () => {
     return new Promise((resolve, reject) => {
         if (window.kakao && window.kakao.maps) {

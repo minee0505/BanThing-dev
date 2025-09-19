@@ -21,6 +21,8 @@ import {AuthService} from "../services/authService.js";
 import CommentModal from "../components/Comment/CommentModal.jsx";
 import CommentList from "../components/Comment/CommentList.jsx";
 import CommentForm from "../components/Comment/CommentForm.jsx";
+import ParticipantsTab from '../components/Meeting/ParticipantsTab';
+import {approveParticipant, rejectParticipant } from '../services/participantApi';
 
 const MeetingDetailPage = () => {
     const { id } = useParams(); // 미팅id
@@ -46,6 +48,14 @@ const MeetingDetailPage = () => {
 
 
 
+
+    useEffect(() => {
+        // meeting state가 성공적으로 로드되거나 변경될 때마다 실행됩니다.
+        if (meeting) {
+            console.log('meeting 객체가 업데이트되었습니다:', meeting);
+            console.log('그 안의 hostInfo 객체:', meeting.hostInfo);
+        }
+    }, [meeting]);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -271,12 +281,16 @@ const MeetingDetailPage = () => {
         return statusTexts[status] || status;
     };
 
-    const getTrustBadgeClass = (score) => {
+  /*  const getTrustBadgeClass = (score) => {
         if (score >= 500) return styles.trustGood;
         if (score <= 100) return styles.trustWarning;
         return styles.trustBasic;
-    };
+    };*/
 
+    /**
+     * 현재 로그인한 사용자가 모임의 호스트인지 확인하는 함수
+     * @returns {boolean} 호스트 여부
+     */
     const isHost = () => {
         return meeting?.hostInfo?.nickname === user?.nickname;
     };
@@ -286,17 +300,78 @@ const MeetingDetailPage = () => {
             participants.pending.some(p => p.nickname === user?.nickname);
     };
 
-    if (isLoading) {
-        return (
-            <div className={styles.container}>
-                <div className={styles.loading}>
-                    <div className={styles.loadingSpinner}></div>
-                    <p>모임 정보를 불러오는 중...</p>
-                </div>
-                <Chatbot />
-            </div>
-        );
-    }
+
+
+    /**
+     * 참가자의 모임 참여 신청을 승인하는 함수
+     * 승인 시 참가자를 대기 목록에서 제거하고 승인된 목록으로 이동
+     * @param participant 승인할 참가자 정보
+     * @author 고동현
+     * @since 2025.09.19
+     */
+    const handleApprove = async (participant) => {
+        if (!window.confirm(`${participant.nickname}님의 참여를 승인하시겠습니까?`)) return;
+        try {
+            const result = await approveParticipant(id, participant.participantId);
+            if (result.success) {
+                alert('참여를 승인했습니다.');
+
+                // 서버에 다시 요청하는 대신, 현재 상태(state)를 직접 업데이트합니다.
+                setParticipants(currentParticipants => {
+                    // 1. 방금 승인된 사용자를 '대기중' 목록에서 제거합니다.
+                    const newPending = currentParticipants.pending.filter(
+                        p => p.participantId !== participant.participantId
+                    );
+
+                    // 2. '확정' 목록에 방금 승인된 사용자를 추가합니다.
+                    const newApproved = [...currentParticipants.approved, participant];
+
+                    // 3. 새로 만든 두 목록으로 상태를 업데이트하여 리렌더링을 발생시킵니다.
+                    return { ...currentParticipants, approved: newApproved, pending: newPending };
+                });
+
+            } else {
+                alert(result.message || '승인 처리에 실패했습니다.');
+            }
+        } catch (err) {
+            console.error('참여 승인 실패:', err);
+            alert('승인 처리 중 오류가 발생했습니다.');
+        }
+    };
+
+    /**
+     * 참가자의 모임 참여 신청을 거절하는 함수
+     * 거절 시 참가자를 대기 목록에서 제거
+     * @param participant 거절할 참가자 정보
+     * @author 고동현
+     * @since 2025.09.19
+     */
+    const handleReject = async (participant) => {
+        if (!window.confirm(`${participant.nickname}님의 참여를 거절하시겠습니까?`)) return;
+        try {
+            const result = await rejectParticipant(id, participant.participantId);
+            if (result.success) {
+                alert('참여를 거절했습니다.');
+
+
+                // 거절의 경우, '대기중' 목록에서 제거하기만 하면 됩니다.
+                setParticipants(currentParticipants => {
+                    const newPending = currentParticipants.pending.filter(
+                        p => p.participantId !== participant.participantId
+                    );
+                    return { ...currentParticipants, pending: newPending };
+                });
+
+
+            } else {
+                alert(result.message || '거절 처리에 실패했습니다.');
+            }
+        } catch (err) {
+            console.error('참여 거절 실패:', err);
+            alert('거절 처리 중 오류가 발생했습니다.');
+        }
+    };
+
 
     if (error) {
         return (
@@ -416,9 +491,9 @@ const MeetingDetailPage = () => {
                         <div className={styles.hostDetails}>
                             <div className={styles.hostName}>
                                 <span>{meeting.hostInfo.nickname} (호스트)</span>
-                                <span className={getTrustBadgeClass(450)}>좋음</span>
+                                <span className={meeting.hostInfo.trustScore}>좋음</span>
                             </div>
-                            <div className={styles.hostStats}>신뢰도 점수: 450점</div>
+                            <div className={styles.hostStats}>신뢰도 점수: {meeting.hostInfo.trustScore}점</div>
                         </div>
                         {isHost() && (
                             <div className={styles.hostActions}>
@@ -464,7 +539,7 @@ const MeetingDetailPage = () => {
 
                 {/* 탭 콘텐츠 */}
                 <div className={styles.tabContent}>
-                    {activeTab === 'participants' && (
+                   {/* {activeTab === 'participants' && (
                         <div className={styles.participantsTab}>
                             <h4>확정된 참여자</h4>
                             <div className={styles.participantsList}>
@@ -528,7 +603,48 @@ const MeetingDetailPage = () => {
                                 </>
                             )}
                         </div>
-                    )}
+                    )}*/}
+
+                        {/* 탭 콘텐츠 */}
+                            {activeTab === 'participants' && (() => {
+
+                                // 1. meeting 데이터나 hostInfo가 아직 로드되지 않았을 경우를 대비
+                                if (!meeting || !meeting.hostInfo) {
+                                    return null;
+                                }
+
+                                // 2. 호스트 정보를 참여자 객체와 동일한 형태
+                                const hostAsParticipant = {
+                                    ...meeting.hostInfo,
+                                    // hostInfo에는 userId가 없으므로, 고유값인 nickname을 key로 사용하도록 전달합니다.
+                                    userId: meeting.hostInfo.nickname,
+                                    participantType: 'HOST',
+                                    trustScore: meeting.hostInfo.trustScore
+                                };
+
+                                // 3. 기존 확정 목록에서 혹시라도 중복될 수 있는 호스트를 제거하고,
+                                //    새로 만든 호스트 객체를 배열의 맨 앞에 추가
+                                const approvedWithHost = [
+                                    hostAsParticipant,
+                                    ...participants.approved.filter(p => p.nickname !== meeting.hostInfo.nickname)
+                                ];
+
+                                // 4. 새로 조합한 확정 참여자 목록을 props로 전달
+                                return (
+                                    <ParticipantsTab
+                                        participants={{
+                                            ...participants,
+                                            approved: approvedWithHost // 수정된 배열을 전달
+                                        }}
+                                        isHost={isHost()}
+                                        onApprove={handleApprove}
+                                        onReject={handleReject}
+                                        styles={styles}
+                                    />
+                                );
+                            })()}
+
+
 
                     {activeTab === 'comments' && (
                         <div className={styles.commentsTab}>

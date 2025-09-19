@@ -72,4 +72,8 @@ public class MeetingParticipant {
             this.applicationStatus = ApplicationStatus.APPROVED;
         }
     }
+
+    public void reject() {
+        this.applicationStatus = ApplicationStatus.REJECTED;
+    }
 }
