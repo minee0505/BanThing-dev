@@ -8,7 +8,8 @@ import com.nathing.banthing.exception.ErrorCode;
 import com.nathing.banthing.repository.MeetingParticipantsRepository;
 import com.nathing.banthing.repository.MeetingsRepository;
 import com.nathing.banthing.repository.UsersRepository;
-import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
  * @since - 2025-09-15
  */
 
-
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -38,32 +39,40 @@ public class ManageMeetingService {
      * 참가 신청 수락
      */
     public void approveParticipant(Long meetingId, Long participantId, String hostProviderId) {
+        log.info("===== approveParticipant 시작: meetingId={}, participantId={} =====", meetingId, participantId);
+
         Meeting meeting = meetingsRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+        log.info("모임 찾기 성공: {}", meeting.getTitle());
 
         User hostUser = usersRepository.findByProviderId(hostProviderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        // 호스트 권한 확인
         if (!meeting.getHostUser().equals(hostUser)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
+        log.info("호스트 권한 확인 완료");
 
         MeetingParticipant participant = meetingParticipantsRepository.findById(participantId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND));
+        log.info("참가자 찾기 성공: {}, 현재 상태: {}", participant.getUser().getNickname(), participant.getApplicationStatus());
 
-        // 승인 처리
         participant.approve();
+        log.info("참가자 상태 변경 완료: 새로운 상태: {}", participant.getApplicationStatus());
 
-        // 참가자 수 업데이트
-        long approvedCount = meetingParticipantsRepository
-                .countByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.APPROVED);
-        meeting.setCurrentParticipants((int) approvedCount);
+        int currentCount = meeting.getCurrentParticipants();
+        int newParticipantCount = currentCount + 1;
+        meeting.setCurrentParticipants(newParticipantCount);
+        log.info("모임 현재 인원 업데이트: {} -> {}", currentCount, newParticipantCount);
 
-        // 최대 인원 도달 시 자동 모집 마감
-        if (approvedCount >= meeting.getMaxParticipants()) {
+        if (newParticipantCount >= meeting.getMaxParticipants()) {
             meeting.closeRecruitment();
+            log.info("모임이 가득 차서 모집 마감 처리됨");
         }
+
+        meetingParticipantsRepository.save(participant);
+        meetingsRepository.save(meeting);
+        log.info("===== 데이터베이스에 저장 시도... 트랜잭션 커밋 대기 =====");
     }
 
     /**
