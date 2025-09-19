@@ -1,26 +1,45 @@
-
 import React from 'react';
+import styles from '../../pages/MeetingDetailPage.module.scss';
 
-const CommentList = ({ comments, onOpenModal, isLoggedIn, currentUserId, isParticipant }) => {
+const CommentList = ({ comments, user, handleOpenModal }) => {
     return (
-        <div className="comment-list-container">
-            <h3>댓글 ({comments.length}개)</h3>
-            {comments.length > 0 ? (
-                comments.map((comment) => (
-                    <div className="comment" key={comment.commentId}>
-                        <div>
-                            <p><strong>{comment.nickname}</strong></p>
-                            <p>{comment.content}</p>
+        <div className={styles.commentsList}>
+            {comments.length === 0 ? (
+                <div className={styles.noComments}>
+                    <p>아직 댓글이 없습니다.</p>
+                    <p>첫 번째 댓글을 남겨보세요!</p>
+                </div>
+            ) : (
+                comments.map(comment => (
+                    <div key={comment.commentId} className={styles.commentItem}>
+                        <div className={styles.commentAvatar}>
+                            {comment.profileImageUrl ? (
+                                <img src={comment.profileImageUrl} alt={comment.nickname} />
+                            ) : (
+                                comment.nickname.charAt(0)
+                            )}
                         </div>
-                        {isLoggedIn && currentUserId === comment.userId && isParticipant && (
-                            <button className="comment-options-btn" onClick={() => onOpenModal(comment)}>
-                                ...
-                            </button>
-                        )}
+                        <div className={styles.commentContent}>
+                            <div className={styles.commentAuthor}>
+                                {comment.nickname}
+                                <span className={styles.commentTime}>
+                                    {new Date(comment.createdAt).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className={styles.commentText}>
+                                {comment.content}
+                            </div>
+                            {user.userId === comment.userId && (
+                                <button
+                                    className={styles.commentMoreButton}
+                                    onClick={(e) => handleOpenModal(comment, e)}
+                                >
+                                    ...
+                                </button>
+                            )}
+                        </div>
                     </div>
                 ))
-            ) : (
-                <p>댓글이 없습니다.</p>
             )}
         </div>
     );

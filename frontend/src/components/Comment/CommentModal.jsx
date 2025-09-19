@@ -32,7 +32,7 @@ const CommentModal = ({
                 className={styles.modalContent}
                 style={{
                     position: 'absolute',
-                    top: `${modalPosition.y}px`,
+                    top: `${modalPosition.y + 150}px`,
                     left: `${modalPosition.x -10}px`,
                     // 모달의 위치를 버튼의 우측 하단에 오도록 설정
                     transform: 'translate(10px, 10px)',

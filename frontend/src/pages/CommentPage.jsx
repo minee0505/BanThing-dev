@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import { AuthService } from '../services/authService';
 
-import CommentList from '../components/Comment/CommentList.jsx';
+import CommentListMj from '../components/Comment/CommentListMj.jsx';
 import CommentModal from '../components/Comment/CommentModal'
 import styles from "./MeetingDetailPage.module.scss";
 
@@ -195,7 +195,7 @@ const CommentPage = () => {
     return (
         <>
             <section>
-                <CommentList
+                <CommentListMj
                     comments={comments}
                     onOpenModal={handleOpenModal}
                     isLoggedIn={isLoggedIn}

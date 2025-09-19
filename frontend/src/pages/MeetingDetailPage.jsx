@@ -15,6 +15,8 @@ import Chatbot from '../components/Chatbot/Chatbot';
 import styles from './MeetingDetailPage.module.scss';
 import {AuthService} from "../services/authService.js";
 import CommentModal from "../components/Comment/CommentModal.jsx";
+import CommentList from "../components/Comment/CommentList.jsx";
+import CommentForm from "../components/Comment/CommentForm.jsx";
 
 const MeetingDetailPage = () => {
     const { id } = useParams(); // 미팅id
@@ -495,7 +497,7 @@ const MeetingDetailPage = () => {
 
                     {activeTab === 'comments' && (
                         <div className={styles.commentsTab}>
-                            <div className={styles.commentsList}>
+                            {/*<div className={styles.commentsList}>
                                 {comments.length === 0 ? (
                                     <div className={styles.noComments}>
                                         <p>아직 댓글이 없습니다.</p>
@@ -533,10 +535,15 @@ const MeetingDetailPage = () => {
                                         </div>
                                     ))
                                 )}
-                            </div>
+                            </div>*/}
+                            <CommentList
+                                comments={comments}
+                                user={user}
+                                handleOpenModal={handleOpenModal}
+                            />
 
                             {(isHost() || isParticipating()) && (
-                                <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
+                                /*<form onSubmit={handleCommentSubmit} className={styles.commentForm}>
                                     <div className={styles.commentInputWrapper}>
                                         <textarea
                                             value={newComment}
@@ -553,7 +560,14 @@ const MeetingDetailPage = () => {
                                             {isSubmittingComment ? '등록 중...' : '등록'}
                                         </button>
                                     </div>
-                                </form>
+                                </form>*/
+
+                                <CommentForm
+                                    newComment={newComment}
+                                    setNewComment={setNewComment}
+                                    handleCommentSubmit={handleCommentSubmit}
+                                    isSubmittingComment={isSubmittingComment}
+                                />
                             )}
                         </div>
                     )}
