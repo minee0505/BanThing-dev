@@ -43,16 +43,20 @@ const AppHeader = () => {
             />
             <p className={styles.nickname}>{nickname}</p>
           </div>
-          <RiLogoutBoxLine
-            onClick={handleLogout}
+          <div className={styles.door}>
+            <RiLogoutBoxLine
+              onClick={handleLogout}
+              className={styles.actionButton}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className={styles.door}>
+          <RiLoginBoxLine
+            onClick={handleLogin}
             className={styles.actionButton}
           />
         </div>
-      ) : (
-        <RiLoginBoxLine
-          onClick={handleLogin}
-          className={styles.actionButton}
-        />
       )
       }
     </header>

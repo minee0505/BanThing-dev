@@ -180,6 +180,7 @@ $desktop: 1024px;
 
 // 프로필 정보 구역 (이미지 + 닉네임)
 .profileSection {
+  height: 100%;
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -200,8 +201,8 @@ $desktop: 1024px;
 
 // 프로필 이미지 스타일
 .profileImage {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid $white;
@@ -213,14 +214,22 @@ $desktop: 1024px;
   font-weight: bold;
   margin: 0;
 }
-
+.door {
+  background: linear-gradient(135deg, $primary-color, $secondary-color);
+  padding: 5px;
+  border: none;
+  border-radius: 12px;
+}
 // 로그인/로그아웃 아이콘의 공통 스타일
 .actionButton {
-  background: linear-gradient(135deg, $primary-color, $secondary-color);
+
+  width: 36px;
+  height: 36px;
+  min-height: 38px;
   color: $white;
   border: none;
-  padding: 0.7rem 1.4rem;
-  border-radius: 12px;
+  //padding: 0.7rem 1.4rem;
+
   font-weight: 600;
   text-decoration: none;
   transition: all 0.3s ease;
