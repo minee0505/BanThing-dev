@@ -8,6 +8,9 @@ import React from 'react';
  * @param {function} props.onApprove - 참여 승인 버튼 클릭 시 호출될 함수
  * @param {function} props.onReject - 참여 거절 버튼 클릭 시 호출될 함수
  * @param {object} props.styles - 부모 컴포넌트의 CSS 모듈 스타일 객체
+ *
+ * @author 고동현
+ * @since 2025.09.19
  */
 const ParticipantsTab = ({ participants, isHost, onApprove, onReject, styles }) => {
     return (

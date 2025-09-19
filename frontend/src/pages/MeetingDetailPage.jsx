@@ -159,6 +159,10 @@ const MeetingDetailPage = () => {
         return styles.trustBasic;
     };
 
+    /**
+     * 현재 로그인한 사용자가 모임의 호스트인지 확인하는 함수
+     * @returns {boolean} 호스트 여부
+     */
     const isHost = () => {
         return meeting?.hostInfo?.nickname === user?.nickname;
     };
@@ -168,7 +172,15 @@ const MeetingDetailPage = () => {
             participants.pending.some(p => p.nickname === user?.nickname);
     };
 
-    //  참여 신청을 승인/거절하는 핸들러 함수를 추가
+
+
+    /**
+     * 참가자의 모임 참여 신청을 승인하는 함수
+     * 승인 시 참가자를 대기 목록에서 제거하고 승인된 목록으로 이동
+     * @param participant 승인할 참가자 정보
+     * @author 고동현
+     * @since 2025.09.19
+     */
     const handleApprove = async (participant) => {
         if (!window.confirm(`${participant.nickname}님의 참여를 승인하시겠습니까?`)) return;
         try {
@@ -199,6 +211,13 @@ const MeetingDetailPage = () => {
         }
     };
 
+    /**
+     * 참가자의 모임 참여 신청을 거절하는 함수
+     * 거절 시 참가자를 대기 목록에서 제거
+     * @param participant 거절할 참가자 정보
+     * @author 고동현
+     * @since 2025.09.19
+     */
     const handleReject = async (participant) => {
         if (!window.confirm(`${participant.nickname}님의 참여를 거절하시겠습니까?`)) return;
         try {
@@ -206,7 +225,7 @@ const MeetingDetailPage = () => {
             if (result.success) {
                 alert('참여를 거절했습니다.');
 
-                // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 여기도 수정 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+                
                 // 거절의 경우, '대기중' 목록에서 제거하기만 하면 됩니다.
                 setParticipants(currentParticipants => {
                     const newPending = currentParticipants.pending.filter(
@@ -214,7 +233,7 @@ const MeetingDetailPage = () => {
                     );
                     return { ...currentParticipants, pending: newPending };
                 });
-                // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+                
 
             } else {
                 alert(result.message || '거절 처리에 실패했습니다.');
