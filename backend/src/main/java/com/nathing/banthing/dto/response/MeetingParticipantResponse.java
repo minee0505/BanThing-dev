@@ -34,6 +34,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MeetingParticipantResponse {
 
+    private Long participantId;
     private Long userId;
     private String nickname;
     private String profileImageUrl;
@@ -43,6 +44,7 @@ public class MeetingParticipantResponse {
 
     // 생성자나 from 메서드를 통해 엔티티를 DTO로 변환
     public MeetingParticipantResponse(MeetingParticipant participant) {
+        this.participantId = participant.getParticipantId();
         this.userId = participant.getUser().getUserId();
         this.nickname = participant.getUser().getNickname();
         this.profileImageUrl = participant.getUser().getProfileImageUrl();

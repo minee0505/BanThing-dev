@@ -172,7 +172,7 @@ const MeetingDetailPage = () => {
     const handleApprove = async (participant) => {
         if (!window.confirm(`${participant.nickname}님의 참여를 승인하시겠습니까?`)) return;
         try {
-            const result = await approveParticipant(id, participant.userId);
+            const result = await approveParticipant(id, participant.participantId);
             if (result.success) {
                 alert('참여를 승인했습니다.');
 
@@ -180,7 +180,7 @@ const MeetingDetailPage = () => {
                 setParticipants(currentParticipants => {
                     // 1. 방금 승인된 사용자를 '대기중' 목록에서 제거합니다.
                     const newPending = currentParticipants.pending.filter(
-                        p => p.userId !== participant.userId
+                        p => p.participantId !== participant.participantId
                     );
 
                     // 2. '확정' 목록에 방금 승인된 사용자를 추가합니다.
@@ -202,7 +202,7 @@ const MeetingDetailPage = () => {
     const handleReject = async (participant) => {
         if (!window.confirm(`${participant.nickname}님의 참여를 거절하시겠습니까?`)) return;
         try {
-            const result = await rejectParticipant(id, participant.userId);
+            const result = await rejectParticipant(id, participant.participantId);
             if (result.success) {
                 alert('참여를 거절했습니다.');
 
@@ -210,7 +210,7 @@ const MeetingDetailPage = () => {
                 // 거절의 경우, '대기중' 목록에서 제거하기만 하면 됩니다.
                 setParticipants(currentParticipants => {
                     const newPending = currentParticipants.pending.filter(
-                        p => p.userId !== participant.userId
+                        p => p.participantId !== participant.participantId
                     );
                     return { ...currentParticipants, pending: newPending };
                 });
