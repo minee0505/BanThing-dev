@@ -5,14 +5,19 @@ import com.nathing.banthing.dto.request.MeetingCreateRequest;
 import com.nathing.banthing.dto.request.MeetingUpdateRequest;
 import com.nathing.banthing.dto.response.*;
 import com.nathing.banthing.entity.Meeting;
+import com.nathing.banthing.entity.MeetingParticipant;
 import com.nathing.banthing.repository.MeetingsRepository;
 import com.nathing.banthing.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -33,6 +38,7 @@ import java.util.List;
  * - 참가 신청 및 신청 목록 조회
  * - 참가 신청 승인
  * - 모집 마감 기능
+ * - 특정 사용자 참여 모임 목록 조회
  *
  * 각 메서드는 클라이언트가 API 호출을 통해 모임 데이터를 관리할 수 있도록 하며,
  * 데이터의 유효성 검증 및 인증, 권한 체크 등의 작업을 포함합니다.
@@ -56,6 +62,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/meetings")
 @RequiredArgsConstructor
+@Slf4j
 public class MeetingController {
 
     private final CreateMeetingService createMeetingService;
@@ -69,20 +76,20 @@ public class MeetingController {
 
 
     /**
-     * 모임 생성 API
-     *
-     * @param request 모임 생성 요청 데이터
+     * 모임 생성 API (파일 업로드 기능 추가)
+     * @param request 모임 생성 요청 데이터 (JSON)
+     * @param imageFile 업로드된 이미지 파일 (선택)
+     * @param providerId 사용자 ID
      * @return 생성된 모임 ID를 포함한 응답
      */
     @PostMapping
     public ResponseEntity<ApiResponse<MeetingCreateResponse>> createMeeting(
-            @Valid @RequestBody MeetingCreateRequest request,
+            @RequestPart("request") @Valid MeetingCreateRequest request,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile,
             @AuthenticationPrincipal String providerId) {
 
-        Meeting newMeeting = createMeetingService.createMeeting(request, providerId);
-
+        Meeting newMeeting = createMeetingService.createMeeting(request, imageFile, providerId);
         MeetingCreateResponse responseDto = new MeetingCreateResponse(newMeeting);
-
         ApiResponse<MeetingCreateResponse> apiResponse = ApiResponse.success("모임이 성공적으로 생성되었습니다.", responseDto);
 
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
@@ -160,6 +167,38 @@ public class MeetingController {
         ApiResponse<Void> apiResponse = ApiResponse.success("모임이 성공적으로 삭제되었습니다.", null);
 
         return ResponseEntity.ok(apiResponse);
+    }
+
+    /**
+     * 주어진 사용자의 특정 참여 상태 모임 목록을 페이징 처리하여 조회하는 API
+     *
+     * @param page 페이지 번호 (0부터 시작)
+     * @param size 한 페이지에 표시할 모임 수
+     * @param status 모임 참여 상태 (대기 중, 승인됨 등)
+     * @param providerId 사용자 식별자로 인증된 사용자 정보를 나타냄
+     * @return ResponseEntity 객체로 성공적인 모임 조회 결과를 포함하는 응답
+     *
+     * @author 강관주
+     * @since 2025-09-18
+     */
+    @GetMapping("/condition")
+    public ResponseEntity<?> getParticipatedMeetings(
+            @RequestParam int page,
+            @RequestParam int size,
+            @RequestParam MeetingParticipant.ApplicationStatus status,
+            @AuthenticationPrincipal String providerId) {
+        log.info("참여한 모임 목록 조회 API 호출 - 페이지: {}, 크기: {}, 상태: {}", page, size, status);
+
+        // 페이지 변환
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 서비스 계층 호출
+        MeetingProfilePageResponse dto = findMeetingService.getParticipatedMeetings(providerId, status, pageable);
+
+        // 공통 응답 포맷으로 감싸기
+        ApiResponse<MeetingProfilePageResponse> response = ApiResponse.success("모임 목록이 성공적으로 조회되었습니다.", dto);
+
+        return ResponseEntity.ok(response);
     }
 
 
