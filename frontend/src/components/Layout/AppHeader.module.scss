@@ -98,6 +98,7 @@ $desktop: 1024px;
     display: flex;
     align-items: center;
     transition: transform 0.3s ease;
+    outline: none;
 
     &:hover {
       transform: scale(1.02);
