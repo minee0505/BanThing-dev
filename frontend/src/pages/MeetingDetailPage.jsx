@@ -7,11 +7,13 @@ import {
     joinMeeting,
     leaveMeeting,
     getParticipants,
+    deleteMeeting,
     getComments,
     postComment,
     updateComments
+    // deleteComments
 } from '../services/meetingDetailApi';
-import { getMeetingDetail, joinMeeting, leaveMeeting, getParticipants, deleteMeeting } from '../services/meetingDetailApi';
+// import { getMeetingDetail, joinMeeting, leaveMeeting, getParticipants,  } from '../services/meetingDetailApi';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaClock, FaEdit, FaTrash } from 'react-icons/fa';
 import Chatbot from '../components/Chatbot/Chatbot';
 import styles from './MeetingDetailPage.module.scss';
@@ -204,7 +206,7 @@ const MeetingDetailPage = () => {
     };
 
     // ✨✨✨ 삭제 핸들러
-    const handleCommentDelete = async (commentId) => {
+    /*const handleCommentDelete = async (commentId) => {
         const isConfirmed = window.confirm('정말로 댓글을 삭제하시겠습니까?');
         if (!isConfirmed) return;
 
@@ -220,7 +222,7 @@ const MeetingDetailPage = () => {
             console.error('댓글 삭제 오류:', err);
             alert('댓글 삭제 중 오류가 발생했습니다.');
         }
-    };
+    };*/
 
 
     // 삭제 핸들러 추가
@@ -648,7 +650,7 @@ const MeetingDetailPage = () => {
                     comment={selectedComment} // 선택된 댓글 정보 그대로 전달
                     modalPosition={modalPosition}
                     onUpdate={startEditing} // `startEditing` 함수를 props로 전달
-                    onDelete={handleCommentDelete} // 삭제 핸들러 전달
+                    // onDelete={handleCommentDelete} // 삭제 핸들러 전달
                 />
             )}
         </div>
