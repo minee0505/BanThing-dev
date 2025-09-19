@@ -266,6 +266,18 @@ public class MeetingController {
     }
 
     /**
+     * 참가자의 모임 참가 신청을 거절하는 API
+     */
+    @PostMapping("/{meetingId}/participants/{participantId}/reject")
+    public ResponseEntity<ApiResponse<Void>> rejectParticipant(
+            @PathVariable Long meetingId,
+            @PathVariable Long participantId,
+            @AuthenticationPrincipal String hostProviderId) {
+        manageMeetingService.rejectParticipant(meetingId, participantId, hostProviderId);
+        return ResponseEntity.ok(ApiResponse.success("참가 신청이 거절되었습니다.", null));
+    }
+
+    /**
      * 모집을 마감하는 API 핸들러 메서드입니다.
      *
      * 이 메서드는 주어진 모임 ID와 호스트 ID를 사용하여 모집 마감 로직을 수행합니다.

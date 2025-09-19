@@ -92,6 +92,31 @@ public class ManageMeetingService {
         meeting.closeRecruitment();
     }
 
+
+    /**
+     * 참가 신청 거절 (상태를 REJECTED로 변경)
+     */
+    @Transactional
+    public void rejectParticipant(Long meetingId, Long participantId, String hostProviderId) {
+        Meeting meeting = meetingsRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
+
+        User hostUser = usersRepository.findByProviderId(hostProviderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        // 호스트 권한 확인
+        if (!meeting.getHostUser().equals(hostUser)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        MeetingParticipant participant = meetingParticipantsRepository.findById(participantId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND));
+
+        // DB에서 삭제하는 대신, 상태를 'REJECTED'로 변경합니다.
+        participant.reject();
+
+    }
+
     /**
      * 모임 탈퇴 처리
      */

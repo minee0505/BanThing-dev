@@ -27,6 +27,7 @@ export const approveParticipant = async (meetingId, participantId) => {
  * @param {number} participantId 거절할 참여자의 ID
  */
 export const rejectParticipant = async (meetingId, participantId) => {
-    const response = await apiClient.delete(`/meetings/${meetingId}/participants/${participantId}/reject`);
+    // ⬇️ apiClient.delete를 apiClient.post로 변경합니다. ⬇️
+    const response = await apiClient.post(`/meetings/${meetingId}/participants/${participantId}/reject`);
     return response.data;
 };
