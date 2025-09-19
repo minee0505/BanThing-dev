@@ -1,5 +1,5 @@
 // MeetingDetailPage.jsx
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import {
@@ -8,7 +8,8 @@ import {
     leaveMeeting,
     getParticipants,
     getComments,
-    postComment
+    postComment,
+    updateComments
 } from '../services/meetingDetailApi';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaClock, FaEdit, FaTrash } from 'react-icons/fa';
 import Chatbot from '../components/Chatbot/Chatbot';
@@ -35,8 +36,11 @@ const MeetingDetailPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false); // 모달 상태
     const [selectedComment, setSelectedComment] = useState(null); // 선택된 댓글 정보
     const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
-    const buttonRef = useRef(null);
-    const [editedCommentContent, setEditedCommentContent] = useState(''); // 수정할 댓글 내용
+    // 댓글 수정
+    const [isEditing, setIsEditing] = useState(false); // 수정 모드 여부
+    const [editingCommentId, setEditingCommentId] = useState(null); // 수정할 댓글 ID
+    const [editedCommentContent, setEditedCommentContent] = useState(''); // 수정할 댓글 내용 상태
+
 
 
 
@@ -54,7 +58,7 @@ const MeetingDetailPage = () => {
 
     // 댓글 목록 불러오기 함수-송민재
     const fetchComments = async () => {
-        console.log("user", user);
+        // console.log("user", user);
 
         try {
             const result = await getComments(id); // API 호출 함수 (새로 구현 필요)
@@ -137,21 +141,23 @@ const MeetingDetailPage = () => {
         }
     };
 
-    /*const handleCommentSubmit = (e) => {
-        e.preventDefault();
-        if (!newComment.trim()) return;
 
-        // 임시 댓글 추가 (실제로는 API 호출)
-        const comment = {
-            id: Date.now(),
-            author: user?.nickname || '나',
-            content: newComment,
-            createdAt: new Date().toISOString()
-        };
+    // 모달의 수정 버튼을 눌렀을 때 실행될 함수
+    // 이 함수가 부모 컴포넌트의 상태를 변경하여 수정 폼을 활성화
+    const startEditing = (comment) => {
+        // 폼의 textarea에 기존 댓글 내용 채우기
+        setEditedCommentContent(comment.content);
+        setIsEditing(true); // 수정 모드 시작
+        setEditingCommentId(comment.commentId); // 수정할 댓글 ID 저장
+        setIsModalOpen(false); // 모달 닫기
+    };
 
-        setComments(prev => [...prev, comment]);
-        setNewComment('');
-    };*/
+    // 수정 모드 취소 핸들러
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setEditingCommentId(null);
+        setEditedCommentContent(''); // textarea 비우기
+    };
 
     /**
      * 댓글 작성 핸들러
@@ -161,8 +167,10 @@ const MeetingDetailPage = () => {
     const handleCommentSubmit = async (e) => {
         e.preventDefault(); // 기본 폼 제출 동작 방지
 
-        // 1. 댓글 내용 유효성 검사
-        if (!newComment.trim()) {
+        if (isEditing && !editedCommentContent.trim()) {
+            alert("수정할 내용을 입력해주세요.");
+            return;
+        } else if (!isEditing && !newComment.trim()) {
             alert("댓글 내용을 입력해주세요.");
             return;
         }
@@ -171,21 +179,48 @@ const MeetingDetailPage = () => {
         setIsSubmittingComment(true);
 
         try {
-            // 'id'는 URL 파라미터에서 가져온 미팅 ID, 'newComment'는 댓글 상태 변수입니다.
-            const result = await postComment(id, { content: newComment });
-            if (result.success) {
-                fetchComments();
-                setNewComment('');
+            if (isEditing) {
+                // 수정 로직: 백엔드 API 경로와 요청 바디에 맞게 수정
+                await updateComments(id, editingCommentId, { content: editedCommentContent });
+                alert("댓글이 수정되었습니다.");
+                handleCancelEdit(); // 수정 모드 종료 및 폼 초기화
             } else {
-                alert(result.message || "댓글 작성에 실패했습니다.");
+                // 댓글 작성 로직
+                const result = await postComment(id, { content: newComment });
+                if (result.success) {
+                    setNewComment('');
+                } else {
+                    alert(result.message || "댓글 작성에 실패했습니다.");
+                }
             }
+            fetchComments(); // 작성 또는 수정 후 댓글 목록 갱신
         } catch (error) {
-            console.error("댓글 작성 실패:", error);
-            alert("댓글 작성 중 오류가 발생했습니다.");
+            console.error("댓글 작성/수정 실패:", error.response ? error.response.data : error.message);
+            alert("댓글 작성/수정 중 오류가 발생했습니다.");
         } finally {
             setIsSubmittingComment(false);
         }
     };
+
+    // ✨✨✨ 삭제 핸들러
+    const handleCommentDelete = async (commentId) => {
+        const isConfirmed = window.confirm('정말로 댓글을 삭제하시겠습니까?');
+        if (!isConfirmed) return;
+
+        try {
+            const res = await deleteComment(commentId);
+            if (res.success) {
+                alert('댓글이 삭제되었습니다.');
+                setComments(comments.filter(c => c.commentId !== commentId));
+            } else {
+                alert(res.message);
+            }
+        } catch (err) {
+            console.error('댓글 삭제 오류:', err);
+            alert('댓글 삭제 중 오류가 발생했습니다.');
+        }
+    };
+
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -272,30 +307,6 @@ const MeetingDetailPage = () => {
 
 
 
-    /**
-     * 댓글 수정 핸들러
-     * @param commentId 수정할 댓글 ID
-     * @returns {Promise<void>}
-     */
-    /*const handleCommentUpdate = async (commentId) => {
-
-
-        try {
-            // apiClient 사용
-            await apiClient.put(
-                `/meetings/${meetingId}/comments/${commentId}`,
-                { content: editedCommentContent },
-                { headers: { 'Content-Type': 'application/json' } }
-            );
-
-            fetchComments();
-            handleCloseModal();
-        } catch (error) {
-            console.error("댓글 수정 실패:", error.response ? error.response.data : error.message);
-            alert("댓글 수정에 실패했습니다.");
-        }
-    };*/
-
     // 댓글 삭제 함수
     /*const handleCommentDelete = async (commentId) => {
         if (!isLoggedIn) {
@@ -324,8 +335,7 @@ const MeetingDetailPage = () => {
 
     // 모달을 여는 함수
     const handleOpenModal = (comment, e) => {
-        console.log("모달 열기 버튼 클릭됨");
-        console.log("선택된 댓글:", comment);
+        // console.log("선택된 댓글:", comment);
         const rect = e.target.getBoundingClientRect(); // 버튼의 위치와 크기 정보를 가져옴
         setModalPosition({
             x: rect.left,
@@ -333,7 +343,7 @@ const MeetingDetailPage = () => {
         });
         setSelectedComment(comment);
         setIsModalOpen(true);
-        console.log("isModalOpen 상태 변경:", isModalOpen); // 이 로그는 변경 전 값을 표시할 수 있음
+        // console.log("isModalOpen 상태 변경:", isModalOpen); // 이 로그는 변경 전 값을 표시할 수 있음
     };
 
     // 모달을 닫는 함수
@@ -563,10 +573,14 @@ const MeetingDetailPage = () => {
                                 </form>*/
 
                                 <CommentForm
-                                    newComment={newComment}
-                                    setNewComment={setNewComment}
+                                    newComment={newComment} // 작성 로직을 위한 상태
+                                    setNewComment={setNewComment} // 작성 로직을 위한 핸들러
                                     handleCommentSubmit={handleCommentSubmit}
                                     isSubmittingComment={isSubmittingComment}
+                                    isEditing={isEditing}
+                                    editedCommentContent={editedCommentContent} // 수정된 내용 상태 전달
+                                    setEditedCommentContent={setEditedCommentContent} // 수정된 내용 핸들러 전달
+                                    onCancelEdit={handleCancelEdit}
                                 />
                             )}
                         </div>
@@ -608,11 +622,10 @@ const MeetingDetailPage = () => {
                 <CommentModal
                     isOpen={isModalOpen}
                     onClose={handleCloseModal}
-                    comment={selectedComment}
-                    /*onUpdate={handleCommentUpdate}
-                    onDelete={handleCommentDelete}*/
+                    comment={selectedComment} // 선택된 댓글 정보 그대로 전달
                     modalPosition={modalPosition}
-                    style
+                    onUpdate={startEditing} // `startEditing` 함수를 props로 전달
+                    onDelete={handleCommentDelete} // 삭제 핸들러 전달
                 />
             )}
         </div>

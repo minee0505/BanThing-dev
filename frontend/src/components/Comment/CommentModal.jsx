@@ -4,23 +4,22 @@ import styles from './CommentModal.module.scss';
 const CommentModal = ({
                           isOpen,
                           onClose,
-                          comment,
-                          // editedContent, // 수정할 댓글 내용
-                          // onEditChange, // 수정 내용 변경 핸들러
-                          onUpdate, // 수정 완료 핸들러
-                          onDelete, // 삭제 핸들러 프롭
+                          comment, // comment 객체 전체를 받음
+                          onUpdate,  // 부모로부터 받은 수정 시작 핸들러
+                          onDelete, // 삭제 핸들러
                           modalPosition
                       }) => {
     if (!isOpen || !comment) {
         return null;
     }
 
-    // 💡 추가: 수정 버튼 클릭 핸들러
+    // 수정 버튼 클릭 핸들러
     const handleUpdateClick = () => {
-        onUpdate(comment.commentId);
+        onUpdate(comment); // comment 객체 전체를 전달
+        onClose();
     };
 
-    // 💡 추가: 삭제 버튼 클릭 핸들러
+    // 삭제 버튼 클릭 핸들러
     const handleDeleteClick = () => {
         onDelete(comment.commentId);
         onClose(); // 삭제 후 모달 닫기

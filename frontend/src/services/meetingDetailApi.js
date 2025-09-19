@@ -163,7 +163,7 @@ export const leaveMeeting = async (meetingId) => {
 export const getComments = async (meetingId) => {
     try {
         const response = await apiClient.get(`/meetings/${meetingId}/comments`);
-        console.log("comments",response)
+        // console.log("comments",response)
         if (response.data) {
             return {
                 success: true,
@@ -213,14 +213,20 @@ export const getComments = async (meetingId) => {
 export const postComment = async (meetingId, comment) => {
     try {
         const response = await apiClient.post(`/meetings/${meetingId}/comments`, comment);
-        console.log("postComment",response)
+        // console.log("postComment",response)
         if (response.data) {
             return {
                 success: true,
                 data: response.data.comments,
                 message: response.data.message
             };
-        } else {}
+        } else {
+            return {
+                success: false,
+                message: response.data?.message || '댓글 작성을 할 수 없습니다.',
+                data: null
+            }
+        }
     } catch (error) {
         console.error('댓글 작성 API 호출 실패:', error);
 
@@ -247,6 +253,53 @@ export const postComment = async (meetingId, comment) => {
         };
     }
 }
+
+
+export const updateComments = async (meetingId,commentId, comment) => {
+    try {
+        const response = await apiClient.put(`/meetings/${meetingId}/comments/${commentId}`, comment);
+        console.log("postComment",response)
+        if (response.data) {
+            return {
+                success: true,
+                data: response.data.comments,
+                message: response.data.message
+            };
+        } else {
+            return {
+                success: false,
+                message: response.data?.message || '댓글 수정을 할 수 없습니다.',
+                data: null
+            }
+        }
+    } catch (error) {
+        console.error('댓글 수정 API 호출 실패:', error);
+
+        if (error.response?.status === 400) {
+            return {
+                success: false,
+                message: error.response.data?.message || '댓글 수정을 할 수 없습니다.',
+                data: null
+            };
+        }
+
+        if (error.response?.status === 401) {
+            return {
+                success: false,
+                message: '로그인이 필요합니다.',
+                data: null
+            };
+        }
+
+        return {
+            success: false,
+            message: '댓글 수정 중 오류가 발생했습니다.',
+            data: null
+        };
+    }
+}
+
+
 /**
  * 모임 참여자 목록 조회
  * @param {number|string} meetingId - 모임 ID
