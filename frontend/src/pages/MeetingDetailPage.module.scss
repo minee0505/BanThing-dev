@@ -19,9 +19,9 @@ $status-completed: $text-color;
 $status-cancelled: #95A5A6;
 
 // 신뢰도 배지 컬러
-$trust-warning: #E74C3C;
-$trust-basic: #95A5A6;
-$trust-good: #27AE60;
+$trust-warning: #E41B17;
+$trust-basic: #00A36C;
+$trust-good: #0080FF;
 
 // 브레이크포인트
 $mobile: 480px;
@@ -341,7 +341,9 @@ $desktop: 1024px;
   font-size: 0.7rem;
   font-weight: 600;
 }
+.trustWarning .trustBasic {
 
+}
 // 모임 콘텐츠
 .meetingContent {
   padding: 2rem;
@@ -514,12 +516,12 @@ $desktop: 1024px;
 }
 
 .approveButton {
-  background-color: $trust-good;
+  //background-color: $trust-good;
   color: $white;
 
-  &:hover {
+  /*&:hover {
     background-color: darken($trust-good, 10%);
-  }
+  }*/
 }
 
 .rejectButton {
