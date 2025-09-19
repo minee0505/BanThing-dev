@@ -11,6 +11,7 @@ import {
     postComment,
     updateComments
 } from '../services/meetingDetailApi';
+import { getMeetingDetail, joinMeeting, leaveMeeting, getParticipants, deleteMeeting } from '../services/meetingDetailApi';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaClock, FaEdit, FaTrash } from 'react-icons/fa';
 import Chatbot from '../components/Chatbot/Chatbot';
 import styles from './MeetingDetailPage.module.scss';
@@ -222,6 +223,25 @@ const MeetingDetailPage = () => {
     };
 
 
+    // 삭제 핸들러 추가
+    const handleDeleteMeeting = async () => {
+        if (!confirm('정말 모임을 삭제하시겠습니까? 삭제된 모임은 복구할 수 없습니다.')) return;
+
+        try {
+            const result = await deleteMeeting(id);
+            if (result.success) {
+                alert('모임이 삭제되었습니다.');
+                // 메인 페이지로 리다이렉트
+                navigate('/', { replace: true });
+            } else {
+                alert(result.message || '모임 삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('모임 삭제 실패:', error);
+            alert('모임 삭제 중 오류가 발생했습니다.');
+        }
+    };
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -403,7 +423,10 @@ const MeetingDetailPage = () => {
                                 <button className={styles.editButton}>
                                     <FaEdit /> 수정
                                 </button>
-                                <button className={styles.deleteButton}>
+                                <button
+                                    className={styles.deleteButton}
+                                    onClick={handleDeleteMeeting}
+                                >
                                     <FaTrash /> 삭제
                                 </button>
                             </div>

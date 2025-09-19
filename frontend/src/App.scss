@@ -498,7 +498,6 @@ a:hover {
 
 /* ===== 13. 접근성 및 포커스 스타일 ===== */
 *:focus {
-  outline: 2px solid var(--accent-color);
   outline-offset: 2px;
 }
 
