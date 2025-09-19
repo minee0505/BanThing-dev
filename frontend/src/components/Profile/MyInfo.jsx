@@ -17,7 +17,7 @@ const MyInfo = ({ user }) => {
       <img
         src={profileImageUrl}
         alt="프로필 이미지"
-        style={{width: '30px', height: '30px'}}
+        style={{width: '40px', height: '40px'}}
       />
       <p>등급: {trustGrade}</p>
       <p>점수: {trustScore}</p>
