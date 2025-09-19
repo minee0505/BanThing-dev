@@ -1,5 +1,5 @@
 /*
-  반띵 AI 챗봇 스타일 (test.html 기반으로 개선)
+  반띵 AppHeader 스타일 - 로고 가시성을 위해 그라데이션 수정
   컬러 가이드를 준수한 반응형 디자인
 */
 
@@ -49,6 +49,24 @@ $desktop: 1024px;
   }
 }
 
+// 로고 애니메이션
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .container {
   max-width: 900px;
@@ -58,66 +76,192 @@ $desktop: 1024px;
 }
 
 .header {
-  // 레이아웃 가이드에서 제안하는 Primary 색을 사용합니다.
-  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
-  color: $white;
-  padding: 1rem 2rem 1rem 3rem;
+  // 옵션 3: 강화된 그림자 + 미묘한 색상 배경 (하단 액센트 바 제외)
+  background: linear-gradient(135deg, rgba($primary-color, 0.08), rgba($secondary-color, 0.08));
+  border: 1px solid rgba($primary-color, 0.2);
+  color: $text-color;
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-height: 110px;
+  min-height: 80px;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba($primary-color, 0.4);
+  // 강화된 그림자로 구분감 확보
+  box-shadow: 0 8px 24px rgba($primary-color, 0.25);
+  margin-top: 20px; // 상단 여백 추가
   margin-bottom: 10px;
 
-  // 로고를 클릭하면 홈으로 이동하도록 Link 컴포넌트에도 스타일을 적용할 수 있습니다.
+  // 로고를 클릭하면 홈으로 이동하도록 Link 컴포넌트에도 스타일을 적용
   .logoLink {
     text-decoration: none;
     color: inherit;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+
+  // 반띵 로고 스타일
+  .logo {
+    display: flex;
+    align-items: center;
+  }
+
+  .logoIcon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    position: relative;
+    background: linear-gradient(135deg, $primary-color, $secondary-color);
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .logoText {
+    font-size: 1.8em;
+    font-weight: 700;
+    background: linear-gradient(135deg, $primary-color, $secondary-color);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent; // 폴백용
+  }
+
+  .splitCircle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, white 0deg 180deg, rgba(255,255,255,0.7) 180deg 360deg);
+    position: relative;
+    animation: rotate 4s linear infinite;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+      background: rgba(255,255,255,0.9);
+      transform: translateY(-50%);
+    }
+  }
+
+  // 태블릿 이하에서는 패딩 조정
+  @media (max-width: $tablet) {
+    padding: 0.8rem 1rem;
+    min-height: 70px;
+  }
+
+  // 모바일에서는 더 컴팩트하게
+  @media (max-width: $mobile) {
+    padding: 0.6rem 0.8rem;
+    min-height: 60px;
   }
 }
 
-// 사용자 프로필과 로그아웃 버튼을 감싸는 영역입니다.
+// 사용자 프로필과 로그아웃 버튼을 감싸는 영역
 .userSection {
   display: flex;
   align-items: center;
   gap: 1rem;
+
+  @media (max-width: $mobile) {
+    gap: 0.5rem;
+  }
 }
 
 // 프로필 이미지 스타일
 .profileImage {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid $white;
+  border: none; // 보라색 테두리 제거
+
+  @media (max-width: $mobile) {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 // 닉네임 스타일
 .nickname {
-  font-size: 1.1rem;
-  font-weight: bold;
+  font-size: 1rem;
+  font-weight: 600;
   margin: 0;
+  color: $text-color;
+
+  @media (max-width: $mobile) {
+    font-size: 0.9rem;
+  }
 }
 
 // 로그인 링크와 로그아웃 버튼의 공통 스타일
 .actionButton {
-  background-color: $background-color;
-  color: $primary-color;
+  background: linear-gradient(135deg, $primary-color, $secondary-color);
+  color: $white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  font-weight: bold;
+  padding: 0.7rem 1.4rem;
+  border-radius: 12px;
+  font-weight: 600;
   text-decoration: none;
   transition: all 0.3s ease;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba($primary-color, 0.4);
+  box-shadow: 0 4px 16px rgba($primary-color, 0.25);
   display: flex;
   align-items: center;
+  font-size: 0.95rem;
+  position: relative;
+  overflow: hidden;
+
+  // 호버 시 내부 그라데이션 효과
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
 
   &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba($primary-color, 0.6);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba($primary-color, 0.35);
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba($primary-color, 0.3);
+  }
+
+  // 포커스 상태 (키보드 접근성)
+  &:focus {
+    outline: none;
+    box-shadow: 0 4px 16px rgba($primary-color, 0.25), 0 0 0 3px rgba($primary-color, 0.3);
+  }
+
+  @media (max-width: $tablet) {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: $mobile) {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
   }
 }
 

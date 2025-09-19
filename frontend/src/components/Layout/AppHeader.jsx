@@ -1,5 +1,4 @@
 import React from 'react';
-import Logo from '../Others/Logo.jsx';
 import {Link, useNavigate} from 'react-router-dom';
 import {useAuthStore} from "../../stores/authStore.js";
 import styles from './AppHeader.module.scss';
@@ -17,7 +16,14 @@ const AppHeader = () => {
 
   return (
     <header className={`${styles.header} ${styles.container}`}>
-      <Logo />
+      <Link to="/" className={styles.logoLink}>
+        <div className={styles.logo}>
+          <div className={styles.logoIcon}>
+            <div className={styles.splitCircle}></div>
+          </div>
+          <div className={styles.logoText}>반띵</div>
+        </div>
+      </Link>
       {isAuthenticated ? (
         <div className={styles.userSection}>
           <img
