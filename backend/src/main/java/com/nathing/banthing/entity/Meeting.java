@@ -21,6 +21,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"hostUser", "mart", "participants", "suggestions", "feedbacks"})
 @SQLDelete(sql = "UPDATE meetings SET deleted_at = NOW() WHERE meeting_id = ?")
 @Where(clause = "deleted_at IS NULL")
 public class Meeting {

@@ -1,32 +1,28 @@
 import React from 'react';
+// [추가] dev 브랜치의 useNavigate 기능을 가져옵니다.
 import { useNavigate } from 'react-router-dom';
 import styles from './MeetingCard.module.scss';
-import {FaMapMarkerAlt, FaUsers, FaCalendarAlt} from 'react-icons/fa';
-import {Link} from "react-router-dom";
+import { FaMapMarkerAlt, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 
-const MeetingCard = ({meeting}) => {
-    // 미팅 카드 클릭 시 상세페이지로의 연결을 위함 함수
+const MeetingCard = ({ meeting }) => {
+    // [추가] dev 브랜치의 상세 페이지 이동 기능을 위한 navigate 함수입니다.
     const navigate = useNavigate();
 
-    // 날짜 형식을 'YYYY-MM-DD HH:mm'으로 예쁘게 바꿔주는 함수
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     };
 
-    // 미팅 카드 클릭 시 상세페이지로의 연결을 위함 함수
+    // [추가] dev 브랜치의 카드 클릭 핸들러 함수입니다.
     const handleCardClick = () => {
-        console.log('Meeting data:', meeting); // 디버깅용
         navigate(`/meetings/${meeting.meetingId || meeting.meeting_id || meeting.id}`);
     };
 
-    //  모임 상태(영문 대문자)를 CSS 클래스(영문 소문자)로 바꿔주는 함수
     const getStatusClass = (status) => {
         if (!status) return '';
         return styles[status.toLowerCase()] || '';
     };
 
-    //  모임 상태에 따라 표시할 한글 텍스트를 정하는 객체
     const statusToKorean = {
         RECRUITING: '모집중',
         FULL: '모집완료',
@@ -35,38 +31,46 @@ const MeetingCard = ({meeting}) => {
         CANCELLED: '모임취소',
     };
 
+    // [추가] feature 브랜치의 이미지 전체 URL을 만들어주는 함수입니다.
+    const getFullImageUrl = (thumbnailUrl) => {
+        const placeholder = 'https://via.placeholder.com/150';
+        if (!thumbnailUrl) {
+            return placeholder;
+        }
+        if (thumbnailUrl.startsWith('http')) {
+            return thumbnailUrl;
+        }
+        const backendUrl = import.meta.env.VITE_API_URL.replace('/api', '');
+        return `${backendUrl}${thumbnailUrl}`;
+    };
+
     return (
+        // [수정] dev 브랜치의 onClick, style 속성을 추가하여 카드 전체를 클릭할 수 있게 합니다.
         <div
             className={styles.card}
             onClick={handleCardClick}
             style={{ cursor: 'pointer' }}
         >
-            {/*  className에 동적으로 상태 클래스를 추가합니다. */}
             <span className={`${styles.badge} ${getStatusClass(meeting.status)}`}>
-                    {statusToKorean[meeting.status] || meeting.status}
-                </span>
+                {statusToKorean[meeting.status] || meeting.status}
+            </span>
 
             <div className={styles.thumbnail}>
-                <img src={meeting.thumbnailImageUrl || 'https://via.placeholder.com/150'} alt={meeting.title}/>
-                {/* 썸네일 안에 있던 배지는 삭제 */}
+                {/* [수정] feature 브랜치의 getFullImageUrl 함수를 사용하여 최종 이미지 URL을 가져옵니다. */}
+                <img src={getFullImageUrl(meeting.thumbnailImageUrl)} alt={meeting.title} />
             </div>
 
             <div className={styles.content}>
                 <h3 className={styles.title}>{meeting.title}</h3>
                 <div className={styles.info}>
-                    <span><FaMapMarkerAlt/> {meeting.martName}</span>
-                    <span><FaCalendarAlt/> {formatDate(meeting.meetingDate)}</span>
+                    <span><FaMapMarkerAlt /> {meeting.martName}</span>
+                    <span><FaCalendarAlt /> {formatDate(meeting.meetingDate)}</span>
                 </div>
                 <div className={styles.footer}>
                     <span className={styles.participants}>
-                        <FaUsers/> {meeting.currentParticipants} / {meeting.maxParticipants}명
+                        <FaUsers /> {meeting.currentParticipants} / {meeting.maxParticipants}명
                     </span>
                 </div>
-
-            </div>
-            <div>
-                {/*<p>미팅 카드</p>*/}
-                <Link to='/meetings/8'>미팅 카드</Link>
             </div>
         </div>
     );

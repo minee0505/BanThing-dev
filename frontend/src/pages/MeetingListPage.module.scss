@@ -65,6 +65,7 @@
   // 그림자 값을 직접 지정합니다.
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease-in-out;
+  text-decoration: none;
 
   &:hover {
     background-color: rgba(162, 155, 254, 0.8); // Primary hover color

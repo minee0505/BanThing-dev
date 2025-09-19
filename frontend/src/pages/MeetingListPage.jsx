@@ -6,8 +6,10 @@ import styles from './MeetingListPage.module.scss';
 import Chatbot from '../components/Chatbot/Chatbot.jsx';
 import { FaSearch, FaPlus } from 'react-icons/fa';
 import Pagination from '../components/Meeting/Pagination.jsx';
+import { Link } from 'react-router-dom';
 
 const MeetingListPage = () => {
+
     const [meetings, setMeetings] = useState([]);
     const [selectedMartId, setSelectedMartId] = useState(null);
     const [selectedMartName, setSelectedMartName] = useState(null);
@@ -125,9 +127,9 @@ const MeetingListPage = () => {
                         onChange={handleSearchChange}
                     />
                 </div>
-                <button className={styles.createButton}>
+                <Link to="/meetings/new" className={styles.createButton}>
                     <FaPlus /> 모임 생성
-                </button>
+                </Link>
             </div>
 
             <KakaoMap
