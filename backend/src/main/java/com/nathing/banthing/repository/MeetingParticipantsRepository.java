@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
+import java.util.Optional;
+
 public interface MeetingParticipantsRepository extends JpaRepository<MeetingParticipant, Long> {
 
     boolean existsByMeetingAndUserAndApplicationStatus(Meeting meeting, User giverUser, MeetingParticipant.ApplicationStatus applicationStatus);
@@ -24,4 +26,7 @@ public interface MeetingParticipantsRepository extends JpaRepository<MeetingPart
 
     long countByMeetingAndApplicationStatus(Meeting meeting, MeetingParticipant.ApplicationStatus status);
 
+//    Optional<Object> findByMeetingMeetingIdAndUserProviderIdAndApplicationStatus(Long meetingId, String providerId, MeetingParticipant.ApplicationStatus applicationStatus);
+
+    Optional<Object> findByMeetingMeetingIdAndUserUserIdAndApplicationStatus(Long meetingId, Long userId, MeetingParticipant.ApplicationStatus applicationStatus);
 }

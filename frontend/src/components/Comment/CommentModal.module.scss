@@ -1,0 +1,22 @@
+.modalContent {
+  // 모달 본체를 위한 스타일
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); // 그림자 효과
+  width: 10%;
+  max-width: 500px;
+  position: relative;
+  text-align: center; // 내부 텍스트 및 요소 중앙 정렬
+}
+
+.modalCloseBtn {
+  // 닫기 버튼을 위한 스타일
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}

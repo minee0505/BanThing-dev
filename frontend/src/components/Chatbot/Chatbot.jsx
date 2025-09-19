@@ -38,6 +38,16 @@ const Chatbot = () => {
                 });
 
                 setMessages(formattedMessages);
+
+                // 기록 로드 후 스크롤 하단으로
+                setTimeout(() => {
+                    if (messagesEndRef.current) {
+                        messagesEndRef.current.scrollIntoView({
+                            behavior: 'auto', // 기록 로드는 즉시
+                            block: 'end'
+                        });
+                    }
+                }, 50);
             }
         } catch (error) {
             console.error('대화 기록 로드 실패:', error);
@@ -65,12 +75,34 @@ const Chatbot = () => {
         checkAuthStatus();
     }, [loadChatHistory]);
 
-    // 메시지 스크롤 처리
+    // 스크롤 하단 고정
     useEffect(() => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
+        const scrollToBottom = () => {
+            if (messagesEndRef.current) {
+                messagesEndRef.current.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'end'
+                });
+            }
+        };
+
+        // 새 메시지나 기록 로드 후 스크롤
+        const timer = setTimeout(scrollToBottom, 100);
+        return () => clearTimeout(timer);
     }, [messages]);
+
+    // 챗봇 열릴 때도 스크롤 하단 고정
+    useEffect(() => {
+        if (isOpen && messagesEndRef.current) {
+            const timer = setTimeout(() => {
+                messagesEndRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'end'
+                });
+            }, 300); // 애니메이션 시간 후
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
 
     // 채팅창 오픈 시 포커스
     useEffect(() => {

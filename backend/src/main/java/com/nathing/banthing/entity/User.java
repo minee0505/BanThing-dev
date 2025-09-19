@@ -1,9 +1,13 @@
 package com.nathing.banthing.entity;
 
+import com.nathing.banthing.exception.BusinessException;
+import com.nathing.banthing.exception.ErrorCode;
+import com.nathing.banthing.repository.UsersRepository;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -98,6 +102,10 @@ public class User {
 
     @OneToMany(mappedBy = "receiverUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Feedback> receivedFeedbacks = new ArrayList<>();
+
+    // 송민재 작성, comments테이블과 연관관계
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 
 
 
