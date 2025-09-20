@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import MyInfo from '../components/Profile/MyInfo.jsx';
+import MyInfoCard from '../components/Profile/MyInfoCard.jsx';
 import MyProfileMeetings from '../components/Profile/MyProfileMeetings.jsx';
 import {useAuthStore} from '../stores/authStore.js';
 import {useLoaderData, useNavigate} from 'react-router-dom';
@@ -91,7 +91,7 @@ const ProfilePage = () => {
         { isProfileLoading ? (
           <p>프로필 로딩중</p>
         ) : (
-          <MyInfo user={user}/>
+          <MyInfoCard user={user}/>
         )}
 
 
