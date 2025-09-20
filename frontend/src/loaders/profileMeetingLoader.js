@@ -11,6 +11,9 @@ export const profileMeetingLoader = async () => {
 
   if (result.success) {
     const totalElements = result.data.totalElements;
+    if (totalElements === 0) {
+      return 1;
+    }
     return Math.min(meetingsPerPage, totalElements); // 첫 페이지 개수
   } else {
     return meetingsPerPage; // 실패하면 기본 4개 보여주기

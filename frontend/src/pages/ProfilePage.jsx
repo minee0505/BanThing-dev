@@ -83,7 +83,7 @@ const ProfilePage = () => {
   const expectedCount =
     page === 0 && condition === 'APPROVED'
       ? initialSkeletonCount // 첫 페이지는 로더에서 가져온 값 사용
-      : Math.min(meetingsPerPage, Math.max(0, totalElements - page * meetingsPerPage));
+      : Math.min(meetingsPerPage, Math.max(1, totalElements - page * meetingsPerPage));
 
   return (
     <main className={styles.profilePage}>
