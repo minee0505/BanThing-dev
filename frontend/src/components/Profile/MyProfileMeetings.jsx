@@ -5,14 +5,7 @@ import {FaRegSadTear} from 'react-icons/fa';
 const MyProfileMeetings = ({ meetingList, condition }) => {
 
   return (
-    <section>
-      {
-        condition === 'APPROVED' ? (
-          <h2>내가 참여한 모임</h2>
-        ) : (
-          <h2>참가 대기 중인 모임</h2>
-        )
-      }
+    <div>
       {
         meetingList?.length > 0 ? (
           // 모임이 있는 경우
@@ -39,7 +32,7 @@ const MyProfileMeetings = ({ meetingList, condition }) => {
           </div>
         )
       }
-    </section>
+    </div>
   );
 };
 

@@ -6,6 +6,8 @@ import {useLoaderData, useNavigate} from 'react-router-dom';
 import {profileMeetings} from '../services/profileApi.js';
 import Pagination from "../components/Meeting/Pagination.jsx";
 import MeetingCardSkeleton from "../components/Meeting/MeetingCardSkeleton.jsx";
+import MyInfoCardSkeleton from "../components/Profile/MyInfoCardSkeleton.jsx";
+import styles from './ProfilePage.module.scss';
 
 const ProfilePage = () => {
 
@@ -84,56 +86,74 @@ const ProfilePage = () => {
       : Math.min(meetingsPerPage, Math.max(0, totalElements - page * meetingsPerPage));
 
   return (
-    <>
-      <div>
-        <h2>프로필 페이지</h2>
-
+    <main className={styles.profilePage}>
+      <section className={`${styles.section} ${styles.profileSection}`}>
+        <h2 className={styles.sectionTitle}>프로필</h2>
         { isProfileLoading ? (
-          <p>프로필 로딩중</p>
+          <MyInfoCardSkeleton />
         ) : (
           <MyInfoCard user={user}/>
         )}
+      </section>
 
+      <section className={`${styles.section} ${styles.meetingSection}`}>
+        <h2 className={styles.sectionTitle}>모임 목록</h2>
 
-        {/* 버튼 클릭시 조건 변경, 페이지 0으로 재설정 */}
-        <button
-          onClick={() => { setCondition('APPROVED'); setPage(0); }}
-          disabled={condition === 'APPROVED'}
-        >
-          참가중인 모임
-        </button>
-        <button
-          onClick={() => {
-            setCondition('PENDING');
-            setPage(0);
-            setTotalElements(0);
-          }}
-          disabled={condition === 'PENDING'}
-        >
-          참가 대기중인 모임
-        </button>
+        <div className={styles.filterContainer}>
+          {/* 버튼 클릭시 조건 변경, 페이지 0으로 재설정 */}
+          <button
+            className={styles.filterButton}
+            onClick={() => {
+              setCondition('APPROVED');
+              setPage(0);
+            }}
+            disabled={condition === 'APPROVED'}
+          >
+            참가중인 모임
+          </button>
+          <button
+            className={styles.filterButton}
+            onClick={() => {
+              setCondition('PENDING');
+              setPage(0);
+              setTotalElements(0);
+            }}
+            disabled={condition === 'PENDING'}
+          >
+            참가 대기중인 모임
+          </button>
+        </div>
 
-        { isLoading ? ( // 로딩중인 경우
-          <div>
-            {Array.from({ length: expectedCount }).map((_, index) => (
-              <MeetingCardSkeleton key={index} />
-            ))}
-          </div>
-        ) : errorMessage ? ( // 로딩이 끝났지만 에러가 있는 경우
-          <p>{errorMessage}</p>
-        ) : ( // 로딩이 끝나고, 에러가 없는 경우 -> 미팅 렌더링
-          <MyProfileMeetings meetingList={meetingList} condition={condition} />
-        )}
+        <div className={styles.meetingContent}>
+          { isLoading ? ( // 로딩중인 경우
+            <div className={styles.loadingContainer}>
+              {Array.from({ length: expectedCount }).map((_, index) => (
+                <MeetingCardSkeleton key={index} />
+              ))}
+            </div>
+
+          ) : errorMessage ? ( // 로딩이 끝났지만 에러가 있는 경우
+            <div className={styles.errorMessage}>
+              <span role="alert">{errorMessage}</span>
+            </div>
+
+          ) : ( // 로딩이 끝나고, 에러가 없는 경우 -> 미팅 렌더링
+            <MyProfileMeetings meetingList={meetingList} condition={condition} />
+          )}
+        </div>
 
         { meetingList && totalPages > 1 && !isLoading && (
-          <Pagination
-            currentPage={page + 1}
-            totalPages={totalPages}
-            paginate={paginate}
-          />
+          <div className={styles.paginationContainer}>
+            <Pagination
+              currentPage={page + 1}
+              totalPages={totalPages}
+              paginate={paginate}
+            />
+          </div>
         )}
-      </div>
-    </>
+      </section>
+
+    </main>
   );
 };
 
