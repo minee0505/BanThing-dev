@@ -33,7 +33,7 @@
 .profilePage {
   max-width: 900px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 20px;
   background-color: var(--background-color);
   min-height: 100vh;
 
@@ -112,7 +112,7 @@
 .meetingSection {
   background-color: var(--white);
   border-radius: var(--border-radius-large);
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: var(--shadow-light);
 
   /* 데스크톱에서 최소 높이 보장 */
@@ -249,7 +249,6 @@
   display: flex;
   justify-content: center;
   margin-top: 2rem;
-  padding-top: 2rem;
   border-top: 1px solid rgba(162, 155, 254, 0.2);
 }
 

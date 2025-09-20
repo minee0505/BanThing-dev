@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './MyInfoCard.module.scss';
 
 /**
  * 사용자의 정보를 표시하는 컴포넌트를 나타냅니다.
@@ -24,29 +25,46 @@ const MyInfoCard = ({ user }) => {
   const trustScore = user?.trustScore;
   const noShowCount = user?.noShowCount;
 
+  // 신뢰도 등급에 따른 스타일 클래스 결정
+  const getTrustGradeClass = (grade) => {
+    if (!grade) return styles.basic;
+    const lowerGrade = grade.toLowerCase();
+    if (lowerGrade.includes('경고') || lowerGrade.includes('warning')) return styles.warning;
+    if (lowerGrade.includes('좋음') || lowerGrade.includes('good')) return styles.good;
+    return styles.basic;
+  };
+
   return (
-    <section>
-      <ul>
-        <li>
-          <strong>이름:</strong> {nickname}
+    <section className={styles.myInfoCard}>
+      <div className={styles.profileHeader}>
+        <img
+          src={profileImageUrl}
+          alt="프로필 이미지"
+          className={styles.profileImage}
+        />
+        <div className={styles.profileInfo}>
+          <h3 className={styles.nickname}>{nickname}</h3>
+        </div>
+      </div>
+
+      <ul className={styles.userStats}>
+        <li className={styles.statItem}>
+          <span className={styles.statLabel}>등급</span>
+          <span className={`${styles.trustGrade} ${getTrustGradeClass(trustGrade)}`}>
+            {trustGrade || '기본'}
+          </span>
         </li>
-        <li>
-          <div>
-            <img
-              src={profileImageUrl}
-              alt="프로필 이미지"
-              style={{ width: '40px', height: '40px' }}
-            />
-          </div>
+        <li className={styles.statItem}>
+          <span className={styles.statLabel}>신뢰 점수</span>
+          <span className={`${styles.statValue} ${styles.trustScore}`}>
+            {trustScore || 0}점
+          </span>
         </li>
-        <li>
-          <strong>등급:</strong> {trustGrade}
-        </li>
-        <li>
-          <strong>점수:</strong> {trustScore}
-        </li>
-        <li>
-          <strong>노쇼 카운트:</strong> {noShowCount}
+        <li className={styles.statItem}>
+          <span className={styles.statLabel}>노쇼 횟수</span>
+          <span className={`${styles.statValue} ${styles.noShowCount} ${noShowCount > 3 ? styles.high : ''}`}>
+            {noShowCount || 0}회
+          </span>
         </li>
       </ul>
     </section>
