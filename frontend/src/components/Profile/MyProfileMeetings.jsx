@@ -14,9 +14,9 @@ const MyProfileMeetings = ({ meetingList, condition }) => {
         )
       }
       {
-        meetingList?.content.length > 0 ? (
+        meetingList?.length > 0 ? (
           // 모임이 있는 경우
-          meetingList?.content.map(meeting => (
+          meetingList?.map(meeting => (
             <MeetingCard key={meeting.meetingId} meeting={meeting} />
           ))
         ) : (
@@ -24,12 +24,12 @@ const MyProfileMeetings = ({ meetingList, condition }) => {
           <div>
             <FaRegSadTear size="3rem" />
             {
-              condition === 'APPROVED' ? (
+              condition === 'APPROVED' ? ( // 참가중인 모임을 클릭한 경우
                 <p>
                   앗, 참가중인 모임이 없네요.<br />
                   새로운 모임에 참가해보는 건 어떠세요?
                 </p>
-              ) : (
+              ) : ( // 참가 대기중인 모임을 클릭한 경우
                 <p>
                   앗, 참가 대기중인 모임이 없네요.<br />
                   새로운 모임에 참가해보는 건 어떠세요?
