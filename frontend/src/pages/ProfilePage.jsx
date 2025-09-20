@@ -12,8 +12,9 @@ const ProfilePage = () => {
   const [condition, setCondition] = useState('APPROVED');
   const [page, setPage] = useState(0); // 0번 인덱스 기반
   const [totalPages, setTotalPages] = useState(0); // 전체 페이지 수를 위한 상태
-  const [isLoading, setIsLoading] = useState(false);
-  const [meetingList, setMeetingList] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // 모임 로딩 여부
+  const [isProfileLoading, setIsProfileLoading] = useState(false); // 프로필 로딩 여부
+  const [meetingList, setMeetingList] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
   const meetingsPerPage = 4;
@@ -23,6 +24,8 @@ const ProfilePage = () => {
     if (!isAuthenticated) {
       navigate('/login');
     }
+    setIsProfileLoading(true);
+    setTimeout(() => setIsProfileLoading(false), 300);
   }, [isAuthenticated, navigate]);
 
   // async 함수를 만들어서 await를 쓸 수 있게 합니다.
@@ -30,7 +33,14 @@ const ProfilePage = () => {
     setIsLoading(true); // 로딩 상태 시작
     setErrorMessage(''); // 에러 메시지 없애고 시작
 
+    // 최소 로딩 시간 을 주기 위한 딜레이
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
     try {
+      
+      // 깜빡임 방지 딜레이
+      await delay(300);
+
       // await를 사용하면 프로미스가 완료될 때까지 기다려줍니다.
       const result = await profileMeetings(page, condition);
 
@@ -65,20 +75,36 @@ const ProfilePage = () => {
       <div>
         <h2>프로필 페이지</h2>
 
-        <MyInfo user={user}/>
+        { isProfileLoading ? (
+          <p>프로필 로딩중</p>
+        ) : (
+          <MyInfo user={user}/>
+        )}
+
 
         {/* 버튼 클릭시 조건 변경, 페이지 0으로 재설정 */}
         <button
           onClick={() => { setCondition('APPROVED'); setPage(0); }}
           disabled={condition === 'APPROVED'}
-        >참가중인 모임</button>
+        >
+          참가중인 모임
+        </button>
         <button
           onClick={() => {setCondition('PENDING'); setPage(0);}}
           disabled={condition === 'PENDING'}
-        >참가 대기중인 모임</button>
+        >
+          참가 대기중인 모임
+        </button>
 
-        <MyProfileMeetings meetingList={meetingList} condition={condition} />
-        {meetingList && (
+        { isLoading ? ( // 로딩중인 경우
+          <p>로딩중</p>
+        ) : errorMessage ? ( // 로딩이 끝났지만 에러가 있는 경우
+          <p>{errorMessage}</p>
+        ) : ( // 로딩이 끝나고, 에러가 없는 경우 -> 미팅 렌더링
+          <MyProfileMeetings meetingList={meetingList} condition={condition} />
+        )}
+
+        { meetingList && totalPages > 1 && !isLoading && (
           <Pagination
             currentPage={page + 1}
             totalPages={totalPages}
