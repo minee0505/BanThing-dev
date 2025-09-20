@@ -1,4 +1,6 @@
-/* MeetingCard.module.scss의 레이아웃 스타일을 그대로 가져옵니다. */
+/* MeetingCard.module.scss의 레이아웃 스타일을 그대로 가져와
+  크기가 완전히 동일하도록 수정했습니다.
+*/
 .card {
   display: flex;
   background-color: #fff;
@@ -6,10 +8,12 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   margin-bottom: 20px;
+  // 실제 카드와 동일한 높이를 갖도록 min-height를 설정합니다.
+  min-height: 154px;
 }
 
 .thumbnail {
-  flex: 0 0 120px; // 너비 120px 고정
+  flex: 0 0 120px;
 }
 
 .content {
@@ -19,10 +23,14 @@
   flex-direction: column;
 }
 
+/* font-size를 기준으로 높이를 설정하여
+  실제 텍스트와 공간을 동일하게 차지하도록 합니다.
+*/
 .title {
-  height: 22px; // 1.1rem
+  height: 1.1rem; // font-size와 동일하게
   width: 80%;
   margin-bottom: 8px;
+  border-radius: 4px;
 }
 
 .info {
@@ -33,30 +41,26 @@
 }
 
 .infoLine {
-  height: 18px; // 0.9rem
+  height: 0.9rem; // font-size와 동일하게
   width: 90%;
+  border-radius: 4px;
 }
 
 .footer {
-  margin-top: auto; // 푸터를 항상 아래에 위치시킴
+  margin-top: auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .participants {
+  height: 0.9rem; // font-size와 동일하게
   width: 50%;
-  height: 18px;
-}
-
-/* 뼈대 역할을 할 회색 라인 스타일 */
-.line {
-  background-color: #e0e0e0;
   border-radius: 4px;
 }
 
 /* 반짝이는 스켈레톤 애니메이션 */
-.thumbnail, .line {
+.thumbnail, .title, .infoLine, .participants {
   background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;

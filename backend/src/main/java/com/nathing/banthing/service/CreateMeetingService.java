@@ -35,6 +35,7 @@ public class CreateMeetingService {
     private final UsersRepository usersRepository;
     private final MeetingsRepository meetingsRepository;
     private final MeetingParticipantsRepository meetingParticipantsRepository;
+    private static final String DEFAULT_THUMBNAIL_IMAGE_URL = "/images/meeting-default-img.svg";
 
     // application.yml의 값을 주입받기 위한 어노테이션
     @Value("${file.upload-dir}")
@@ -58,11 +59,13 @@ public class CreateMeetingService {
         Mart mart = martsRepository.findById(request.getMartId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.MART_NOT_FOUND));
 
-        String thumbnailUrl = request.getThumbnailImageUrl();
+        String thumbnailUrl;
 
         // 이미지 파일이 업로드되었다면, 파일을 저장하고 URL을 덮어씁니다.
         if (imageFile != null && !imageFile.isEmpty()) {
             thumbnailUrl = storeFile(imageFile);
+        }else {
+            thumbnailUrl = DEFAULT_THUMBNAIL_IMAGE_URL;
         }
 
         Meeting newMeeting = Meeting.builder()

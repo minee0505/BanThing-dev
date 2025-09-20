@@ -559,14 +559,21 @@ $desktop: 1024px;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid $border-color;
+  position: relative;
 
   &:last-child {
     border-bottom: none;
     margin-bottom: 0;
   }
 }
+.commentMoreButton {
+  position: absolute; // 👈 이 부분을 추가합니다.
+  right: 10px;       // 👈 오른쪽에서 50px만큼 왼쪽으로 이동합니다.
+  top: 40%;           // 👈 수직 중앙 정렬을 위해 추가합니다.
+  transform: translateY(-50%); // 👈 수직 중앙 정렬을 위해 추가합니다.
 
-.commentAvatar {
+}
+/*.commentAvatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -578,6 +585,28 @@ $desktop: 1024px;
   font-weight: 600;
   font-size: 0.9rem;
   flex-shrink: 0;
+}*/
+
+.commentAvatar {
+  // 아바타 컨테이너의 기본 스타일
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden; // 원형 밖으로 넘치는 내용 숨기기
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #A29BFE; // 텍스트 아바타용 배경색
+  color: white;
+  font-weight: bold;
+  flex-shrink: 0;
+
+  // 아바타 내부에 이미지가 있을 경우
+  img {
+    width: 100%; // 부모 div의 100% 크기로
+    height: 100%;
+    object-fit: cover; // 비율을 유지하며 부모 요소에 꽉 채우기
+  }
 }
 
 .commentContent {

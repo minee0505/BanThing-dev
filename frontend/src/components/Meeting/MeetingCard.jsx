@@ -1,23 +1,34 @@
 import React from 'react';
-// [추가] dev 브랜치의 useNavigate 기능을 가져옵니다.
 import { useNavigate } from 'react-router-dom';
 import styles from './MeetingCard.module.scss';
 import { FaMapMarkerAlt, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 
+
+/**
+ * 모임 카드 컴포넌트
+ * 모임의 썸네일, 제목, 장소, 날짜, 참가자 수 등의 정보를 카드 형태로 표시합니다.
+ *
+ * @param {Object} meeting - 모임 정보 객체
+ * @returns {Element} - 렌더링된 모임 카드 컴포넌트
+ * @author 고동현
+ * @since 2025.09.17
+ */
 const MeetingCard = ({ meeting }) => {
-    // [추가] dev 브랜치의 상세 페이지 이동 기능을 위한 navigate 함수입니다.
+    // ] dev 브랜치의 상세 페이지 이동 기능을 위한 navigate 함수입니다.
     const navigate = useNavigate();
 
+    // 날짜 문자열을 'YYYY-MM-DD HH:mm' 형식으로 변환하는 함수
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     };
 
-    // [추가] dev 브랜치의 카드 클릭 핸들러 함수입니다.
+    //  dev 브랜치의 카드 클릭 핸들러 함수입니다.
     const handleCardClick = () => {
         navigate(`/meetings/${meeting.meetingId || meeting.meeting_id || meeting.id}`);
     };
 
+    // 모임 상태에 따른 스타일 클래스를 반환하는 함수
     const getStatusClass = (status) => {
         if (!status) return '';
         return styles[status.toLowerCase()] || '';
@@ -31,7 +42,9 @@ const MeetingCard = ({ meeting }) => {
         CANCELLED: '모임취소',
     };
 
-    // [추가] feature 브랜치의 이미지 전체 URL을 만들어주는 함수입니다.
+    //  feature 브랜치의 이미지 전체 URL을 만들어주는 함수입니다.
+    // 썸네일 이미지의 전체 URL을 생성하는 함수
+    // 이미지가 없을 경우 기본 이미지를, 상대 경로일 경우 백엔드 URL을 추가하여 반환
     const getFullImageUrl = (thumbnailUrl) => {
         const placeholder = 'https://via.placeholder.com/150';
         if (!thumbnailUrl) {

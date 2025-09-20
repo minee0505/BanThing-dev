@@ -13,6 +13,8 @@ import com.nathing.banthing.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,32 +102,41 @@ public class JoinMeetingService {
 
 
     /**
-     * 모임의 확정된 참가자와 대기중인 신청자 목록을 모두 조회합니다. (호스트 전용)
+     * [수정] 모임의 참여자 목록을 조회합니다.
+     * - 요청자가 호스트일 경우: 확정된 참여자와 대기중인 신청자 목록을 모두 반환합니다.
+     * - 요청자가 일반 참여자일 경우: 확정된 참여자 목록만 반환합니다.
      *
      * @param meetingId 조회할 모임 ID
-     * @param providerId    요청을 보낸 사용자 ID (호스트인지 확인)
+     * @param providerId    요청을 보낸 사용자 ID
      * @return 확정 및 대기 목록을 포함한 DTO
      */
     @Transactional(readOnly = true)
-    public ParticipantListResponse getParticipantsByStatusForHost(Long meetingId, String providerId) {
-        // 1. 모임 존재 및 호스트 권한 확인
+    public ParticipantListResponse getParticipants(Long meetingId, String providerId) {
+        // 1. 모임과 사용자 정보 조회
         Meeting meeting = meetingsRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEETING_NOT_FOUND));
 
         User currentUser = usersRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (!meeting.getHostUser().equals(currentUser)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
+        // 2. 요청자가 호스트인지 확인
+        boolean isHost = meeting.getHostUser().equals(currentUser);
 
-        // 2. 상태별로 참가자 목록을 DB에서 각각 조회
+        // 3. '확정(APPROVED)' 상태인 참여자 목록은 공통으로 조회
         List<MeetingParticipant> approvedList = meetingParticipantsRepository
                 .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.APPROVED);
-        List<MeetingParticipant> pendingList = meetingParticipantsRepository
-                .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.PENDING);
 
-        // 3. 각 목록을 DTO로 변환
+        List<MeetingParticipant> pendingList;
+        if (isHost) {
+            // 4-1. 호스트일 경우에만 '대기(PENDING)' 상태인 참여자 목록을 조회
+            pendingList = meetingParticipantsRepository
+                    .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.PENDING);
+        } else {
+            // 4-2. 일반 참여자에게는 빈 대기 목록을 반환
+            pendingList = Collections.emptyList();
+        }
+
+        // 5. 조회된 목록을 DTO로 변환
         List<MeetingParticipantResponse> approvedDto = approvedList.stream()
                 .map(MeetingParticipantResponse::new)
                 .collect(Collectors.toList());
@@ -133,7 +144,6 @@ public class JoinMeetingService {
                 .map(MeetingParticipantResponse::new)
                 .collect(Collectors.toList());
 
-        // 4. 새로 만든 ParticipantListResponse DTO에 담아서 반환
         return new ParticipantListResponse(approvedDto, pendingDto);
     }
 }

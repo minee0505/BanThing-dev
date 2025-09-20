@@ -3,7 +3,7 @@ import AppLayout from "../layouts/AppLayout.jsx";
 import ErrorPage from "../pages/ErrorPage.jsx";
 import MeetingListPage from "../pages/MeetingListPage.jsx";
 import MeetingDetailPage from "../pages/MeetingDetailPage.jsx";
-import CommentPage from "../pages/CommentPage.jsx";
+// import CommentPage from "../pages/CommentPage.jsx";
 import LoginPage from "../pages/LoginPage.jsx";
 import AgreementPage from "../pages/AgreementPage.jsx";
 import PopupClosePage from '../pages/PopupClosePage.jsx';
@@ -34,7 +34,7 @@ export const router = createBrowserRouter([
         )
       },
       { path: 'meetings/:id', element: <MeetingDetailPage /> },
-      { path: 'meetings/:id/comments', element: <CommentPage /> },
+      // { path: 'meetings/:id/comments', element: <CommentPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'profile/:id', element: <ProfilePage /> },
     ],
