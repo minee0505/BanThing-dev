@@ -2,20 +2,25 @@ import React, {useEffect, useState} from 'react';
 import MyInfo from '../components/Profile/MyInfo.jsx';
 import MyProfileMeetings from '../components/Profile/MyProfileMeetings.jsx';
 import {useAuthStore} from '../stores/authStore.js';
-import {useNavigate} from 'react-router-dom';
+import {useLoaderData, useNavigate} from 'react-router-dom';
 import {profileMeetings} from '../services/profileApi.js';
 import Pagination from "../components/Meeting/Pagination.jsx";
+import MeetingCardSkeleton from "../components/Meeting/MeetingCardSkeleton.jsx";
 
 const ProfilePage = () => {
 
+  const initialSkeletonCount = useLoaderData(); // 로더에서 전달된 첫 페이지 개수
   const { isAuthenticated, user } = useAuthStore();
+
   const [condition, setCondition] = useState('APPROVED');
   const [page, setPage] = useState(0); // 0번 인덱스 기반
   const [totalPages, setTotalPages] = useState(0); // 전체 페이지 수를 위한 상태
+  const [totalElements, setTotalElements] = useState(0);
   const [isLoading, setIsLoading] = useState(false); // 모임 로딩 여부
   const [isProfileLoading, setIsProfileLoading] = useState(false); // 프로필 로딩 여부
   const [meetingList, setMeetingList] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+
   const navigate = useNavigate();
   const meetingsPerPage = 4;
 
@@ -37,9 +42,6 @@ const ProfilePage = () => {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     try {
-      
-      // 깜빡임 방지 딜레이
-      await delay(300);
 
       // await를 사용하면 프로미스가 완료될 때까지 기다려줍니다.
       const result = await profileMeetings(page, condition);
@@ -47,15 +49,20 @@ const ProfilePage = () => {
       // await 덕분에 원하는 { success, data, ... } 객체가 담겨있음
       if (result.success) {
         setMeetingList(result.data.content);
+        setTotalElements(result.data.totalElements);
         setTotalPages(Math.ceil(result.data.totalElements / meetingsPerPage));
       } else {
         console.error('실패:', result.message);
         setErrorMessage(result.message);
+        setMeetingList([]);
       }
     } catch (error) {
       console.error('API 호출 중 에러 발생:', error);
       setErrorMessage('서버와 통신 중 오류가 발생했습니다.');
+      setMeetingList([]);
     } finally {
+      // 선 fetch -> 후 딜레이
+      await delay(300);
       setIsLoading(false); // 로딩 상태 끝
     }
   };
@@ -69,6 +76,12 @@ const ProfilePage = () => {
   const paginate = (pageNumber) => {
     setPage(pageNumber - 1);
   }
+
+  // 현재 페이지에 들어올 개수 계산
+  const expectedCount =
+    page === 0 && condition === 'APPROVED'
+      ? initialSkeletonCount // 첫 페이지는 로더에서 가져온 값 사용
+      : Math.min(meetingsPerPage, Math.max(0, totalElements - page * meetingsPerPage));
 
   return (
     <>
@@ -90,14 +103,22 @@ const ProfilePage = () => {
           참가중인 모임
         </button>
         <button
-          onClick={() => {setCondition('PENDING'); setPage(0);}}
+          onClick={() => {
+            setCondition('PENDING');
+            setPage(0);
+            setTotalElements(0);
+          }}
           disabled={condition === 'PENDING'}
         >
           참가 대기중인 모임
         </button>
 
         { isLoading ? ( // 로딩중인 경우
-          <p>로딩중</p>
+          <div>
+            {Array.from({ length: expectedCount }).map((_, index) => (
+              <MeetingCardSkeleton key={index} />
+            ))}
+          </div>
         ) : errorMessage ? ( // 로딩이 끝났지만 에러가 있는 경우
           <p>{errorMessage}</p>
         ) : ( // 로딩이 끝나고, 에러가 없는 경우 -> 미팅 렌더링
