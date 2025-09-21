@@ -179,12 +179,13 @@ const Chatbot = () => {
         window.location.href = 'http://localhost:9000/oauth2/authorization/kakao';
     }, []);
 
-    // 회원가입 관련 키워드 감지
+    // 회원가입 관련 키워드 감지를 더 정확하게
     const shouldShowSignupButton = useCallback((message) => {
         const signupKeywords = [
             '회원가입', '가입', '로그인', '시작', '가입하기', '회원',
             '가입을', '가입해', '로그인을', '로그인해', '시작해',
-            '카카오', '계정', '등록', '서비스', '이용', '참여'
+            '카카오', '계정', '등록', '서비스', '이용', '참여',
+            '아래 카카오로 시작하기 버튼을 이용해주세요' // 이 특정 문구도 감지
         ];
         return signupKeywords.some(keyword => message.includes(keyword));
     }, []);

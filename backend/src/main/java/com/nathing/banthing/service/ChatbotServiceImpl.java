@@ -212,6 +212,12 @@ public class ChatbotServiceImpl implements ChatbotService {
         if (activeMeetings != null && !activeMeetings.isEmpty()) {
             prompt.append("\n\n# 현재 실제 진행 중인 모임 정보\n");
 
+            // 로그인/회원가입 관련 간단 응답 규칙 추가
+            prompt.append("\n\n# 로그인/회원가입 질문 처리 규칙\n");
+            prompt.append("사용자가 '로그인', '회원가입', '가입' 관련 질문을 하면:\n");
+            prompt.append("'아래 카카오로 시작하기 버튼을 이용해주세요!'라고만 간단히 답변하세요.\n");
+            prompt.append("다른 설명이나 추가 안내는 하지 마세요.\n");
+
             activeMeetings.forEach(meeting -> {
                 prompt.append("모임명: ").append(meeting.getTitle()).append("\n");
                 prompt.append("위치: ").append(meeting.getMart().getMartName())
@@ -235,6 +241,12 @@ public class ChatbotServiceImpl implements ChatbotService {
     private String buildDatabaseBasedResponse(String userMessage, List<Meeting> activeMeetings, String lowerMessage) {
         StringBuilder response = new StringBuilder();
         response.append("안녕하세요! 반띵 AI 도우미입니다.\n\n");
+
+        // 로그인/회원가입 관련 질문인지 먼저 확인
+        if (lowerMessage.contains("로그인") || lowerMessage.contains("회원가입") ||
+                lowerMessage.contains("가입") || lowerMessage.contains("회원")) {
+            return "아래 카카오로 시작하기 버튼을 이용해주세요!";
+        }
 
         if (activeMeetings != null && !activeMeetings.isEmpty()) {
             response.append("현재 서울 지역에서 총 ").append(activeMeetings.size()).append("개의 소분 모임이 진행 중이에요!\n\n");
@@ -342,10 +354,15 @@ public class ChatbotServiceImpl implements ChatbotService {
     private ChatbotConversation.IntentType determineIntentType(String message) {
         String msg = message.toLowerCase();
 
+        // 로그인/회원가입 관련 키워드 우선 처리
+        if (containsAny(msg, "로그인", "회원가입", "가입", "로그인하고", "가입하고", "회원", "계정")) {
+            return ChatbotConversation.IntentType.SERVICE_GUIDE;
+        }
+
         if (containsAny(msg, "모임", "찾", "검색", "소분", "함께", "나눔", "지역", "근처", "마트", "추천")) {
             return ChatbotConversation.IntentType.MEETING_SEARCH;
         }
-        if (containsAny(msg, "이용", "방법", "가이드", "가입", "시작", "어떻게", "준비", "위생", "안전")) {
+        if (containsAny(msg, "이용", "방법", "가이드", "시작", "어떻게", "준비", "위생", "안전")) {
             return ChatbotConversation.IntentType.SERVICE_GUIDE;
         }
         return ChatbotConversation.IntentType.GENERAL;
