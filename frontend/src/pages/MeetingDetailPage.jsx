@@ -23,7 +23,8 @@ import CommentList from "../components/Comment/CommentList.jsx";
 import CommentForm from "../components/Comment/CommentForm.jsx";
 import ParticipantsTab from '../components/Meeting/ParticipantsTab';
 import {approveParticipant, rejectParticipant} from '../services/participantApi';
-import HostInfo from '../components/Meeting/HostInfo.jsx';
+import HostInfo from '../components/Meeting/HostInfo';
+import FeedbackModal from "../components/Meeting/FeedbackModal";
 
 const MeetingDetailPage = () => {
     const {id} = useParams(); // 미팅id
@@ -47,8 +48,9 @@ const MeetingDetailPage = () => {
     const [editingCommentId, setEditingCommentId] = useState(null); // 수정할 댓글 ID
     const [editedCommentContent, setEditedCommentContent] = useState(''); // 수정할 댓글 내용 상태
     const [isCompletingMeeting, setIsCompletingMeeting] = useState(false);
-
-
+    // 피드백 모달
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+    const [selectedFeedbackUser, setSelectedFeedbackUser] = useState(null);
     useEffect(() => {
         // meeting state가 성공적으로 로드되거나 변경될 때마다 실행됩니다.
         if (meeting) {
@@ -523,6 +525,11 @@ const MeetingDetailPage = () => {
         setSelectedComment(null);
     };
 
+    // 모달을 열고 피드백 대상 유저 정보를 설정하는 함수
+    const openFeedbackModal = (userId, nickname) => {
+        setSelectedFeedbackUser({ userId, nickname });
+        setIsFeedbackModalOpen(true);
+    };
 
     return (
         <div className={styles.container}>
@@ -692,6 +699,12 @@ const MeetingDetailPage = () => {
                                 onApprove={canManageParticipants ? handleApprove : undefined}
                                 onReject={canManageParticipants ? handleReject : undefined}
                                 styles={styles}
+                                // FeedbackModal 관련 props 추가
+                                meetingStatus={meeting.status}
+                                myUserId={user.userId} // 현재 로그인한 유저의 ID 전달
+                                myUserNickName={user.nickname}
+                                openFeedbackModal={openFeedbackModal} // 수정된 모달 열기 함수 전달
+
                             />
                         );
                     })()}
@@ -778,6 +791,15 @@ const MeetingDetailPage = () => {
                     modalPosition={modalPosition}
                     onUpdate={startEditing} // `startEditing` 함수를 props로 전달
                     // onDelete={handleCommentDelete} // 삭제 핸들러 전달
+                />
+            )}
+
+            {isFeedbackModalOpen && (
+                <FeedbackModal
+                    isOpen={isFeedbackModalOpen}
+                    onClose={() => setIsFeedbackModalOpen(false)}
+                    targetUser={selectedFeedbackUser}  // 이 prop이 중요합니다!
+                    meetingId={id}
                 />
             )}
         </div>

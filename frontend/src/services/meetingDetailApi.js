@@ -613,6 +613,16 @@ export const deleteMeeting = async (meetingId) => {
     }
 };
 
+/**
+ * 모임 삭제 (호스트 전용)
+ * @param {number|string} meetingId - 모임 ID
+ * @param userId
+ * @param score
+ * @returns {Promise<Object>} API 응답
+ */
+export const postFeedback = async (meetingId, userId, score) => {
+   return null;
+};
 export default {
     getMeetingDetail,
     joinMeeting,

@@ -1,4 +1,5 @@
 import React from 'react';
+// import loginPage from "../../pages/LoginPage.jsx";
 
 /**
  * 모임 상세 페이지의 '참여자 목록' 탭 UI를 담당하는 컴포넌트
@@ -8,11 +9,17 @@ import React from 'react';
  * @param {function} props.onApprove - 참여 승인 버튼 클릭 시 호출될 함수
  * @param {function} props.onReject - 참여 거절 버튼 클릭 시 호출될 함수
  * @param {object} props.styles - 부모 컴포넌트의 CSS 모듈 스타일 객체
+ * @param {string} props.meetingStatus - 모임 상태 - 송민재
+ * @param {function} props.openFeedbackModal - 피드백 모달을 여는 함수 - 송민재
  *
  * @author 고동현
  * @since 2025.09.19
  */
-const ParticipantsTab = ({ participants, isHost, onApprove, onReject, styles }) => {
+const ParticipantsTab = ({ participants, isHost, onApprove, onReject, styles, meetingStatus, myUserId,myUserNickName, openFeedbackModal  }) => {
+    console.log("participantsID : ", participants.approved);
+    console.log("participantsNICKNAME : ", participants.approved);
+    console.log("userId : ", myUserId);
+
     return (
         <div className={styles.participantsTab}>
             {/* 확정된 참여자 목록 */}
@@ -40,6 +47,18 @@ const ParticipantsTab = ({ participants, isHost, onApprove, onReject, styles }) 
                                 신뢰도: {participant.trustScore}점
                             </div>
                         </div>
+                        {/* 모임 상태가 COMPLETED일 때 피드백 모달을 여는 버튼 추가 */}
+                        {
+                            participant.userId !== myUserId &&
+                            participant.nickname !== myUserNickName &&
+                            meetingStatus === 'COMPLETED' &&(
+                            <button
+                                onClick={() => openFeedbackModal(participant.userId, participant.nickname)}
+                                className={styles.feedbackButton}
+                            >
+                                피드백 남기기
+                            </button>
+                        )}
                     </div>
                 ))}
             </div>

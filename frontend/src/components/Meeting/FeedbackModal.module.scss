@@ -1,0 +1,137 @@
+// FeedbackModal.module.scss
+
+// App.scss와 MeetingDetailPage.module.scss에서 정의된 변수들을 재사용합니다.
+// 실제 프로젝트에서는 @import를 통해 변수를 가져와 사용하는 것이 더 효율적입니다.
+$primary-color: #A29BFE;
+$secondary-color: #FD79A8;
+$text-color: #2D3436;
+$background-color: #FAFAFA;
+$white: #FFFFFF;
+$shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.15);
+
+// 모달 오버레이
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+// 모달 콘텐츠 박스
+.modalContent {
+  background-color: $white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: $shadow-medium;
+  max-width: 450px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+
+  h3 {
+    margin-bottom: 0.5rem;
+    color: $text-color;
+  }
+
+  .description {
+    color: darken($text-color, 20%);
+    margin-bottom: 2rem;
+  }
+}
+
+// 닫기 버튼
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #95a5a6;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: $text-color;
+  }
+}
+
+// 투표 항목 (라디오 버튼) 컨테이너
+.voteContainer {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.voteOption {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  color: $text-color;
+  input[type="radio"] {
+    appearance: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid $primary-color;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    &:checked {
+      background-color: $primary-color;
+      border-color: $primary-color;
+      &::after {
+        content: '';
+        display: block;
+        width: 0.6rem;
+        height: 0.6rem;
+        background: $white;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    }
+  }
+}
+
+// 버튼 그룹
+.buttonGroup {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.confirmButton, .cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.confirmButton {
+  background-color: $primary-color;
+  color: $white;
+  &:hover {
+    background-color: lighten($primary-color, 5%);
+  }
+}
+
+.cancelButton {
+  background-color: #e0e0e0;
+  color: $text-color;
+  &:hover {
+    background-color: darken(#e0e0e0, 5%);
+  }
+}
