@@ -129,23 +129,37 @@ public class Meeting {
         this.status = MeetingStatus.RECRUITING;
     }
 
-    // '모임 시작'은 FULL 상태에서 ONGOING으로 변경
+    /**
+     * [수정] '모임 시작'은 RECRUITING 또는 FULL 상태에서 ONGOING으로 변경
+     * 스케줄러가 인원이 차지 않은 모임도 시작시킬 수 있도록 조건을 확장합니다.
+     */
     public void startMeeting() {
-        if (this.status != MeetingStatus.FULL) {
+        if (this.status != MeetingStatus.RECRUITING && this.status != MeetingStatus.FULL) {
             throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
         }
         this.status = MeetingStatus.ONGOING;
     }
 
-    // '모임 종료'는 이미 완료되거나 취소된 모임이 아니면 완료 가능하도록 수정
+    /**
+     * [수정] '모임 종료'는 이미 완료되거나 취소된 모임이 아니면 완료 가능하도록 수정
+     * 이 메서드는 호스트가 수동으로 모임을 종료하거나, 스케줄러가 자동으로 종료할 때 사용됩니다.
+     */
     public void completeMeeting() {
-        // 기존: ONGOING 상태에서만 완료 가능 → 수정: COMPLETED/CANCELLED가 아니면 완료 가능
-        if (this.status == MeetingStatus.COMPLETED ||
-                this.status == MeetingStatus.CANCELLED) {
+        if (this.status == MeetingStatus.COMPLETED || this.status == MeetingStatus.CANCELLED) {
             throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
         }
         this.status = MeetingStatus.COMPLETED;
     }
 
+    /**
+     * [추가] '모임 취소'는 RECRUITING 상태에서만 가능
+     * 스케줄러가 참여자가 없는 모임을 자동으로 취소시키기 위해 사용합니다.
+     */
+    public void cancelMeeting() {
+        if (this.status != MeetingStatus.RECRUITING) {
+            throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
+        }
+        this.status = MeetingStatus.CANCELLED;
+    }
 }
 
