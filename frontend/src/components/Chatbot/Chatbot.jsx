@@ -133,10 +133,7 @@ const Chatbot = () => {
                 const botMessage = {
                     type: 'bot',
                     content: result.data.response,
-                    timestamp: new Date(),
-                    // +++++ 추가: 모임 추천 정보 포함 +++++
-                    suggestedMeetings: result.data.suggestedMeetings || [],
-                    intentType: result.data.intentType
+                    timestamp: new Date()
                 };
                 setMessages(prev => [...prev, botMessage]);
             } else {
@@ -267,31 +264,6 @@ const Chatbot = () => {
                                 >
                                     <div className={styles.messageContent}>
                                         {formatMessage(message.content)}
-
-                                        {message.type === 'bot' && isAuthenticated && message.suggestedMeetings && message.suggestedMeetings.length > 0 && (
-                                            <div style={{ marginTop: '12px', padding: '8px', backgroundColor: 'rgba(162, 155, 254, 0.1)', borderRadius: '8px' }}>
-                                                <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>
-                                                    📋 추천 모임:
-                                                </div>
-                                                {message.suggestedMeetings.map((meeting, meetingIndex) => (
-                                                    <div key={meetingIndex} style={{
-                                                        marginBottom: '8px',
-                                                        padding: '6px',
-                                                        backgroundColor: 'white',
-                                                        borderRadius: '4px',
-                                                        fontSize: '13px'
-                                                    }}>
-                                                        <div style={{ fontWeight: 'bold' }}>{meeting.title}</div>
-                                                        <div style={{ color: '#666', fontSize: '12px' }}>
-                                                            📍 {meeting.martName} | 👥 {meeting.currentParticipants}/{meeting.maxParticipants}명
-                                                        </div>
-                                                        <div style={{ color: '#888', fontSize: '11px' }}>
-                                                            {meeting.suggestionReason}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
 
                                         {/* 챗봇 메시지에서 회원가입 관련 키워드 감지 시 버튼 표시 */}
                                         {message.type === 'bot' && !isAuthenticated && shouldShowSignupButton(message.content) && (
