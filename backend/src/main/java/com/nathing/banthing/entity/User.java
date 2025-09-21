@@ -192,4 +192,14 @@ public class User {
         }
         this.profileImageUrl = profileImageUrl;
     }
+
+
+    /**
+     * 사용자의 동의 상태 업데이트 편의 메서드
+     * @author 강관주
+     * @since 2025-09-21
+     */
+    public void updateAgreement() {
+        this.agree = true;
+    }
 }
