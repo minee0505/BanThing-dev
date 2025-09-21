@@ -355,6 +355,12 @@ public class ChatbotServiceImpl implements ChatbotService {
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append(chatbotConfig.getSystemPrompt());
 
+        // 시스템 프롬프트에 추가 지침
+        promptBuilder.append("\n\n# 중요한 안내 사항\n");
+        promptBuilder.append("- 회원가입이나 로그인을 안내할 때는 '회원가입은 아래 버튼에서 가능합니다'라고만 말하세요.\n");
+        promptBuilder.append("- 절대 링크나 URL을 직접 언급하지 마세요.\n");
+        promptBuilder.append("- 사용자가 버튼을 통해 간편하게 가입할 수 있다고 안내해주세요.\n");
+
         promptBuilder.append("\n\n# 현재 사용자 정보\n");
         promptBuilder.append("- 닉네임: ").append(user.getNickname()).append("\n");
         promptBuilder.append("- 신뢰도: ").append(user.getTrustScore()).append("점 (")
