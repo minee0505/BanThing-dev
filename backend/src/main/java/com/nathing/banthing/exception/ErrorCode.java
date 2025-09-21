@@ -34,6 +34,9 @@ public enum ErrorCode {
     CANNOT_JOIN_AS_HOST("CANNOT_JOIN_AS_HOST", "모임 호스트는 참가 신청할 수 없습니다.", 400),
     PARTICIPANT_APPLICATION_STATUS_INVALID("PARTICIPANT_APPLICATION_STATUS_INVALID", "참가 신청 상태가 올바르지 않습니다.", 400),
     MEETING_IS_FULL("MEETING_IS_FULL", "모임 정원이 다 찼습니다.", 400),
+    // 거절된 사용자 재신청 방지를 위한 에러 코드 추가
+    REJECTED_PARTICIPANT("REJECTED_PARTICIPANT", "거절된 사용자는 재신청할 수 없습니다.", 403),
+    REJECTED_PARTICIPANT_CANNOT_REAPPLY("REJECTED_PARTICIPANT_CANNOT_REAPPLY", "참여 승인이 거절되었습니다! 다른 모임을 신청해주세요.", 403),
 
     // 모임 관련 에러코드
     INVALID_MEETING_STATUS("INVALID_MEETING_STATUS", "잘못된 모임 상태입니다.", 400),

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -70,9 +71,16 @@ public class JoinMeetingService {
         User user = usersRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        // 3. 중복 신청 방지
-        boolean alreadyParticipated = meetingParticipantsRepository.existsByMeetingAndUser(meeting, user);
-        if (alreadyParticipated) {
+        // 3. 중복 신청 방지 (거절된 사용자 재신청 방지)
+        MeetingParticipant existingParticipant = meetingParticipantsRepository
+                .findByMeetingAndUser(meeting, user)
+                .orElse(null);
+
+        if (existingParticipant != null) {
+            // 거절된 사용자가 다시 신청하는 것을 방지
+            if (existingParticipant.getApplicationStatus() == MeetingParticipant.ApplicationStatus.REJECTED) {
+                throw new BusinessException(ErrorCode.REJECTED_PARTICIPANT_CANNOT_REAPPLY);
+            }
             throw new BusinessException(ErrorCode.ALREADY_PARTICIPATED);
         }
 
@@ -105,6 +113,7 @@ public class JoinMeetingService {
      * [수정] 모임의 참여자 목록을 조회합니다.
      * - 요청자가 호스트일 경우: 확정된 참여자와 대기중인 신청자 목록을 모두 반환합니다.
      * - 요청자가 일반 참여자일 경우: 확정된 참여자 목록만 반환합니다.
+     * - 모임이 완료된 경우: 대기자 목록은 항상 비어있습니다.
      *
      * @param meetingId 조회할 모임 ID
      * @param providerId    요청을 보낸 사용자 ID
@@ -127,16 +136,31 @@ public class JoinMeetingService {
                 .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.APPROVED);
 
         List<MeetingParticipant> pendingList;
-        if (isHost) {
-            // 4-1. 호스트일 경우에만 '대기(PENDING)' 상태인 참여자 목록을 조회
+
+        // --- [수정된 부분 시작] ---
+        // 4. 모임 상태가 '진행 중(ONGOING)' 또는 '완료(COMPLETED)'인지 먼저 확인합니다.
+        if (meeting.getStatus() == Meeting.MeetingStatus.ONGOING || meeting.getStatus() == Meeting.MeetingStatus.COMPLETED) {
+            // 모임이 시작되었거나 완료되었다면, 호스트 여부와 관계없이 대기자 목록은 항상 비어있어야 합니다.
+            pendingList = Collections.emptyList();
+        } else if (isHost) {
+            // 5-1. 모임이 아직 시작 전이고, 요청자가 호스트라면 모든 대기자 목록을 조회합니다.
             pendingList = meetingParticipantsRepository
                     .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.PENDING);
         } else {
-            // 4-2. 일반 참여자에게는 빈 대기 목록을 반환
-            pendingList = Collections.emptyList();
-        }
+            // 5-2. 모임이 아직 시작 전이고, 요청자가 일반 사용자라면 본인의 대기 상태만 확인합니다.
+            Optional<MeetingParticipant> myParticipation = meetingParticipantsRepository
+                    .findByMeetingAndUser(meeting, currentUser);
 
-        // 5. 조회된 목록을 DTO로 변환
+            if (myParticipation.isPresent() &&
+                    myParticipation.get().getApplicationStatus() == MeetingParticipant.ApplicationStatus.PENDING) {
+                pendingList = List.of(myParticipation.get()); // 본인만 포함된 목록 반환
+            } else {
+                pendingList = Collections.emptyList(); // 대기 상태가 아니면 빈 목록
+            }
+        }
+        // --- [수정된 부분 끝] ---
+
+        // 6. 조회된 목록을 DTO로 변환
         List<MeetingParticipantResponse> approvedDto = approvedList.stream()
                 .map(MeetingParticipantResponse::new)
                 .collect(Collectors.toList());
