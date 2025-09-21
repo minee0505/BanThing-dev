@@ -138,16 +138,16 @@ public class JoinMeetingService {
         List<MeetingParticipant> pendingList;
 
         // --- [수정된 부분 시작] ---
-        // 4. 모임 상태가 'COMPLETED'인지 먼저 확인합니다.
-        if (meeting.getStatus() == Meeting.MeetingStatus.COMPLETED) {
-            // 모임이 완료되었다면, 호스트 여부와 관계없이 대기자 목록은 항상 비어있어야 합니다.
+        // 4. 모임 상태가 '진행 중(ONGOING)' 또는 '완료(COMPLETED)'인지 먼저 확인합니다.
+        if (meeting.getStatus() == Meeting.MeetingStatus.ONGOING || meeting.getStatus() == Meeting.MeetingStatus.COMPLETED) {
+            // 모임이 시작되었거나 완료되었다면, 호스트 여부와 관계없이 대기자 목록은 항상 비어있어야 합니다.
             pendingList = Collections.emptyList();
         } else if (isHost) {
-            // 5-1. 모임이 완료되지 않았고, 요청자가 호스트라면 모든 대기자 목록을 조회합니다.
+            // 5-1. 모임이 아직 시작 전이고, 요청자가 호스트라면 모든 대기자 목록을 조회합니다.
             pendingList = meetingParticipantsRepository
                     .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.PENDING);
         } else {
-            // 5-2. 모임이 완료되지 않았고, 요청자가 일반 사용자라면 본인의 대기 상태만 확인합니다.
+            // 5-2. 모임이 아직 시작 전이고, 요청자가 일반 사용자라면 본인의 대기 상태만 확인합니다.
             Optional<MeetingParticipant> myParticipation = meetingParticipantsRepository
                     .findByMeetingAndUser(meeting, currentUser);
 

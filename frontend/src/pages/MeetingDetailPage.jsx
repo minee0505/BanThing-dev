@@ -120,10 +120,10 @@ const MeetingDetailPage = () => {
      * @since 2025.09.21
      * 변경 이유:
      * 1. 기존 문제: 서버 응답을 기다린 후 fetchParticipants() 호출로 인해
-     *    사용자가 참여 신청 후에도 버튼이 즉시 "신청 대기중"으로 바뀌지 않았음
+     * 사용자가 참여 신청 후에도 버튼이 즉시 "신청 대기중"으로 바뀌지 않았음
      * 2. 해결 방법: Optimistic UI 패턴 적용
-     *    - 서버 요청 전에 먼저 로컬 상태를 업데이트하여 즉시 UI 반영
-     *    - 요청 실패 시 상태를 원래대로 롤백하여 데이터 일관성 유지
+     * - 서버 요청 전에 먼저 로컬 상태를 업데이트하여 즉시 UI 반영
+     * - 요청 실패 시 상태를 원래대로 롤백하여 데이터 일관성 유지
      * 3. 사용자 경험 개선: 버튼 클릭 즉시 시각적 피드백 제공
      */
     const handleJoinMeeting = async () => {
@@ -339,7 +339,7 @@ const MeetingDetailPage = () => {
         return statusTexts[status] || status;
     };
 
-    /*  const getTrustBadgeClass = (score) => {
+    /* const getTrustBadgeClass = (score) => {
           if (score >= 500) return styles.trustGood;
           if (score <= 100) return styles.trustWarning;
           return styles.trustBasic;
@@ -608,73 +608,6 @@ const MeetingDetailPage = () => {
 
                 {/* 탭 콘텐츠 */}
                 <div className={styles.tabContent}>
-                    {/* {activeTab === 'participants' && (
-                        <div className={styles.participantsTab}>
-                            <h4>확정된 참여자</h4>
-                            <div className={styles.participantsList}>
-                                {participants.approved.map((participant, index) => (
-                                    <div key={index} className={styles.participantItem}>
-                                        <div className={styles.participantAvatar}>
-                                            {participant.profileImageUrl ? (
-                                                <img src={participant.profileImageUrl} alt={participant.nickname} />
-                                            ) : (
-                                                <div className={styles.defaultAvatar}>
-                                                    {participant.nickname.charAt(0)}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className={styles.participantInfo}>
-                                            <div className={styles.participantName}>
-                                                <span>{participant.nickname}</span>
-                                                {participant.participantType === 'HOST' && (
-                                                    <span className={styles.hostLabel}>호스트</span>
-                                                )}
-                                            </div>
-                                            <div className={styles.participantStats}>
-                                                신뢰도: {participant.TrusterScore}점
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {isHost() && participants.pending.length > 0 && (
-                                <>
-                                    <h4>신청 대기자</h4>
-                                    <div className={styles.participantsList}>
-                                        {participants.pending.map((participant, index) => (
-                                            <div key={index} className={styles.participantItem}>
-                                                <div className={styles.participantAvatar}>
-                                                    {participant.profileImageUrl ? (
-                                                        <img src={participant.profileImageUrl} alt={participant.nickname} />
-                                                    ) : (
-                                                        <div className={styles.defaultAvatar}>
-                                                            {participant.nickname.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className={styles.participantInfo}>
-                                                    <div className={styles.participantName}>
-                                                        <span>{participant.nickname}</span>
-                                                        <span className={styles.pendingLabel}>대기중</span>
-                                                    </div>
-                                                    <div className={styles.participantStats}>
-                                                        신뢰도: {participant.TrusterScore}점
-                                                    </div>
-                                                </div>
-                                                <div className={styles.participantActions}>
-                                                    <button className={styles.approveButton}>승인</button>
-                                                    <button className={styles.rejectButton}>거절</button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}*/}
-
-                    {/* 탭 콘텐츠 */}
                     {activeTab === 'participants' && (() => {
 
                         // 1. meeting 데이터나 hostInfo가 아직 로드되지 않았을 경우를 대비
@@ -698,16 +631,21 @@ const MeetingDetailPage = () => {
                             ...participants.approved.filter(p => p.nickname !== meeting.hostInfo.nickname)
                         ];
 
-                        // 4. 새로 조합한 확정 참여자 목록을 props로 전달
+
+                        // 4. 모임 상태가 '진행 중' 또는 '완료'가 아닐 때만 참여자 관리가 가능합니다.
+                        const canManageParticipants = meeting.status !== 'ONGOING' && meeting.status !== 'COMPLETED';
+
+
+                        // 5. 새로 조합한 확정 참여자 목록과 관리 가능 여부를 props로 전달
                         return (
                             <ParticipantsTab
                                 participants={{
                                     ...participants,
-                                    approved: approvedWithHost // 수정된 배열을 전달
+                                    approved: approvedWithHost
                                 }}
                                 isHost={isHost()}
-                                onApprove={meeting.status !== 'COMPLETED' ? handleApprove : undefined}
-                                onReject={meeting.status !== 'COMPLETED' ? handleReject : undefined}
+                                onApprove={canManageParticipants ? handleApprove : undefined}
+                                onReject={canManageParticipants ? handleReject : undefined}
                                 styles={styles}
                             />
                         );
@@ -717,45 +655,6 @@ const MeetingDetailPage = () => {
 
                     {activeTab === 'comments' && (
                         <div className={styles.commentsTab}>
-                            {/*<div className={styles.commentsList}>
-                                {comments.length === 0 ? (
-                                    <div className={styles.noComments}>
-                                        <p>아직 댓글이 없습니다.</p>
-                                        <p>첫 번째 댓글을 남겨보세요!</p>
-                                    </div>
-                                ) : (
-                                    comments.map(comment => (
-                                        <div key={comment.commentId} className={styles.commentItem}>
-                                            <div className={styles.commentAvatar}>
-                                                {comment.profileImageUrl ? (
-                                                    <img src={comment.profileImageUrl} alt={comment.nickname} />
-                                                ) : (
-                                                    comment.nickname.charAt(0)
-                                                )}
-                                            </div>
-                                            <div className={styles.commentContent}>
-                                                <div className={styles.commentAuthor}>
-                                                    {comment.nickname}
-                                                    <span className={styles.commentTime}>
-                                                        {new Date(comment.createdAt).toLocaleString()}
-                                                    </span>
-                                                </div>
-                                                <div className={styles.commentText}>
-                                                    {comment.content}
-                                                </div>
-                                                { user.userId === comment.userId && (
-                                                    <button
-                                                        className={styles.commentMoreButton}
-                                                        onClick={(e) => handleOpenModal(comment, e)} // 모달 열기 함수 호출
-                                                    >
-                                                        ...
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>*/}
                             <CommentList
                                 comments={comments}
                                 user={user}
@@ -763,25 +662,6 @@ const MeetingDetailPage = () => {
                             />
 
                             {(isHost() || isParticipating()) && (
-                                /*<form onSubmit={handleCommentSubmit} className={styles.commentForm}>
-                                    <div className={styles.commentInputWrapper}>
-                                        <textarea
-                                            value={newComment}
-                                            onChange={(e) => setNewComment(e.target.value)}
-                                            placeholder="댓글을 입력하세요..."
-                                            className={styles.commentInput}
-                                            rows="3"
-                                        />
-                                        <button
-                                            type="submit"
-                                            disabled={isSubmittingComment || !newComment.trim()}
-                                            className={styles.commentSubmit}
-                                        >
-                                            {isSubmittingComment ? '등록 중...' : '등록'}
-                                        </button>
-                                    </div>
-                                </form>*/
-
                                 <CommentForm
                                     newComment={newComment} // 작성 로직을 위한 상태
                                     setNewComment={setNewComment} // 작성 로직을 위한 핸들러
@@ -861,3 +741,4 @@ const MeetingDetailPage = () => {
 };
 
 export default MeetingDetailPage;
+

@@ -1,7 +1,6 @@
 package com.nathing.banthing.repository;
 
 import com.nathing.banthing.entity.Meeting;
-import com.nathing.banthing.entity.MeetingParticipant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +16,17 @@ public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
     List<Meeting> findByStatusAndMeetingDateBefore(Meeting.MeetingStatus status, LocalDateTime dateTime);
 
     /**
+     * [추가된 메서드]
+     * 여러 상태(IN)를 기준으로, 특정 시간(Before) 이전의 모임을 찾아오는 메서드입니다.
+     * Spring Data JPA의 쿼리 메서드 규칙에 따라 자동으로 SQL이 생성됩니다.
+     *
+     * @param statuses   조회할 모임 상태들의 리스트 (e.g., [RECRUITING, FULL])
+     * @param dateTime   기준 시간
+     * @return           조건에 맞는 모임 엔티티 리스트
+     */
+    List<Meeting> findByStatusInAndMeetingDateBefore(List<Meeting.MeetingStatus> statuses, LocalDateTime dateTime);
+
+    /**
      * 상태별 모임 조회 (삭제되지 않은 모임만)
      */
     List<Meeting> findByStatusAndDeletedAtIsNull(Meeting.MeetingStatus status);
@@ -25,10 +35,10 @@ public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
      * 제목이나 설명에 키워드가 포함된 모임 검색
      */
     @Query("SELECT m FROM Meeting m JOIN m.mart mart WHERE " +
-                  "(LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-                  "LOWER(m.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-                  "LOWER(mart.martName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-                  "m.deletedAt IS NULL")
+            "(LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(m.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(mart.martName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+            "m.deletedAt IS NULL")
     List<Meeting> findByKeywordAndRecruiting(@Param("keyword") String keyword);
 
     /**
@@ -78,14 +88,14 @@ public interface MeetingsRepository extends JpaRepository<Meeting, Long> {
             AND m.deleted_at IS NULL
         ORDER BY m.created_at DESC
     """,
-    countQuery = """
+            countQuery = """
         SELECT count(m.meeting_id)
         FROM meetings m
         JOIN meeting_participants mp ON m.meeting_id = mp.meeting_id
         WHERE mp.user_id = :userId AND mp.application_status = :status
             AND m.deleted_at IS NULL
     """,
-    nativeQuery = true)
+            nativeQuery = true)
     Page<Meeting> findMeetingsWithMartByUserIdAndStatus(
             @Param("userId") Long userId,
             @Param("status") String status,
