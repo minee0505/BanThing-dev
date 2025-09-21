@@ -1,7 +1,7 @@
 // MeetingDetailPage.jsx
 import React, {useState, useEffect} from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
+import {useParams, useNavigate} from 'react-router-dom';
+import {useAuthStore} from '../stores/authStore';
 import {
     getMeetingDetail,
     joinMeeting,
@@ -14,7 +14,7 @@ import {
     completeMeeting,
     // deleteComments
 } from '../services/meetingDetailApi';
-import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaClock, FaEdit, FaTrash } from 'react-icons/fa';
+import {FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaClock, FaEdit, FaTrash} from 'react-icons/fa';
 import Chatbot from '../components/Chatbot/Chatbot';
 import styles from './MeetingDetailPage.module.scss';
 import {AuthService} from "../services/authService.js";
@@ -22,16 +22,16 @@ import CommentModal from "../components/Comment/CommentModal.jsx";
 import CommentList from "../components/Comment/CommentList.jsx";
 import CommentForm from "../components/Comment/CommentForm.jsx";
 import ParticipantsTab from '../components/Meeting/ParticipantsTab';
-import {approveParticipant, rejectParticipant } from '../services/participantApi';
+import {approveParticipant, rejectParticipant} from '../services/participantApi';
 import HostInfo from '../components/Meeting/HostInfo.jsx';
 
 const MeetingDetailPage = () => {
-    const { id } = useParams(); // 미팅id
+    const {id} = useParams(); // 미팅id
     const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuthStore(); // 로그인 여부
+    const {isAuthenticated, user} = useAuthStore(); // 로그인 여부
 
     const [meeting, setMeeting] = useState(null);
-    const [participants, setParticipants] = useState({ approved: [], pending: [] });
+    const [participants, setParticipants] = useState({approved: [], pending: []});
     const [activeTab, setActiveTab] = useState('participants');
     const [isLoading, setIsLoading] = useState(true);
     const [isJoining, setIsJoining] = useState(false);
@@ -41,13 +41,12 @@ const MeetingDetailPage = () => {
     const [isSubmittingComment, setIsSubmittingComment] = useState(false); // 댓글 전송 상태
     const [isModalOpen, setIsModalOpen] = useState(false); // 모달 상태
     const [selectedComment, setSelectedComment] = useState(null); // 선택된 댓글 정보
-    const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
+    const [modalPosition, setModalPosition] = useState({x: 0, y: 0});
     // 댓글 수정
     const [isEditing, setIsEditing] = useState(false); // 수정 모드 여부
     const [editingCommentId, setEditingCommentId] = useState(null); // 수정할 댓글 ID
     const [editedCommentContent, setEditedCommentContent] = useState(''); // 수정할 댓글 내용 상태
     const [isCompletingMeeting, setIsCompletingMeeting] = useState(false);
-
 
 
     useEffect(() => {
@@ -259,12 +258,12 @@ const MeetingDetailPage = () => {
         try {
             if (isEditing) {
                 // 수정 로직: 백엔드 API 경로와 요청 바디에 맞게 수정
-                await updateComments(id, editingCommentId, { content: editedCommentContent });
+                await updateComments(id, editingCommentId, {content: editedCommentContent});
                 alert("댓글이 수정되었습니다.");
                 handleCancelEdit(); // 수정 모드 종료 및 폼 초기화
             } else {
                 // 댓글 작성 로직
-                const result = await postComment(id, { content: newComment });
+                const result = await postComment(id, {content: newComment});
                 if (result.success) {
                     setNewComment('');
                 } else {
@@ -309,7 +308,7 @@ const MeetingDetailPage = () => {
             if (result.success) {
                 alert('모임이 삭제되었습니다.');
                 // 메인 페이지로 리다이렉트
-                navigate('/', { replace: true });
+                navigate('/', {replace: true});
             } else {
                 alert(result.message || '모임 삭제에 실패했습니다.');
             }
@@ -403,7 +402,7 @@ const MeetingDetailPage = () => {
                     const newApproved = [...currentParticipants.approved, participant];
 
                     // 3. 새로 만든 두 목록으로 상태를 업데이트하여 리렌더링을 발생시킵니다.
-                    return { ...currentParticipants, approved: newApproved, pending: newPending };
+                    return {...currentParticipants, approved: newApproved, pending: newPending};
                 });
 
             } else {
@@ -435,7 +434,7 @@ const MeetingDetailPage = () => {
                     const newPending = currentParticipants.pending.filter(
                         p => p.participantId !== participant.participantId
                     );
-                    return { ...currentParticipants, pending: newPending };
+                    return {...currentParticipants, pending: newPending};
                 });
 
 
@@ -459,7 +458,7 @@ const MeetingDetailPage = () => {
                         목록으로 돌아가기
                     </button>
                 </div>
-                <Chatbot />
+                <Chatbot/>
             </div>
         );
     }
@@ -473,11 +472,10 @@ const MeetingDetailPage = () => {
                         목록으로 돌아가기
                     </button>
                 </div>
-                <Chatbot />
+                <Chatbot/>
             </div>
         );
     }
-
 
 
     // 댓글 삭제 함수
@@ -540,15 +538,15 @@ const MeetingDetailPage = () => {
 
                     <div className={styles.meetingMeta}>
                         <div className={styles.metaItem}>
-                            <FaMapMarkerAlt />
+                            <FaMapMarkerAlt/>
                             <span>{meeting.martName}</span>
                         </div>
                         <div className={styles.metaItem}>
-                            <FaCalendarAlt />
+                            <FaCalendarAlt/>
                             <span>{formatDate(meeting.meetingDate)}</span>
                         </div>
                         <div className={styles.metaItem}>
-                            <FaUsers />
+                            <FaUsers/>
                             <span>{participants.approved.length} / {meeting.maxParticipants}명</span>
                         </div>
                     </div>
@@ -589,7 +587,7 @@ const MeetingDetailPage = () => {
 
                 {/* 탭 콘텐츠 */}
                 <div className={styles.tabContent}>
-                   {/* {activeTab === 'participants' && (
+                    {/* {activeTab === 'participants' && (
                         <div className={styles.participantsTab}>
                             <h4>확정된 참여자</h4>
                             <div className={styles.participantsList}>
@@ -655,8 +653,8 @@ const MeetingDetailPage = () => {
                         </div>
                     )}*/}
 
-                        {/* 탭 콘텐츠 */}
-                            {activeTab === 'participants' && (() => {
+                    {/* 탭 콘텐츠 */}
+                    {activeTab === 'participants' && (() => {
 
                         // 1. meeting 데이터나 hostInfo가 아직 로드되지 않았을 경우를 대비
                         if (!meeting || !meeting.hostInfo) {
@@ -679,21 +677,6 @@ const MeetingDetailPage = () => {
                             ...participants.approved.filter(p => p.nickname !== meeting.hostInfo.nickname)
                         ];
 
-                        // 4. 새로 조합한 확정 참여자 목록을 props로 전달
-                        return (
-                            <ParticipantsTab
-                                participants={{
-                                    ...participants,
-                                    approved: approvedWithHost // 수정된 배열을 전달
-                                }}
-                                isHost={isHost()}
-                                onApprove={handleApprove}
-                                onReject={handleReject}
-                                styles={styles}
-                            />
-                        );
-                    })()}
-
                         // 4. 모임 상태가 '진행 중' 또는 '완료'가 아닐 때만 참여자 관리가 가능합니다.
                         const canManageParticipants = meeting.status !== 'ONGOING' && meeting.status !== 'COMPLETED';
 
@@ -712,7 +695,6 @@ const MeetingDetailPage = () => {
                             />
                         );
                     })()}
-
 
 
                     {activeTab === 'comments' && (
@@ -787,7 +769,7 @@ const MeetingDetailPage = () => {
                 </div>
             </div>
 
-            <Chatbot />
+            <Chatbot/>
             {isModalOpen && (
                 <CommentModal
                     isOpen={isModalOpen}
