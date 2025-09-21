@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -70,9 +71,16 @@ public class JoinMeetingService {
         User user = usersRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        // 3. 중복 신청 방지
-        boolean alreadyParticipated = meetingParticipantsRepository.existsByMeetingAndUser(meeting, user);
-        if (alreadyParticipated) {
+        // 3. 중복 신청 방지 (거절된 사용자 재신청 방지)
+        MeetingParticipant existingParticipant = meetingParticipantsRepository
+                .findByMeetingAndUser(meeting, user)
+                .orElse(null);
+
+        if (existingParticipant != null) {
+            // 거절된 사용자가 다시 신청하는 것을 방지
+            if (existingParticipant.getApplicationStatus() == MeetingParticipant.ApplicationStatus.REJECTED) {
+                throw new BusinessException(ErrorCode.REJECTED_PARTICIPANT_CANNOT_REAPPLY);
+            }
             throw new BusinessException(ErrorCode.ALREADY_PARTICIPATED);
         }
 
@@ -128,12 +136,24 @@ public class JoinMeetingService {
 
         List<MeetingParticipant> pendingList;
         if (isHost) {
-            // 4-1. 호스트일 경우에만 '대기(PENDING)' 상태인 참여자 목록을 조회
+            // 4-1. 호스트는 모든 대기중인 참여자 목록을 조회
             pendingList = meetingParticipantsRepository
                     .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.PENDING);
         } else {
-            // 4-2. 일반 참여자에게는 빈 대기 목록을 반환
-            pendingList = Collections.emptyList();
+            // 4-2. [수정] 일반 사용자도 본인의 대기 상태를 확인할 수 있도록 변경
+            // 기존 문제: 일반 사용자가 신청 후 페이지 재진입 시 본인의 PENDING 상태를 알 수 없어서
+            // 프론트엔드에서 버튼이 "참여 신청하기"로 잘못 표시되었음
+            // 해결: 본인의 참여 신청 정보를 조회하여 PENDING 상태인 경우에만 목록에 포함
+
+            Optional<MeetingParticipant> myParticipation = meetingParticipantsRepository
+                    .findByMeetingAndUser(meeting, currentUser);
+
+            if (myParticipation.isPresent() &&
+                    myParticipation.get().getApplicationStatus() == MeetingParticipant.ApplicationStatus.PENDING) {
+                pendingList = List.of(myParticipation.get()); // 본인만 포함된 목록 반환
+            } else {
+                pendingList = Collections.emptyList(); // 대기 상태가 아니면 빈 목록
+            }
         }
 
         // 5. 조회된 목록을 DTO로 변환

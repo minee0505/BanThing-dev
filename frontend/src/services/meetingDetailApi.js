@@ -82,6 +82,15 @@ export const joinMeeting = async (meetingId) => {
             };
         }
 
+        // 403 상태 코드 처리 추가 (거절된 사용자)
+        if (error.response?.status === 403) {
+            return {
+                success: false,
+                message: error.response.data?.message || '참여 승인이 거절되었습니다! 다른 모임을 신청해주세요.',
+                data: null
+            };
+        }
+
         if (error.response?.status === 409) {
             return {
                 success: false,
