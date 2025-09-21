@@ -53,15 +53,20 @@ const ProfilePage = () => {
         setMeetingList(result.data.content);
         setTotalElements(result.data.totalElements);
         setTotalPages(Math.ceil(result.data.totalElements / meetingsPerPage));
+
       } else {
         console.error('실패:', result.message);
         setErrorMessage(result.message);
         setMeetingList([]);
+        setTotalElements(0); // 에러시 totalElements 초기화
+
       }
     } catch (error) {
       console.error('API 호출 중 에러 발생:', error);
       setErrorMessage('서버와 통신 중 오류가 발생했습니다.');
       setMeetingList([]);
+      setTotalElements(0); // 에러시 totalElements 초기화
+
     } finally {
       // 선 fetch -> 후 딜레이
       await delay(300);
@@ -74,16 +79,43 @@ const ProfilePage = () => {
     fetchMeetings(); // 만든 함수를 호출합니다.
   }, [condition, page]);
 
+
   // 페이지 변경을 위한 함수
   const paginate = (pageNumber) => {
     setPage(pageNumber - 1);
   }
 
-  // 현재 페이지에 들어올 개수 계산
-  const expectedCount =
-    page === 0 && condition === 'APPROVED'
-      ? initialSkeletonCount // 첫 페이지는 로더에서 가져온 값 사용
-      : Math.min(meetingsPerPage, Math.max(1, totalElements - page * meetingsPerPage));
+  // 필터 조건 변경 함수
+  const handleConditionChange = (newCondition) => {
+    setCondition(newCondition);
+    setPage(0); // 페이지를 첫 페이지로 리셋
+    setTotalElements(0); // 새로운 조건으로 로딩할 때 초기화
+  };
+
+  // 스켈레톤 개수 계산 함수
+  const calculateSkeletonCount = (totalElements, currentPage, itemsPerPage) => {
+    // 첫 로딩이거나 totalElements가 0인 경우 기본값 반환
+    if (totalElements === 0) {
+      return itemsPerPage;
+    }
+
+    // 현재 페이지에서 보여줄 실제 아이템 개수 계산
+    const startIndex = currentPage * itemsPerPage;
+    const remainingItems = totalElements - startIndex;
+
+    // 최소 1개, 최대 itemsPerPage개
+    return Math.min(itemsPerPage, Math.max(1, remainingItems));
+  };
+
+  // 현재 상황에 맞는 스켈레톤 개수 가져오기
+  const getSkeletonCount = () => {
+    // 초기 로딩시에는 로더에서 받은 값 사용
+    if (totalElements === 0 && initialSkeletonCount) {
+      return Math.min(meetingsPerPage, Math.max(1, +initialSkeletonCount));
+    }
+
+    return calculateSkeletonCount(totalElements, page, meetingsPerPage);
+  };
 
   return (
     <main className={styles.profilePage}>
@@ -103,21 +135,14 @@ const ProfilePage = () => {
           {/* 버튼 클릭시 조건 변경, 페이지 0으로 재설정 */}
           <button
             className={styles.filterButton}
-            onClick={() => {
-              setCondition('APPROVED');
-              setPage(0);
-            }}
+            onClick={() => handleConditionChange('APPROVED')}
             disabled={condition === 'APPROVED'}
           >
             참가중인 모임
           </button>
           <button
             className={styles.filterButton}
-            onClick={() => {
-              setCondition('PENDING');
-              setPage(0);
-              setTotalElements(0);
-            }}
+            onClick={() => handleConditionChange('PENDING')}
             disabled={condition === 'PENDING'}
           >
             참가 대기중인 모임
@@ -127,7 +152,7 @@ const ProfilePage = () => {
         <div className={styles.meetingContent}>
           { isLoading ? ( // 로딩중인 경우
             <div className={styles.loadingContainer}>
-              {Array.from({ length: expectedCount }).map((_, index) => (
+              {Array.from({ length: getSkeletonCount() }).map((_, index) => (
                 <MeetingCardSkeleton key={index} />
               ))}
             </div>
