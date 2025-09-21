@@ -356,10 +356,12 @@ public class ChatbotServiceImpl implements ChatbotService {
         promptBuilder.append(chatbotConfig.getSystemPrompt());
 
         // 시스템 프롬프트에 추가 지침
-        promptBuilder.append("\n\n# 중요한 안내 사항\n");
-        promptBuilder.append("- 회원가입이나 로그인을 안내할 때는 '회원가입은 아래 버튼에서 가능합니다'라고만 말하세요.\n");
-        promptBuilder.append("- 절대 링크나 URL을 직접 언급하지 마세요.\n");
-        promptBuilder.append("- 사용자가 버튼을 통해 간편하게 가입할 수 있다고 안내해주세요.\n");
+        promptBuilder.append("\n\n# 절대 금지사항 (CRITICAL)\n");
+        promptBuilder.append("- 절대로 '[여기에 링크 삽입]', '[링크]', 'URL', 'https://' 등의 표현을 사용하지 마세요.\n");
+        promptBuilder.append("- '링크를 클릭해주세요', '아래 링크에서' 같은 표현도 금지입니다.\n");
+        promptBuilder.append("- 회원가입 안내 시에는 오직 '아래 카카오로 시작하기 버튼을 이용해주세요'라고만 말하세요.\n");
+        promptBuilder.append("- 프론트엔드에서 자동으로 버튼이 표시되므로 링크나 URL 관련 언급은 절대 금지입니다.\n");
+        promptBuilder.append("- 이 규칙을 위반하면 사용자에게 혼란을 줍니다. 반드시 준수하세요.\n");
 
         promptBuilder.append("\n\n# 현재 사용자 정보\n");
         promptBuilder.append("- 닉네임: ").append(user.getNickname()).append("\n");
