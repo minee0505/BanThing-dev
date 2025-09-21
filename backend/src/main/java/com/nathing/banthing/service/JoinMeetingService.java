@@ -70,9 +70,15 @@ public class JoinMeetingService {
         User user = usersRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        // 3. 중복 신청 방지
-        boolean alreadyParticipated = meetingParticipantsRepository.existsByMeetingAndUser(meeting, user);
-        if (alreadyParticipated) {
+        // 3. 중복 신청 방지 (거절된 사용자 재신청 방지)
+        MeetingParticipant existingParticipant = meetingParticipantsRepository
+                .findByMeetingAndUser(meeting, user)
+                .orElse(null);
+
+        if (existingParticipant != null) {
+            if (existingParticipant.getApplicationStatus() == MeetingParticipant.ApplicationStatus.REJECTED) {
+                throw new BusinessException(ErrorCode.REJECTED_PARTICIPANT_CANNOT_REAPPLY);
+            }
             throw new BusinessException(ErrorCode.ALREADY_PARTICIPATED);
         }
 
