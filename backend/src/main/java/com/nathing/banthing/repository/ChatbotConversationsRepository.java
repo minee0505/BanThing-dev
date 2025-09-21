@@ -3,11 +3,16 @@ package com.nathing.banthing.repository;
 import com.nathing.banthing.entity.ChatbotConversation;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+/**
+ * 챗봇 대화 내역 레포지토리
+ * 사용자와 챗봇 간의 대화 내역을 저장하고 조회하는 기능을 제공합니다.
+ *
+ * @author 김경민
+ * @since 2025-09-22
+ */
 public interface ChatbotConversationsRepository extends JpaRepository<ChatbotConversation, Long> {
 
 
