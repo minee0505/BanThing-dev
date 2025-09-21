@@ -193,6 +193,13 @@ const MeetingDetailPage = () => {
         }
     };
 
+    /**
+     * 모임 완료 처리 함수
+     * 호스트만 실행 가능하며, 진행중(ONGOING) 상태에서만 호출됨
+     * 완료 처리 후 모임 상태가 COMPLETED로 변경됨
+     * @author 김경민
+     * @since 2025.09.21
+     */
     const handleCompleteMeeting = async () => {
         if (!confirm('정말 모임을 완료하시겠습니까? 완료된 모임은 되돌릴 수 없습니다.')) return;
 
@@ -706,7 +713,7 @@ const MeetingDetailPage = () => {
                         </button>
                     )}
 
-                    {isHost() && (meeting.status === 'RECRUITING' || meeting.status === 'FULL' || meeting.status === 'ONGOING') && (
+                    {isHost() && (meeting.status === 'ONGOING') && (
                         <button
                             onClick={handleCompleteMeeting}
                             disabled={isCompletingMeeting}

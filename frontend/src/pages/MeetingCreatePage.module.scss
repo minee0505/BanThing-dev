@@ -1,5 +1,5 @@
-/* 프로젝트 공통 스타일 변수 import */
-@import '../App.scss';
+/* 프로젝트 공통 스타일 변수 사용 */
+@use '../App.scss' as *;
 
 .container {
   padding-top: 2rem;
