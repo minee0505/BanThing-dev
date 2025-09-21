@@ -392,19 +392,66 @@ public class ChatbotServiceImpl implements ChatbotService {
         List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestions = new ArrayList<>();
         try {
             List<Meeting> activeMeetings = meetingsRepository.findByStatusAndDeletedAtIsNull(Meeting.MeetingStatus.RECRUITING);
-            List<Meeting> recommendedMeetings = activeMeetings.stream().limit(3).collect(Collectors.toList());
+
+            // +++++ 추가된 부분: 사용자 질문 분석 로직 +++++
+            String lowerMessage = userMessage.toLowerCase();
+
+            // 키워드 기반 모임 필터링 (게스트와 동일한 로직 적용)
+            List<Meeting> filteredMeetings = activeMeetings.stream()
+                    .filter(meeting -> {
+                        String title = meeting.getTitle().toLowerCase();
+                        String martName = meeting.getMart().getMartName().toLowerCase();
+                        String description = meeting.getDescription().toLowerCase();
+
+                        // 지역 기반 필터링
+                        if (lowerMessage.contains("양재")) return martName.contains("양재");
+                        if (lowerMessage.contains("상봉")) return martName.contains("상봉");
+                        if (lowerMessage.contains("고척")) return martName.contains("고척");
+                        if (lowerMessage.contains("월계")) return martName.contains("월계");
+                        if (lowerMessage.contains("마곡")) return martName.contains("마곡");
+                        if (lowerMessage.contains("금천")) return martName.contains("금천");
+                        if (lowerMessage.contains("영등포")) return martName.contains("영등포");
+
+                        // 상품 기반 필터링
+                        if (lowerMessage.contains("견과류") || lowerMessage.contains("견과"))
+                            return title.contains("견과") || title.contains("아몬드") || title.contains("호두");
+                        if (lowerMessage.contains("냉동"))
+                            return title.contains("냉동") || description.contains("냉동");
+                        if (lowerMessage.contains("세제"))
+                            return title.contains("세제") || title.contains("다우니") || description.contains("세제");
+                        if (lowerMessage.contains("육류") || lowerMessage.contains("고기"))
+                            return title.contains("육류") || title.contains("고기") || title.contains("삼겹살") || title.contains("닭가슴살");
+                        if (lowerMessage.contains("베이커리") || lowerMessage.contains("빵"))
+                            return title.contains("베이커리") || title.contains("빵") || title.contains("머핀") || title.contains("베이글");
+
+                        return false;
+                    })
+                    .collect(Collectors.toList());
+
+            // +++++ 수정된 부분: 필터링된 결과가 있으면 우선 추천, 없으면 전체에서 최대 3개 +++++
+            List<Meeting> recommendedMeetings;
+            if (!filteredMeetings.isEmpty()) {
+                recommendedMeetings = filteredMeetings.stream().limit(3).collect(Collectors.toList());
+            } else {
+                recommendedMeetings = activeMeetings.stream().limit(3).collect(Collectors.toList());
+            }
 
             for (Meeting meeting : recommendedMeetings) {
-                String suggestionReason = "사용자 질문과 관련된 " + meeting.getMart().getMartName() + " 모임입니다.";
+                // +++++ 수정된 부분: 더 구체적인 추천 이유 생성 +++++
+                String suggestionReason;
+                if (!filteredMeetings.isEmpty() && filteredMeetings.contains(meeting)) {
+                    suggestionReason = "사용자가 문의하신 내용과 관련된 모임입니다.";
+                } else {
+                    suggestionReason = "현재 " + meeting.getMart().getMartName() + "에서 진행 중인 인기 모임입니다.";
+                }
 
-                // 추천 저장
+                // 기존 저장 로직은 그대로 유지
                 ChatbotMeetingSuggestion suggestion = newMeetingSuggestionInstance();
                 suggestion.setConversation(conversation);
                 suggestion.setMeeting(meeting);
                 suggestion.setSuggestionReason(suggestionReason);
                 suggestionRepository.save(suggestion);
 
-                // 응답 DTO 생성
                 suggestions.add(ChatbotMessageResponse.MeetingSuggestionResponse.builder()
                         .meetingId(meeting.getMeetingId())
                         .title(meeting.getTitle())
@@ -413,6 +460,8 @@ public class ChatbotServiceImpl implements ChatbotService {
                         .suggestionReason(suggestionReason)
                         .currentParticipants(meeting.getCurrentParticipants())
                         .maxParticipants(meeting.getMaxParticipants())
+                        .status(meeting.getStatus().name())  // 누락된 status 필드 추가
+                        .martAddress(meeting.getMart().getAddress())  // 누락된 주소 필드 추가
                         .build());
             }
 

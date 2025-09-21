@@ -16,7 +16,7 @@ import {
 } from '../services/meetingDetailApi';
 // import { getMeetingDetail, joinMeeting, leaveMeeting, getParticipants,  } from '../services/meetingDetailApi';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaClock, FaEdit, FaTrash } from 'react-icons/fa';
-import Chatbot from '../components/Chatbot/Chatbot';
+import Chatbot from '../components/ChatBot/Chatbot.jsx';
 import styles from './MeetingDetailPage.module.scss';
 import {AuthService} from "../services/authService.js";
 import CommentModal from "../components/Comment/CommentModal.jsx";

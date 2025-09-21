@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import AppLayout from './AppLayout.jsx';
-import Chatbot from '../components/Chatbot/Chatbot';
+import Chatbot from '../components/ChatBot/Chatbot.jsx';
 import '../App.scss'; // 공통 스타일 있으면 여기서 import
 
 export default function AppLayoutWithChatbot() {

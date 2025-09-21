@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { sendMessageToChatbot, getChatbotHistory, isUserAuthenticated } from '../../services/chatbotApi';
+import { sendMessageToChatbot, getChatbotHistory, isUserAuthenticated } from '../../services/chatbotApi.js';
 import styles from './Chatbot.module.scss';
 import { FaRobot } from "react-icons/fa6";
 import { BsSendPlus } from "react-icons/bs";
@@ -133,7 +133,10 @@ const Chatbot = () => {
                 const botMessage = {
                     type: 'bot',
                     content: result.data.response,
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    // +++++ 추가: 모임 추천 정보 포함 +++++
+                    suggestedMeetings: result.data.suggestedMeetings || [],
+                    intentType: result.data.intentType
                 };
                 setMessages(prev => [...prev, botMessage]);
             } else {
@@ -181,7 +184,11 @@ const Chatbot = () => {
 
     // 회원가입 관련 키워드 감지
     const shouldShowSignupButton = useCallback((message) => {
-        const signupKeywords = ['회원가입', '가입', '로그인', '시작', '가입하기', '회원'];
+        const signupKeywords = [
+            '회원가입', '가입', '로그인', '시작', '가입하기', '회원',
+            '가입을', '가입해', '로그인을', '로그인해', '시작해',
+            '카카오', '계정', '등록', '서비스', '이용', '참여'
+        ];
         return signupKeywords.some(keyword => message.includes(keyword));
     }, []);
 
@@ -260,6 +267,31 @@ const Chatbot = () => {
                                 >
                                     <div className={styles.messageContent}>
                                         {formatMessage(message.content)}
+
+                                        {message.type === 'bot' && isAuthenticated && message.suggestedMeetings && message.suggestedMeetings.length > 0 && (
+                                            <div style={{ marginTop: '12px', padding: '8px', backgroundColor: 'rgba(162, 155, 254, 0.1)', borderRadius: '8px' }}>
+                                                <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>
+                                                    📋 추천 모임:
+                                                </div>
+                                                {message.suggestedMeetings.map((meeting, meetingIndex) => (
+                                                    <div key={meetingIndex} style={{
+                                                        marginBottom: '8px',
+                                                        padding: '6px',
+                                                        backgroundColor: 'white',
+                                                        borderRadius: '4px',
+                                                        fontSize: '13px'
+                                                    }}>
+                                                        <div style={{ fontWeight: 'bold' }}>{meeting.title}</div>
+                                                        <div style={{ color: '#666', fontSize: '12px' }}>
+                                                            📍 {meeting.martName} | 👥 {meeting.currentParticipants}/{meeting.maxParticipants}명
+                                                        </div>
+                                                        <div style={{ color: '#888', fontSize: '11px' }}>
+                                                            {meeting.suggestionReason}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
 
                                         {/* 챗봇 메시지에서 회원가입 관련 키워드 감지 시 버튼 표시 */}
                                         {message.type === 'bot' && !isAuthenticated && shouldShowSignupButton(message.content) && (
