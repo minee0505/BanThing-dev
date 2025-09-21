@@ -26,6 +26,7 @@ import {approveParticipant, rejectParticipant} from '../services/participantApi'
 import HostInfo from '../components/Meeting/HostInfo';
 import FeedbackModal from "../components/Meeting/FeedbackModal";
 
+
 const MeetingDetailPage = () => {
     const {id} = useParams(); // 미팅id
     const navigate = useNavigate();
@@ -51,6 +52,7 @@ const MeetingDetailPage = () => {
     // 피드백 모달
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
     const [selectedFeedbackUser, setSelectedFeedbackUser] = useState(null);
+
     useEffect(() => {
         // meeting state가 성공적으로 로드되거나 변경될 때마다 실행됩니다.
         if (meeting) {

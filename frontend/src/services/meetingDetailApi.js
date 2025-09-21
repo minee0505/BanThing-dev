@@ -614,15 +614,119 @@ export const deleteMeeting = async (meetingId) => {
 };
 
 /**
- * 모임 삭제 (호스트 전용)
- * @param {number|string} meetingId - 모임 ID
- * @param userId
- * @param score
- * @returns {Promise<Object>} API 응답
+ * 피드백 생성 API 호출 함수
+ * @param {number} meetingId - 모임 ID
+ * @param {number} receiverId - 피드백을 받을 사용자 ID
+ * @param {number} giverId - 피드백을 주는 사용자 ID
+ * @param {string} feedbackType - 피드백 타입 ('POSITIVE' 또는 'NEGATIVE')
+ * @returns {Promise<object>} API 응답 결과
  */
-export const postFeedback = async (meetingId, userId, score) => {
-   return null;
+export const postFeedback = async (meetingId, receiverId, giverId, feedbackType) => {
+        try {
+            const requestData = {
+                meetingId: meetingId,
+                giverId: giverId,
+                receiverId: receiverId,
+                feedbackType: feedbackType // 'POSITIVE' 또는 'NEGATIVE'
+            };
+
+            console.log('피드백 생성 요청 데이터:', requestData);
+
+            const response = await apiClient.post('/feedbacks', requestData);
+
+            return {
+                success: true,
+                data: response.data.data, // CommonResponse 구조에서 실제 데이터
+                message: response.data.message
+            };
+        } catch (error) {
+            console.error('피드백 생성 실패:', error);
+
+            // 에러 응답 처리
+            if (error.response && error.response.data) {
+                return {
+                    success: false,
+                    message: error.response.data.message || '피드백 생성에 실패했습니다.',
+                    error: error.response.data
+                };
+            }
+
+            return {
+                success: false,
+                message: '네트워크 오류가 발생했습니다.',
+                error: error.message
+            };
+        }
+    };
+
+/**
+ * 사용자별 피드백 조회 API 호출 함수
+ * @param {number} userId - 사용자 ID
+ * @param {string} type - 피드백 타입 ('RECEIVED' 또는  'GIVEN')
+ * @returns {Promise<object>} API 응답 결과
+ */
+export const getUserFeedbacks = async (userId, type = 'RECEIVED') => {
+    try {
+        const response = await apiClient.get(`/feedbacks/users/${userId}?type=${type}`);
+
+        return {
+            success: true,
+            data: response.data.data,
+            message: response.data.message
+        };
+    } catch (error) {
+        console.error('사용자 피드백 조회 실패:', error);
+
+        if (error.response && error.response.data) {
+            return {
+                success: false,
+                message: error.response.data.message || '피드백 조회에 실패했습니다.',
+                error: error.response.data
+            };
+        }
+
+        return {
+            success: false,
+            message: '네트워크 오류가 발생했습니다.',
+            error: error.message
+        };
+    }
 };
+
+/**
+ * 사용자 신뢰도 점수 조회 API 호출 함수
+ * @param {number} userId - 사용자 ID
+ * @returns {Promise<object>} API 응답 결과
+ */
+export const getUserScore = async (userId) => {
+    try {
+        const response = await apiClient.get(`/feedbacks/users/${userId}/score`);
+
+        return {
+            success: true,
+            data: response.data.data,
+            message: response.data.message
+        };
+    } catch (error) {
+        console.error('사용자 점수 조회 실패:', error);
+
+        if (error.response && error.response.data) {
+            return {
+                success: false,
+                message: error.response.data.message || '점수 조회에 실패했습니다.',
+                error: error.response.data
+            };
+        }
+
+        return {
+            success: false,
+            message: '네트워크 오류가 발생했습니다.',
+            error: error.message
+        };
+    }
+};
+
+
 export default {
     getMeetingDetail,
     joinMeeting,

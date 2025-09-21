@@ -3,15 +3,21 @@ import React, { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import styles from './FeedbackModal.module.scss';
 import { postFeedback } from '../../services/meetingDetailApi.js';
-
+import { useAuthStore } from '../../stores/authStore';
 
 const FeedbackModal = ({ isOpen, onClose, targetUser, meetingId }) => {
+    const { user } = useAuthStore(); // 현재 로그인한 사용자 정보 가져오기
+
     if (!isOpen || !targetUser) {
         return null;
     }
+
     console.log("targetUser : ", targetUser);
+    console.log("현재 사용자 : ", user);
+
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [feedbackScore, setFeedbackScore] = useState(null); // 'GOOD' 또는 'BAD'
+    const [isSubmitting, setIsSubmitting] = useState(false); // 제출 중 상태
 
     const handleFeedbackChange = (e) => {
         setFeedbackScore(e.target.value);
@@ -23,10 +29,23 @@ const FeedbackModal = ({ isOpen, onClose, targetUser, meetingId }) => {
             return;
         }
 
+        if (!user || !user.userId) {
+            alert("로그인 정보를 확인할 수 없습니다.");
+            return;
+        }
+
+        setIsSubmitting(true);
+
         try {
-            // API 호출을 위해 피드백 점수(5점 또는 -5점)를 설정합니다.
-            const scoreToSend = feedbackScore === 'GOOD' ? 5 : -5;
-            const result = await postFeedback(meetingId, targetUser.userId, scoreToSend);
+            // 피드백 타입 매핑: 'GOOD' -> 'POSITIVE', 'BAD' -> 'NEGATIVE'
+            const feedbackType = feedbackScore === 'GOOD' ? 'POSITIVE' : 'NEGATIVE';
+
+            const result = await postFeedback(
+                meetingId,           // 모임 ID
+                targetUser.userId,   // 피드백을 받을 사용자 ID
+                user.userId,         // 피드백을 주는 사용자 ID (현재 로그인한 사용자)
+                feedbackType         // 피드백 타입
+            );
 
             if (result.success) {
                 alert('피드백이 성공적으로 제출되었습니다!');
@@ -37,6 +56,8 @@ const FeedbackModal = ({ isOpen, onClose, targetUser, meetingId }) => {
         } catch (error) {
             console.error("피드백 제출 중 오류 발생:", error);
             alert('피드백 제출 중 오류가 발생했습니다.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -59,6 +80,7 @@ const FeedbackModal = ({ isOpen, onClose, targetUser, meetingId }) => {
                             value="GOOD"
                             checked={feedbackScore === 'GOOD'}
                             onChange={handleFeedbackChange}
+                            disabled={isSubmitting}
                         />
                         좋았습니다. 😊
                     </label>
@@ -69,14 +91,27 @@ const FeedbackModal = ({ isOpen, onClose, targetUser, meetingId }) => {
                             value="BAD"
                             checked={feedbackScore === 'BAD'}
                             onChange={handleFeedbackChange}
+                            disabled={isSubmitting}
                         />
                         싫었습니다. 😠
                     </label>
                 </div>
 
                 <div className={styles.buttonGroup}>
-                    <button onClick={handleConfirm} className={styles.confirmButton}>확인</button>
-                    <button onClick={onClose} className={styles.cancelButton}>취소</button>
+                    <button
+                        onClick={handleConfirm}
+                        className={styles.confirmButton}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? '제출 중...' : '확인'}
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className={styles.cancelButton}
+                        disabled={isSubmitting}
+                    >
+                        취소
+                    </button>
                 </div>
             </div>
         </div>
