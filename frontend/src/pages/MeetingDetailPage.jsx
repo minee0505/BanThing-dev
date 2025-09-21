@@ -10,7 +10,8 @@ import {
     deleteMeeting,
     getComments,
     postComment,
-    updateComments
+    updateComments,
+    completeMeeting,
     // deleteComments
 } from '../services/meetingDetailApi';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaClock, FaEdit, FaTrash } from 'react-icons/fa';
@@ -45,7 +46,7 @@ const MeetingDetailPage = () => {
     const [isEditing, setIsEditing] = useState(false); // 수정 모드 여부
     const [editingCommentId, setEditingCommentId] = useState(null); // 수정할 댓글 ID
     const [editedCommentContent, setEditedCommentContent] = useState(''); // 수정할 댓글 내용 상태
-
+    const [isCompletingMeeting, setIsCompletingMeeting] = useState(false);
 
 
 
@@ -112,6 +113,19 @@ const MeetingDetailPage = () => {
         }
     };
 
+    /**
+     * 모임 참여 신청 처리 함수
+     *
+     * @author 김경민
+     * @since 2025.09.21
+     * 변경 이유:
+     * 1. 기존 문제: 서버 응답을 기다린 후 fetchParticipants() 호출로 인해
+     * 사용자가 참여 신청 후에도 버튼이 즉시 "신청 대기중"으로 바뀌지 않았음
+     * 2. 해결 방법: Optimistic UI 패턴 적용
+     * - 서버 요청 전에 먼저 로컬 상태를 업데이트하여 즉시 UI 반영
+     * - 요청 실패 시 상태를 원래대로 롤백하여 데이터 일관성 유지
+     * 3. 사용자 경험 개선: 버튼 클릭 즉시 시각적 피드백 제공
+     */
     const handleJoinMeeting = async () => {
         if (!isAuthenticated) {
             navigate('/login');
@@ -120,19 +134,44 @@ const MeetingDetailPage = () => {
 
         setIsJoining(true);
         try {
+            // 서버 응답을 기다리지 않고 먼저 로컬 상태를 업데이트
+            // 이를 통해 사용자에게 즉시 시각적 피드백 제공 (참여신청하기 → 신청 대기중)
+            setParticipants(prev => ({
+                ...prev,
+                pending: [...prev.pending, {
+                    participantId: Date.now(),
+                    nickname: user?.nickname,
+                    userId: user?.userId,
+                    profileImageUrl: user?.profileImageUrl,
+                    trustScore: user?.trustScore || 0,
+                    applicationStatus: 'PENDING'
+                }]
+            }));
+
+            // === 서버 요청 실행 ===
             const result = await joinMeeting(id);
             if (result.success) {
-                await fetchMeetingDetail();
-                await fetchParticipants();
                 alert('모임 참여 신청이 완료되었습니다!');
             } else {
+                // === 실패 시 롤백 ===
+                // 서버에서 실패 응답이 온 경우 로컬 상태를 원래대로 복원
+                setParticipants(prev => ({
+                    ...prev,
+                    pending: prev.pending.filter(p => p.nickname !== user?.nickname)
+                }));
                 alert(result.message || '참여 신청에 실패했습니다.');
             }
         } catch (error) {
+            // === 네트워크 오류 시 롤백 ===
+            // 네트워크 오류나 예외 발생 시에도 로컬 상태 복원
+            setParticipants(prev => ({
+                ...prev,
+                pending: prev.pending.filter(p => p.nickname !== user?.nickname)
+            }));
             console.error('모임 참여 실패:', error);
             alert('참여 신청 중 오류가 발생했습니다.');
         } finally {
-            setIsJoining(false);
+            setIsJoining(false);    // 로딩 상태 해제
         }
     };
 
@@ -154,6 +193,32 @@ const MeetingDetailPage = () => {
         }
     };
 
+    /**
+     * 모임 완료 처리 함수
+     * 호스트만 실행 가능하며, 진행중(ONGOING) 상태에서만 호출됨
+     * 완료 처리 후 모임 상태가 COMPLETED로 변경됨
+     * @author 김경민
+     * @since 2025.09.21
+     */
+    const handleCompleteMeeting = async () => {
+        if (!confirm('정말 모임을 완료하시겠습니까? 완료된 모임은 되돌릴 수 없습니다.')) return;
+
+        setIsCompletingMeeting(true);
+        try {
+            const result = await completeMeeting(id);
+            if (result.success) {
+                await fetchMeetingDetail();
+                alert('모임이 완료되었습니다.');
+            } else {
+                alert(result.message || '모임 완료 처리에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('모임 완료 처리 실패:', error);
+            alert('모임 완료 처리 중 오류가 발생했습니다.');
+        } finally {
+            setIsCompletingMeeting(false);
+        }
+    };
 
     // 모달의 수정 버튼을 눌렀을 때 실행될 함수
     // 이 함수가 부모 컴포넌트의 상태를 변경하여 수정 폼을 활성화
@@ -281,11 +346,11 @@ const MeetingDetailPage = () => {
         return statusTexts[status] || status;
     };
 
-  /*  const getTrustBadgeClass = (score) => {
-        if (score >= 500) return styles.trustGood;
-        if (score <= 100) return styles.trustWarning;
-        return styles.trustBasic;
-    };*/
+    /* const getTrustBadgeClass = (score) => {
+          if (score >= 500) return styles.trustGood;
+          if (score <= 100) return styles.trustWarning;
+          return styles.trustBasic;
+      };*/
 
     /**
      * 현재 로그인한 사용자가 모임의 호스트인지 확인하는 함수
@@ -300,6 +365,17 @@ const MeetingDetailPage = () => {
             participants.pending.some(p => p.nickname === user?.nickname);
     };
 
+    const getParticipationStatus = () => {
+        if (participants.approved.some(p => p.nickname === user?.nickname)) {
+            return 'approved';
+        }
+        if (participants.pending.some(p => p.nickname === user?.nickname)) {
+            return 'pending';
+        }
+        return 'none';
+    };
+
+    const participationStatus = getParticipationStatus();
 
 
     /**
@@ -473,7 +549,7 @@ const MeetingDetailPage = () => {
                         </div>
                         <div className={styles.metaItem}>
                             <FaUsers />
-                            <span>{meeting.currentParticipants} / {meeting.maxParticipants}명</span>
+                            <span>{participants.approved.length} / {meeting.maxParticipants}명</span>
                         </div>
                     </div>
 
@@ -513,7 +589,74 @@ const MeetingDetailPage = () => {
 
                 {/* 탭 콘텐츠 */}
                 <div className={styles.tabContent}>
-                    {activeTab === 'participants' && (() => {
+                   {/* {activeTab === 'participants' && (
+                        <div className={styles.participantsTab}>
+                            <h4>확정된 참여자</h4>
+                            <div className={styles.participantsList}>
+                                {participants.approved.map((participant, index) => (
+                                    <div key={index} className={styles.participantItem}>
+                                        <div className={styles.participantAvatar}>
+                                            {participant.profileImageUrl ? (
+                                                <img src={participant.profileImageUrl} alt={participant.nickname} />
+                                            ) : (
+                                                <div className={styles.defaultAvatar}>
+                                                    {participant.nickname.charAt(0)}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className={styles.participantInfo}>
+                                            <div className={styles.participantName}>
+                                                <span>{participant.nickname}</span>
+                                                {participant.participantType === 'HOST' && (
+                                                    <span className={styles.hostLabel}>호스트</span>
+                                                )}
+                                            </div>
+                                            <div className={styles.participantStats}>
+                                                신뢰도: {participant.TrusterScore}점
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {isHost() && participants.pending.length > 0 && (
+                                <>
+                                    <h4>신청 대기자</h4>
+                                    <div className={styles.participantsList}>
+                                        {participants.pending.map((participant, index) => (
+                                            <div key={index} className={styles.participantItem}>
+                                                <div className={styles.participantAvatar}>
+                                                    {participant.profileImageUrl ? (
+                                                        <img src={participant.profileImageUrl} alt={participant.nickname} />
+                                                    ) : (
+                                                        <div className={styles.defaultAvatar}>
+                                                            {participant.nickname.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className={styles.participantInfo}>
+                                                    <div className={styles.participantName}>
+                                                        <span>{participant.nickname}</span>
+                                                        <span className={styles.pendingLabel}>대기중</span>
+                                                    </div>
+                                                    <div className={styles.participantStats}>
+                                                        신뢰도: {participant.TrusterScore}점
+                                                    </div>
+                                                </div>
+                                                <div className={styles.participantActions}>
+                                                    <button className={styles.approveButton}>승인</button>
+                                                    <button className={styles.rejectButton}>거절</button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}*/}
+
+                        {/* 탭 콘텐츠 */}
+                            {activeTab === 'participants' && (() => {
 
                         // 1. meeting 데이터나 hostInfo가 아직 로드되지 않았을 경우를 대비
                         if (!meeting || !meeting.hostInfo) {
@@ -550,6 +693,28 @@ const MeetingDetailPage = () => {
                             />
                         );
                     })()}
+
+                        // 4. 모임 상태가 '진행 중' 또는 '완료'가 아닐 때만 참여자 관리가 가능합니다.
+                        const canManageParticipants = meeting.status !== 'ONGOING' && meeting.status !== 'COMPLETED';
+
+
+                        // 5. 새로 조합한 확정 참여자 목록과 관리 가능 여부를 props로 전달
+                        return (
+                            <ParticipantsTab
+                                participants={{
+                                    ...participants,
+                                    approved: approvedWithHost
+                                }}
+                                isHost={isHost()}
+                                onApprove={canManageParticipants ? handleApprove : undefined}
+                                onReject={canManageParticipants ? handleReject : undefined}
+                                styles={styles}
+                            />
+                        );
+                    })()}
+
+
+
                     {activeTab === 'comments' && (
                         <div className={styles.commentsTab}>
                             <CommentList
@@ -574,9 +739,8 @@ const MeetingDetailPage = () => {
                     )}
                 </div>
 
-                {/* 액션 버튼 */}
                 <div className={styles.actionButtons}>
-                    {!isHost() && !isParticipating() && meeting.status === 'RECRUITING' && (
+                    {!isHost() && participationStatus === 'none' && meeting.status === 'RECRUITING' && (
                         <button
                             onClick={handleJoinMeeting}
                             disabled={isJoining}
@@ -586,12 +750,31 @@ const MeetingDetailPage = () => {
                         </button>
                     )}
 
-                    {!isHost() && isParticipating() && (
+                    {!isHost() && participationStatus === 'pending' && (
+                        <button
+                            disabled
+                            className={styles.pendingButton}
+                        >
+                            신청 대기중
+                        </button>
+                    )}
+
+                    {!isHost() && participationStatus === 'approved' && (
                         <button
                             onClick={handleLeaveMeeting}
                             className={styles.leaveButton}
                         >
                             모임 탈퇴하기
+                        </button>
+                    )}
+
+                    {isHost() && (meeting.status === 'ONGOING') && (
+                        <button
+                            onClick={handleCompleteMeeting}
+                            disabled={isCompletingMeeting}
+                            className={styles.completeButton}
+                        >
+                            {isCompletingMeeting ? '완료 처리 중...' : '모임 완료'}
                         </button>
                     )}
 
@@ -620,3 +803,4 @@ const MeetingDetailPage = () => {
 };
 
 export default MeetingDetailPage;
+

@@ -1,6 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import styles from './LoginPage.module.scss';
 import { IoIosWarning } from "react-icons/io";
+import {useAuthStore} from "../stores/authStore.js";
+import {useNavigate} from "react-router-dom";
 
 const LoginPage = () => {
 
@@ -11,6 +13,15 @@ const LoginPage = () => {
   const intervalRef = useRef(null);
   // 카카오 로그인 백엔드 엔드포인트
   const KAKAO_AUTH_URL = 'http://localhost:9000/oauth2/authorization/kakao';
+  const { isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
+
+  // 로그인이 활성화 되어있으면 홈으로 이동
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   // 컴포넌트가 언마운트될 때 인터벌을 정리합니다.
   useEffect(() => {

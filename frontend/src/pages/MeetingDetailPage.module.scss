@@ -1,5 +1,3 @@
-// MeetingDetailPage.module.scss
-
 // 컬러 변수 (프로젝트 컬러 가이드 준수)
 $primary-color: #A29BFE;     // 라벤더 (Primary 60%)
 $secondary-color: #FD79A8;   // 로즈 (Secondary 30%)
@@ -301,7 +299,7 @@ $desktop: 1024px;
   color: $white;
 
   &:hover {
-    background-color: darken($primary-color, 10%);
+    background-color: #A29BFEFF;
   }
 }
 
@@ -310,7 +308,7 @@ $desktop: 1024px;
   color: $white;
 
   &:hover {
-    background-color: darken(#e74c3c, 10%);
+    background-color: #E74C3CFF;
   }
 }
 
@@ -519,6 +517,9 @@ $desktop: 1024px;
   //background-color: $trust-good;
   color: $white;
 
+  &:hover {
+    background-color: #27AE60FF;
+  }
   /*&:hover {
     background-color: darken($trust-good, 10%);
   }*/
@@ -529,7 +530,7 @@ $desktop: 1024px;
   color: $white;
 
   &:hover {
-    background-color: darken(#e74c3c, 10%);
+    background-color: #E74C3CFF;
   }
 }
 
@@ -682,7 +683,7 @@ $desktop: 1024px;
   flex-shrink: 0;
 
   &:hover:not(:disabled) {
-    background-color: darken($primary-color, 10%);
+    background-color: #A29BFEFF;
     transform: translateY(-1px);
   }
 
@@ -711,7 +712,7 @@ $desktop: 1024px;
   }
 }
 
-.joinButton, .leaveButton, .backButton {
+.joinButton, .leaveButton, .backButton, .completeButton, .pendingButton {
   padding: 1rem 2rem;
   border: none;
   border-radius: 8px;
@@ -751,7 +752,29 @@ $desktop: 1024px;
   color: $text-color;
 
   &:hover:not(:disabled) {
-    background-color: darken($accent-color, 10%);
+    background-color: #FDCB6EFF;
+  }
+}
+
+.pendingButton {
+  background-color: #95A5A6;
+  color: $white;
+  cursor: not-allowed;
+  pointer-events: none;
+
+  &:hover {
+    transform: none;
+    box-shadow: none;
+    background-color: #95A5A6;
+  }
+}
+
+.completeButton {
+  background-color: $secondary-color;
+  color: $white;
+
+  &:hover:not(:disabled) {
+    background-color: #FD79A8FF;
   }
 }
 
@@ -760,7 +783,7 @@ $desktop: 1024px;
   color: $white;
 
   &:hover {
-    background-color: darken(#e74c3c, 10%);
+    background-color: #E74C3CFF;
   }
 }
 

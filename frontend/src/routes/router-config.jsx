@@ -11,6 +11,7 @@ import LoadMeRoute from "../components/Auth/LoadMeRoute.jsx";
 import MeetingCreatePage from "../pages/MeetingCreatePage.jsx";
 import PrivateRoute from "../components/Auth/PrivateRoute.jsx";
 import ProfilePage from "../pages/ProfilePage.jsx";
+import {profileMeetingLoader} from "../loaders/profileMeetingLoader.js";
 
 // 라우터 설정
 export const router = createBrowserRouter([
@@ -36,12 +37,9 @@ export const router = createBrowserRouter([
       { path: 'meetings/:id', element: <MeetingDetailPage /> },
       // { path: 'meetings/:id/comments', element: <CommentPage /> },
       { path: 'login', element: <LoginPage /> },
-      { path: 'profile/:id', element: <ProfilePage /> },
+      { path: 'profile/:id', element: <ProfilePage />, loader: profileMeetingLoader },
+      { path: '/agreement', element: <AgreementPage /> },
     ],
-  },
-  {
-    path: '/agreement',
-    element: <AgreementPage />
   },
   {
     path: '/popup-close', // 팝업을 닫아주는 페이지

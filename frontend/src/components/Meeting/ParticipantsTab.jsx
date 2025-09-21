@@ -45,7 +45,7 @@ const ParticipantsTab = ({ participants, isHost, onApprove, onReject, styles }) 
             </div>
 
             {/* 신청 대기자 목록 (호스트에게만 보임) */}
-            {isHost && participants.pending.length > 0 && (
+            {isHost && onApprove && participants.pending.length > 0 && (
                 <>
                     <h4>신청 대기자</h4>
                     <div className={styles.participantsList}>
