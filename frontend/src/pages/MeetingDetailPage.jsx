@@ -113,6 +113,19 @@ const MeetingDetailPage = () => {
         }
     };
 
+    /**
+     * 모임 참여 신청 처리 함수
+     *
+     * @author 김경민
+     * @since 2025.09.21
+     * 변경 이유:
+     * 1. 기존 문제: 서버 응답을 기다린 후 fetchParticipants() 호출로 인해
+     *    사용자가 참여 신청 후에도 버튼이 즉시 "신청 대기중"으로 바뀌지 않았음
+     * 2. 해결 방법: Optimistic UI 패턴 적용
+     *    - 서버 요청 전에 먼저 로컬 상태를 업데이트하여 즉시 UI 반영
+     *    - 요청 실패 시 상태를 원래대로 롤백하여 데이터 일관성 유지
+     * 3. 사용자 경험 개선: 버튼 클릭 즉시 시각적 피드백 제공
+     */
     const handleJoinMeeting = async () => {
         if (!isAuthenticated) {
             navigate('/login');
@@ -121,7 +134,8 @@ const MeetingDetailPage = () => {
 
         setIsJoining(true);
         try {
-            // 먼저 즉시 상태 업데이트
+            // 서버 응답을 기다리지 않고 먼저 로컬 상태를 업데이트
+            // 이를 통해 사용자에게 즉시 시각적 피드백 제공 (참여신청하기 → 신청 대기중)
             setParticipants(prev => ({
                 ...prev,
                 pending: [...prev.pending, {
@@ -134,12 +148,13 @@ const MeetingDetailPage = () => {
                 }]
             }));
 
+            // === 서버 요청 실행 ===
             const result = await joinMeeting(id);
             if (result.success) {
                 alert('모임 참여 신청이 완료되었습니다!');
-                // 서버에서 최신 데이터 가져오기
             } else {
-                // 실패시 상태 롤백
+                // === 실패 시 롤백 ===
+                // 서버에서 실패 응답이 온 경우 로컬 상태를 원래대로 복원
                 setParticipants(prev => ({
                     ...prev,
                     pending: prev.pending.filter(p => p.nickname !== user?.nickname)
@@ -147,7 +162,8 @@ const MeetingDetailPage = () => {
                 alert(result.message || '참여 신청에 실패했습니다.');
             }
         } catch (error) {
-            // 에러시 상태 롤백
+            // === 네트워크 오류 시 롤백 ===
+            // 네트워크 오류나 예외 발생 시에도 로컬 상태 복원
             setParticipants(prev => ({
                 ...prev,
                 pending: prev.pending.filter(p => p.nickname !== user?.nickname)
@@ -155,7 +171,7 @@ const MeetingDetailPage = () => {
             console.error('모임 참여 실패:', error);
             alert('참여 신청 중 오류가 발생했습니다.');
         } finally {
-            setIsJoining(false);
+            setIsJoining(false);    // 로딩 상태 해제
         }
     };
 

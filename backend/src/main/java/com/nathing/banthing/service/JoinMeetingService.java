@@ -76,6 +76,7 @@ public class JoinMeetingService {
                 .orElse(null);
 
         if (existingParticipant != null) {
+            // 거절된 사용자가 다시 신청하는 것을 방지
             if (existingParticipant.getApplicationStatus() == MeetingParticipant.ApplicationStatus.REJECTED) {
                 throw new BusinessException(ErrorCode.REJECTED_PARTICIPANT_CANNOT_REAPPLY);
             }

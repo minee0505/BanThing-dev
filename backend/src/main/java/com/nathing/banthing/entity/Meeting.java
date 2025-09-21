@@ -139,6 +139,7 @@ public class Meeting {
 
     // '모임 종료'는 이미 완료되거나 취소된 모임이 아니면 완료 가능하도록 수정
     public void completeMeeting() {
+        // 기존: ONGOING 상태에서만 완료 가능 → 수정: COMPLETED/CANCELLED가 아니면 완료 가능
         if (this.status == MeetingStatus.COMPLETED ||
                 this.status == MeetingStatus.CANCELLED) {
             throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
@@ -146,5 +147,5 @@ public class Meeting {
         this.status = MeetingStatus.COMPLETED;
     }
 
-    }
+}
 
