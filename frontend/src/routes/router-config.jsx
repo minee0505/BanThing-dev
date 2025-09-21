@@ -37,12 +37,9 @@ export const router = createBrowserRouter([
       { path: 'meetings/:id', element: <MeetingDetailPage /> },
       // { path: 'meetings/:id/comments', element: <CommentPage /> },
       { path: 'login', element: <LoginPage /> },
-      { path: 'profile/:id', element: <ProfilePage />, loader: profileMeetingLoader},
+      { path: 'profile/:id', element: <ProfilePage />, loader: profileMeetingLoader },
+      { path: '/agreement', element: <AgreementPage /> },
     ],
-  },
-  {
-    path: '/agreement',
-    element: <AgreementPage />
   },
   {
     path: '/popup-close', // 팝업을 닫아주는 페이지
