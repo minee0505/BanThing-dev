@@ -68,6 +68,7 @@ public class FindMeetingService {
         }
 
         return meetings.stream()
+                .filter(meeting -> meeting.getStatus() != Meeting.MeetingStatus.CANCELLED)
                 .map(MeetingSimpleResponse::new)
                 .collect(Collectors.toList());
     }
