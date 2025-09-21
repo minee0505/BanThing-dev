@@ -706,8 +706,8 @@ const MeetingDetailPage = () => {
                                     approved: approvedWithHost // 수정된 배열을 전달
                                 }}
                                 isHost={isHost()}
-                                onApprove={handleApprove}
-                                onReject={handleReject}
+                                onApprove={meeting.status !== 'COMPLETED' ? handleApprove : undefined}
+                                onReject={meeting.status !== 'COMPLETED' ? handleReject : undefined}
                                 styles={styles}
                             />
                         );

@@ -113,6 +113,7 @@ public class JoinMeetingService {
      * [수정] 모임의 참여자 목록을 조회합니다.
      * - 요청자가 호스트일 경우: 확정된 참여자와 대기중인 신청자 목록을 모두 반환합니다.
      * - 요청자가 일반 참여자일 경우: 확정된 참여자 목록만 반환합니다.
+     * - 모임이 완료된 경우: 대기자 목록은 항상 비어있습니다.
      *
      * @param meetingId 조회할 모임 ID
      * @param providerId    요청을 보낸 사용자 ID
@@ -135,16 +136,18 @@ public class JoinMeetingService {
                 .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.APPROVED);
 
         List<MeetingParticipant> pendingList;
-        if (isHost) {
-            // 4-1. 호스트는 모든 대기중인 참여자 목록을 조회
+
+        // --- [수정된 부분 시작] ---
+        // 4. 모임 상태가 'COMPLETED'인지 먼저 확인합니다.
+        if (meeting.getStatus() == Meeting.MeetingStatus.COMPLETED) {
+            // 모임이 완료되었다면, 호스트 여부와 관계없이 대기자 목록은 항상 비어있어야 합니다.
+            pendingList = Collections.emptyList();
+        } else if (isHost) {
+            // 5-1. 모임이 완료되지 않았고, 요청자가 호스트라면 모든 대기자 목록을 조회합니다.
             pendingList = meetingParticipantsRepository
                     .findByMeetingAndApplicationStatus(meeting, MeetingParticipant.ApplicationStatus.PENDING);
         } else {
-            // 4-2. [수정] 일반 사용자도 본인의 대기 상태를 확인할 수 있도록 변경
-            // 기존 문제: 일반 사용자가 신청 후 페이지 재진입 시 본인의 PENDING 상태를 알 수 없어서
-            // 프론트엔드에서 버튼이 "참여 신청하기"로 잘못 표시되었음
-            // 해결: 본인의 참여 신청 정보를 조회하여 PENDING 상태인 경우에만 목록에 포함
-
+            // 5-2. 모임이 완료되지 않았고, 요청자가 일반 사용자라면 본인의 대기 상태만 확인합니다.
             Optional<MeetingParticipant> myParticipation = meetingParticipantsRepository
                     .findByMeetingAndUser(meeting, currentUser);
 
@@ -155,8 +158,9 @@ public class JoinMeetingService {
                 pendingList = Collections.emptyList(); // 대기 상태가 아니면 빈 목록
             }
         }
+        // --- [수정된 부분 끝] ---
 
-        // 5. 조회된 목록을 DTO로 변환
+        // 6. 조회된 목록을 DTO로 변환
         List<MeetingParticipantResponse> approvedDto = approvedList.stream()
                 .map(MeetingParticipantResponse::new)
                 .collect(Collectors.toList());
