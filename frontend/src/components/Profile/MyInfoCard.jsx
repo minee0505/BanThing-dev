@@ -1,5 +1,7 @@
 import React from 'react';
 import styles from './MyInfoCard.module.scss';
+import TrustBadge from  '../Meeting/TrustBadge.jsx'; // TrustBadge 컴포넌트 import
+
 
 /**
  * 사용자의 정보를 표시하는 컴포넌트를 나타냅니다.
@@ -21,18 +23,18 @@ const MyInfoCard = ({ user }) => {
   const nickname = user?.nickname || '사용자';
   const profileImageUrl = user?.profileImageUrl || '/images/defaultProfile.png';
   // const selfIntroduction = user?.selfIntroduction || '없음';
-  const trustGrade = user?.trustGrade;
+  // const trustGrade = user?.trustGrade;
   const trustScore = user?.trustScore;
   const noShowCount = user?.noShowCount;
 
   // 신뢰도 등급에 따른 스타일 클래스 결정
-  const getTrustGradeClass = (grade) => {
+  /*const getTrustGradeClass = (grade) => {
     if (!grade) return styles.basic;
     const lowerGrade = grade.toLowerCase();
     if (lowerGrade.includes('경고') || lowerGrade.includes('warning')) return styles.warning;
     if (lowerGrade.includes('좋음') || lowerGrade.includes('good')) return styles.good;
     return styles.basic;
-  };
+  };*/
 
   return (
     <section className={styles.myInfoCard}>
@@ -50,9 +52,12 @@ const MyInfoCard = ({ user }) => {
       <ul className={styles.userStats}>
         <li className={styles.statItem}>
           <span className={styles.statLabel}>등급</span>
-          <span className={`${styles.trustGrade} ${getTrustGradeClass(trustGrade)}`}>
+          {/*<span className={`${styles.trustGrade} ${getTrustGradeClass(trustGrade)}`}>
             {trustGrade || '기본'}
-          </span>
+          </span>*/}
+          <div className={styles.trustBadgeWrapper}>
+            <TrustBadge trustScore={trustScore} />
+          </div>
         </li>
         <li className={styles.statItem}>
           <span className={styles.statLabel}>신뢰 점수</span>

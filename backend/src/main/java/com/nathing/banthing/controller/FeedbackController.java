@@ -36,16 +36,17 @@ public class FeedbackController {
     @PostMapping
     public ResponseEntity<CommonResponse<FeedbackScoreResponse>> createFeedback(@RequestBody FeedbackCreateRequest request) {
 
-        // DTO에서 giverId를 직접 가져와서 사용
-        Long giverId = request.getGiverId();
+        // DTO에서 giverId와 receiverId를 String으로 가져와서 사용
+        String giverIdStr = request.getGiverId();
+        String receiverIdStr = request.getReceiverId();
 
-        if (giverId == null) {
+        if (giverIdStr == null || receiverIdStr == null) {
             // 이 경우 401 Unauthorized를 반환할 수 있으므로, CommonResponse로 감싸지 않는 것이 일반적입니다.
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // 서비스를 호출하고, 업데이트된 User 객체를 받습니다.
-        User updatedReceiver = feedbackService.createFeedback(request, giverId);
+        // 변경된 서비스 메서드 시그니처에 맞춰 String 값을 전달
+        User updatedReceiver = feedbackService.createFeedback(request, giverIdStr, receiverIdStr);
 
         // 업데이트된 유저의 점수를 담는 DTO를 생성합니다.
         FeedbackScoreResponse scoreResponse = new FeedbackScoreResponse(

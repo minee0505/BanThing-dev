@@ -156,3 +156,10 @@
     padding: 0.375rem 0;
   }
 }
+.trustBadgeWrapper {
+  // TrustBadge 컴포넌트의 svg 아이콘을 타겟팅
+  svg {
+    // 현재 크기(TrustBadge.module.scss)가 24px로 가정하고 두 배로 키움
+    font-size: 30px;
+  }
+}
