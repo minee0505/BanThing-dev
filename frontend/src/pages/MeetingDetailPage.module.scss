@@ -516,10 +516,10 @@ $desktop: 1024px;
 .approveButton {
   //background-color: $trust-good;
   color: $white;
-
-  &:hover {
+  background-color: #27AE60FF;
+  /*&:hover {
     background-color: #27AE60FF;
-  }
+  }*/
   /*&:hover {
     background-color: darken($trust-good, 10%);
   }*/
