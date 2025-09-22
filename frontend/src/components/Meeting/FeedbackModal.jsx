@@ -17,6 +17,7 @@ const FeedbackModal = ({ isOpen, onClose, targetUser, meetingId }) => {
 
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [feedbackScore, setFeedbackScore] = useState(null); // 'GOOD' 또는 'BAD'
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [isSubmitting, setIsSubmitting] = useState(false); // 제출 중 상태
 
     const handleFeedbackChange = (e) => {
@@ -40,10 +41,14 @@ const FeedbackModal = ({ isOpen, onClose, targetUser, meetingId }) => {
             // 피드백 타입 매핑: 'GOOD' -> 'POSITIVE', 'BAD' -> 'NEGATIVE'
             const feedbackType = feedbackScore === 'GOOD' ? 'POSITIVE' : 'NEGATIVE';
 
+            // 백엔드가 userId 또는 nickname을 모두 받을 수 있도록 수정
+            const targetIdentifier = targetUser.userId || targetUser.nickname;
+            const userIdentifier = user.userId || user.nickname;
+
             const result = await postFeedback(
                 meetingId,           // 모임 ID
-                targetUser.userId,   // 피드백을 받을 사용자 ID
-                user.userId,         // 피드백을 주는 사용자 ID (현재 로그인한 사용자)
+                targetIdentifier,   // 피드백을 받을 사용자 ID
+                userIdentifier,         // 피드백을 주는 사용자 ID (현재 로그인한 사용자)
                 feedbackType         // 피드백 타입
             );
 

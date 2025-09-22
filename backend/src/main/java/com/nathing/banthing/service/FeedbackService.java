@@ -25,17 +25,22 @@ public class FeedbackService {
     private final MeetingParticipantsRepository meetingParticipantsRepository; // 추가
 
     @Transactional
-    public User createFeedback(FeedbackCreateRequest dto, Long giverId) {
+    public User createFeedback(FeedbackCreateRequest dto, String  giverIdStr, String receiverIdStr) {
         // meetingId 유효성 검사
         Meeting meeting = meetingsRepository.findById(dto.getMeetingId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid meetingID: " + dto.getMeetingId()));
-        // receiverId 유효성 검사
+        /*// receiverId 유효성 검사
         User receiverUser = usersRepository.findById(dto.getReceiverId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid receiverID: " + dto.getReceiverId()));
         // giverId 유효성 검사
         User giverUser = usersRepository.findById(giverId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid giverID: " + giverId));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid giverID: " + giverId));*/
 
+        // receiverUser를 userId로 변환하는 로직 추가
+        User receiverUser = findUserByIdentifier(receiverIdStr);
+
+        // giverUser를 userId로 변환하는 로직 추가
+        User giverUser = findUserByIdentifier(giverIdStr);
 
         // 1. 피드백을 주는 사용자와 받는 사용자가 동일인물인지 확인 [cite: 1]
         if (giverUser.equals(receiverUser)) {
@@ -83,6 +88,19 @@ public class FeedbackService {
         return receiverUser;
     }
 
+    // giverUser(userId 또는 nickname)로 User를 찾는 헬퍼 함수
+    private User findUserByIdentifier(String identifier) {
+        try {
+            // 1. 숫자로 변환을 시도하여 userId인지 확인
+            Long userId = Long.parseLong(identifier);
+            return usersRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+        } catch (NumberFormatException e) {
+            // 2. 숫자가 아니라면 nickname으로 간주하고 사용자 조회
+            return usersRepository.findByNickname(identifier)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found with nickname: " + identifier));
+        }
+    }
 
     @Transactional(readOnly = true)
     public List<FeedbackResponse> getFeedbacksByUserAndType(Long userId, FeedbackSearchType searchType) {

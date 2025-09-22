@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FeedbackCreateRequest {
     private Long meetingId;
-    private Long giverId;
-    private Long receiverId;
+    private String giverId;
+    private String  receiverId;
     private String feedbackType; // 피드백 상태 문자열
 }
