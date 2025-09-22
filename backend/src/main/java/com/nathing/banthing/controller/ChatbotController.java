@@ -1,20 +1,18 @@
 package com.nathing.banthing.controller;
 
-import com.nathing.banthing.dto.request.ChatbotMessageRequest;
-import com.nathing.banthing.dto.response.ChatbotMessageResponse;
-import com.nathing.banthing.dto.response.ChatbotConversationHistoryResponse;
 import com.nathing.banthing.dto.common.ApiResponse;
+import com.nathing.banthing.dto.request.ChatbotMessageRequest;
+import com.nathing.banthing.dto.response.ChatbotConversationHistoryResponse;
+import com.nathing.banthing.dto.response.ChatbotMessageResponse;
 import com.nathing.banthing.entity.ChatbotConversation;
 import com.nathing.banthing.service.ChatbotService;
-import com.nathing.banthing.service.ChatbotServiceImpl;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -200,7 +198,7 @@ public class ChatbotController {
                 
                 🛒 반띵은 대용량 상품을 여러 명이 함께 구매하고 소분하는 서비스예요.
                 
-                📍 서울 지역 8개 마트 (코스트코 4곳, 이마트 트레이더스 2곳, 롯데마트 2곳)에서 
+                📍 서울 지역 8개 마트 (코스트코 4곳, 이마트 트레이더스 2곳, 롯데마트 2곳)에서
                    다양한 소분 모임이 진행되고 있어요.
                 
                 💡 1-2인 가구도 대용량 상품을 합리적으로 구매할 수 있도록 도와드려요!
