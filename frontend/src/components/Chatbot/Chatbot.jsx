@@ -6,6 +6,7 @@ import { BsSendPlus } from "react-icons/bs";
 import { IoMdClose } from "react-icons/io";
 import { FaHourglassHalf } from "react-icons/fa";
 import { MdWavingHand } from "react-icons/md";
+import MeetingCard from './MeetingCard';
 
 const Chatbot = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +25,7 @@ const Chatbot = () => {
                 const history = result.data.slice(-10);
                 const formattedMessages = [];
 
-                history.forEach(item => {
+                history.reverse().forEach(item => {
                     formattedMessages.push({
                         type: 'user',
                         content: item.userMessage,
@@ -197,6 +198,25 @@ const Chatbot = () => {
         setIsOpen(prevOpen => !prevOpen);
     }, []);
 
+    // 모임 카드 클릭 핸들러 (로그인 사용자)
+    const handleMeetingCardClick = useCallback((meetingId) => {
+        window.location.href = `/meetings/${meetingId}`;
+    }, []);
+
+// 로그인 필요 핸들러 (비로그인 사용자)
+    const handleLoginRequired = useCallback((meeting) => {
+        const confirmMessage = `
+${meeting.title} 모임의 자세한 정보를 보시려면 로그인이 필요합니다.
+        
+카카오톡으로 간편하게 로그인하시겠습니까?
+    `.trim();
+
+        if (window.confirm(confirmMessage)) {
+            handleSignupClick();
+        }
+    }, [handleSignupClick]);
+
+
     return (
         <div className={styles.container}>
             <button
@@ -267,6 +287,21 @@ const Chatbot = () => {
                                 >
                                     <div className={styles.messageContent}>
                                         {formatMessage(message.content)}
+
+                                        {/* 추천 모임 카드들 렌더링 */}
+                                        {message.suggestedMeetings && message.suggestedMeetings.length > 0 && (
+                                            <div className={styles.meetingCards}>
+                                                {message.suggestedMeetings.map((meeting, index) => (
+                                                    <MeetingCard
+                                                        key={`${meeting.meetingId}-${index}`}
+                                                        meeting={meeting}
+                                                        isAuthenticated={isAuthenticated}
+                                                        onCardClick={handleMeetingCardClick}
+                                                        onLoginRequired={handleLoginRequired}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
 
                                         {/* 챗봇 메시지에서 회원가입 관련 키워드 감지 시 버튼 표시 */}
                                         {message.type === 'bot' && !isAuthenticated && shouldShowSignupButton(message.content) && (

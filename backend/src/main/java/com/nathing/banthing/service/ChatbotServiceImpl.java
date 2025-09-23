@@ -24,9 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -100,24 +98,53 @@ public class ChatbotServiceImpl implements ChatbotService {
 
             // 2. 현재 모집중인 모임 목록 조회 (실시간 데이터)
             List<Meeting> activeMeetings = meetingsRepository.findByStatusAndDeletedAtIsNull(Meeting.MeetingStatus.RECRUITING);
-            log.info("현재 활성 모임 수: {}", activeMeetings.size());
 
-            // 3. AI 응답 생성 시도
-            String botResponse = generateAuthenticatedResponse(user, userMessage, activeMeetings);
-
-            // 4. 대화 의도 파악
+            // 3. 대화 의도 파악
             ChatbotConversation.IntentType intentType = determineIntentType(userMessage);
+
+            List<String> keywords = extractKeywords(userMessage);
+            if (!keywords.isEmpty() && !activeMeetings.isEmpty()) {
+                intentType = ChatbotConversation.IntentType.MEETING_SEARCH;
+            }
+
+            // 4. AI 응답 생성 시도
+            String botResponse = generateAuthenticatedResponse(user, userMessage, activeMeetings);
 
             // 5. 대화 기록 저장
             ChatbotConversation savedConversation = saveConversation(user, userMessage, botResponse, intentType);
             log.info("대화 기록 저장 완료 - conversationId: {}", savedConversation.getConversationId());
 
-            // 6. 모임 추천 생성 (모임 검색 의도인 경우에만)
+            // 6. 모임 추천 생성 - 게스트와 동일한 방식으로 변경
             List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestedMeetings = new ArrayList<>();
-            if (intentType == ChatbotConversation.IntentType.MEETING_SEARCH) {
-                suggestedMeetings = generateMeetingSuggestions(savedConversation, userMessage, activeMeetings);
-                log.info("모임 추천 생성 완료 - 추천 수: {}", suggestedMeetings.size());
+            if (intentType == ChatbotConversation.IntentType.MEETING_SEARCH && !activeMeetings.isEmpty()) {
+                List<Meeting> relevantMeetings = findRelevantMeetings(keywords, activeMeetings);
+
+                // 관련 모임이 없으면 최신 모임 3개 추천
+                if (relevantMeetings.isEmpty()) {
+                    relevantMeetings = activeMeetings.stream()
+                            .limit(3)
+                            .collect(Collectors.toList());
+                }
+
+                // 게스트용 모임 추천 DTO 생성 (DB 저장 없이)
+                for (Meeting meeting : relevantMeetings) {
+                    String suggestionReason = generateSuggestionReason(userMessage, meeting, keywords);
+
+                    suggestedMeetings.add(ChatbotMessageResponse.MeetingSuggestionResponse.builder()
+                            .meetingId(meeting.getMeetingId())
+                            .title(meeting.getTitle())
+                            .martName(meeting.getMart().getMartName())
+                            .meetingDate(meeting.getMeetingDate())
+                            .suggestionReason(suggestionReason)
+                            .currentParticipants(meeting.getCurrentParticipants())
+                            .maxParticipants(meeting.getMaxParticipants())
+                            .status(meeting.getStatus().toString())
+                            .martAddress(meeting.getMart().getAddress())
+                            .build());
+                }
             }
+
+            log.info("모임 추천 생성 완료 - 추천 수: {}", suggestedMeetings.size());
 
             // 7. 응답 객체 생성
             return ChatbotMessageResponse.builder()
@@ -157,13 +184,13 @@ public class ChatbotServiceImpl implements ChatbotService {
             // 3. 게스트 응답 생성
             String botResponse = generateGuestResponse(userMessage, activeMeetings);
 
-            // 4. 키워드 기반 모임 추천 (추가!)
+            // 4. 키워드 기반 모임 추천 생성
             List<ChatbotMessageResponse.MeetingSuggestionResponse> suggestedMeetings = new ArrayList<>();
-            if (intentType == ChatbotConversation.IntentType.MEETING_SEARCH && !activeMeetings.isEmpty()) {
-                // 키워드 기반으로 관련 모임 찾기
-                List<String> keywords = extractKeywords(userMessage);
-                List<Meeting> relevantMeetings = findRelevantMeetings(keywords, activeMeetings);
+            List<String> keywords = extractKeywords(userMessage);
+            if (!keywords.isEmpty() && !activeMeetings.isEmpty()) { // 키워드가 있으면 모임 검색으로 처리
+                intentType = ChatbotConversation.IntentType.MEETING_SEARCH; // 의도 타입 강제 변경
 
+                List<Meeting> relevantMeetings = findRelevantMeetings(keywords, activeMeetings);
                 // 관련 모임이 없으면 최신 모임 3개 추천
                 if (relevantMeetings.isEmpty()) {
                     relevantMeetings = activeMeetings.stream()
@@ -424,21 +451,12 @@ public class ChatbotServiceImpl implements ChatbotService {
         List<Meeting> relevantMeetings = findRelevantMeetings(keywords, activeMeetings);
 
         if (!relevantMeetings.isEmpty()) {
-            response.append("요청하신 내용과 관련된 모임을 찾았습니다:\n\n");
-            for (int i = 0; i < Math.min(3, relevantMeetings.size()); i++) {
-                Meeting meeting = relevantMeetings.get(i);
-                response.append(String.format("🛒 [%s] %s\n", meeting.getMart().getMartName(), meeting.getTitle()));
-                response.append(String.format("📅 일시: %s\n", meeting.getMeetingDate()));
-                response.append(String.format("👥 참여: %d/%d명\n\n", meeting.getCurrentParticipants(), meeting.getMaxParticipants()));
-            }
+            response.append("요청하신 내용과 관련된 모임을 찾았습니다. 아래 카드를 확인해보세요!\n\n");
+            // 👇 텍스트는 간단하게만, 실제 정보는 카드로 표시
+            response.append(String.format("총 %d개의 추천 모임이 있습니다.", Math.min(3, relevantMeetings.size())));
         } else if (!activeMeetings.isEmpty()) {
-            response.append("현재 이런 모임들이 진행 중입니다:\n\n");
-            for (int i = 0; i < Math.min(3, activeMeetings.size()); i++) {
-                Meeting meeting = activeMeetings.get(i);
-                response.append(String.format("🛒 [%s] %s\n", meeting.getMart().getMartName(), meeting.getTitle()));
-                response.append(String.format("📅 일시: %s\n", meeting.getMeetingDate()));
-                response.append(String.format("👥 참여: %d/%d명\n\n", meeting.getCurrentParticipants(), meeting.getMaxParticipants()));
-            }
+            response.append("현재 이런 모임들이 진행 중입니다. 아래 카드를 확인해보세요!\n\n");
+            response.append(String.format("총 %d개의 활성 모임이 있습니다.", Math.min(3, activeMeetings.size())));
         } else {
             response.append("현재 새로운 모임이 준비 중입니다. 잠시 후 다시 확인해주세요!\n\n");
             response.append("반띵은 서울 지역 8개 마트에서 다양한 소분 모임을 제공합니다:\n");
@@ -448,26 +466,40 @@ public class ChatbotServiceImpl implements ChatbotService {
         }
 
         if (!isAuthenticated) {
-            response.append("더 정확한 정보와 개인 맞춤 추천을 원하시면 아래 카카오로 시작하기 버튼을 이용해주세요!");
+            response.append("\n더 정확한 정보와 개인 맞춤 추천을 원하시면 아래 카카오로 시작하기 버튼을 이용해주세요!");
         }
 
         return response.toString();
     }
 
     /**
-     * 사용자 메시지에서 키워드 추출
+     * 사용자 메시지에서 키워드를 추출하는 메서드
+     * - 공백, 쉼표, 기타 구두점으로 분리
+     * - 불용어 제거 및 정제
      */
     private List<String> extractKeywords(String userMessage) {
-        String[] commonKeywords = {
-                "양재", "양평", "상봉", "고척", "월계", "마곡", "금천", "영등포",
-                "코스트코", "이마트", "트레이더스", "롯데마트",
-                "견과류", "아몬드", "호두", "세제", "다우니", "베이커리", "머핀", "베이글",
-                "냉동식품", "만두", "과일", "육류", "삼겹살", "닭가슴살", "간식", "과자",
-                "조미료", "올리브오일", "소스"
-        };
+        if (userMessage == null || userMessage.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        return Arrays.stream(commonKeywords)
-                .filter(keyword -> userMessage.toLowerCase().contains(keyword.toLowerCase()))
+        // 1. 소문자 변환 및 특수문자 기준으로 분리
+        String cleanMessage = userMessage.toLowerCase()
+                .replaceAll("[^가-힣a-z0-9\\s]", " "); // 한글, 영문, 숫자, 공백만 유지
+
+        // 2. 공백 및 쉼표 기준으로 분리
+        String[] words = cleanMessage.split("\\s+|,+");
+
+        // 3. 불용어 제거 및 정제
+        Set<String> stopWords = Set.of("이", "가", "을", "를", "에", "에서", "으로", "로",
+                "은", "는", "과", "와", "그리고", "또는", "같은", "근처",
+                "찾아", "찾아줘", "있나", "있나요", "해줘", "모임", "소분");
+
+        return Arrays.stream(words)
+                .map(String::trim)
+                .filter(word -> !word.isEmpty())
+                .filter(word -> word.length() >= 2) // 2글자 이상만
+                .filter(word -> !stopWords.contains(word)) // 불용어 제거
+                .distinct() // 중복 제거
                 .collect(Collectors.toList());
     }
 
@@ -476,16 +508,53 @@ public class ChatbotServiceImpl implements ChatbotService {
      */
     private List<Meeting> findRelevantMeetings(List<String> keywords, List<Meeting> activeMeetings) {
         if (keywords.isEmpty()) {
-            return new ArrayList<>();
+            return activeMeetings.stream().limit(3).collect(Collectors.toList());
         }
 
         return activeMeetings.stream()
                 .filter(meeting -> {
-                    String searchText = (meeting.getTitle() + " " + meeting.getDescription() + " " + meeting.getMart().getMartName()).toLowerCase();
-                    return keywords.stream().anyMatch(keyword -> searchText.contains(keyword.toLowerCase()));
+                    String title = meeting.getTitle().replaceAll("[^가-힣a-z0-9\\s]", " ").toLowerCase();
+                    String description = meeting.getDescription().replaceAll("[^가-힣a-z0-9\\s]", " ").toLowerCase();
+                    String martName = meeting.getMart().getMartName().replaceAll("[^가-힣a-z0-9\\s]", " ").toLowerCase();
+                    String martAddress = meeting.getMart().getAddress().replaceAll("[^가-힣a-z0-9\\s]", " ").toLowerCase();
+
+                    // 하나라도 키워드가 매칭되면 포함
+                    return keywords.stream().anyMatch(keyword -> {
+                        String lowerKeyword = keyword.toLowerCase();
+                        return title.contains(lowerKeyword) ||
+                                description.contains(lowerKeyword) ||
+                                martName.contains(lowerKeyword) ||
+                                martAddress.contains(lowerKeyword);
+                    });
+                })
+                .sorted((m1, m2) -> {
+                    // 매칭된 키워드 수가 많은 순으로 정렬
+                    int score1 = calculateMatchScore(m1, keywords);
+                    int score2 = calculateMatchScore(m2, keywords);
+                    return Integer.compare(score2, score1);
                 })
                 .limit(3)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 모임의 키워드 매칭 점수 계산
+     */
+    private int calculateMatchScore(Meeting meeting, List<String> keywords) {
+        String title = meeting.getTitle().toLowerCase();
+        String description = meeting.getDescription().toLowerCase();
+        String martName = meeting.getMart().getMartName().toLowerCase();
+        String martAddress = meeting.getMart().getAddress().toLowerCase();
+
+        int score = 0;
+        for (String keyword : keywords) {
+            String lowerKeyword = keyword.toLowerCase();
+            if (title.contains(lowerKeyword)) score += 3; // 제목 매칭이 가장 중요
+            if (description.contains(lowerKeyword)) score += 2; // 설명 매칭
+            if (martName.contains(lowerKeyword)) score += 2; // 마트명 매칭
+            if (martAddress.contains(lowerKeyword)) score += 1; // 주소 매칭
+        }
+        return score;
     }
 
     /**
@@ -494,9 +563,16 @@ public class ChatbotServiceImpl implements ChatbotService {
     private ChatbotConversation.IntentType determineIntentType(String userMessage) {
         String lowerMessage = userMessage.toLowerCase();
 
-        // 모임 검색 관련 키워드
-        String[] searchKeywords = {"찾", "검색", "추천", "모임", "소분", "참여", "신청", "있나", "어디"};
+        // 모임 검색 관련 키워드 (상품명도 포함)
+        String[] searchKeywords = {
+                "찾", "검색", "추천", "모임", "소분", "참여", "신청", "있나", "어디",
+                "김치", "피자", "세제", "견과류", "아몬드", "호두", "다우니", "베이커리",
+                "머핀", "베이글", "냉동식품", "만두", "과일", "육류", "삼겹살", "닭가슴살",
+                "간식", "과자", "조미료", "올리브오일", "소스"
+        };
+
         if (Arrays.stream(searchKeywords).anyMatch(lowerMessage::contains)) {
+            log.info("모임 검색 키워드 감지: {}", userMessage);
             return ChatbotConversation.IntentType.MEETING_SEARCH;
         }
 
