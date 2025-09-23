@@ -9,16 +9,20 @@ import React from 'react';
  * @param {function} props.onApprove - 참여 승인 버튼 클릭 시 호출될 함수
  * @param {function} props.onReject - 참여 거절 버튼 클릭 시 호출될 함수
  * @param {object} props.styles - 부모 컴포넌트의 CSS 모듈 스타일 객체
- * @param {string} props.meetingStatus - 모임 상태 - 송민재
- * @param {function} props.openFeedbackModal - 피드백 모달을 여는 함수 - 송민재
+ * @param {string} props.meetingStatus - 모임 상태 (CANCELED, RECRUITING 등)
+ * @param {function} props.openFeedbackModal - 피드백 모달을 여는 함수
  *
  * @author 고동현
  * @since 2025.09.19
+ * @version 1.1.0 // 버전 업데이트
  */
 const ParticipantsTab = ({ participants, isHost, onApprove, onReject, styles, meetingStatus, myUserId,myUserNickName, openFeedbackModal  }) => {
     console.log("participantsID : ", participants.approved);
     console.log("participantsNICKNAME : ", participants.approved);
     console.log("userId : ", myUserId);
+
+
+    const showActionButtons = meetingStatus === 'RECRUITING' || meetingStatus === 'FULL';
 
     return (
         <div className={styles.participantsTab}>
@@ -52,13 +56,13 @@ const ParticipantsTab = ({ participants, isHost, onApprove, onReject, styles, me
                             participant.userId !== myUserId &&
                             participant.nickname !== myUserNickName &&
                             meetingStatus === 'COMPLETED' &&(
-                            <button
-                                onClick={() => openFeedbackModal(participant.userId, participant.nickname)}
-                                className={styles.feedbackButton}
-                            >
-                                피드백 남기기
-                            </button>
-                        )}
+                                <button
+                                    onClick={() => openFeedbackModal(participant.userId, participant.nickname)}
+                                    className={styles.feedbackButton}
+                                >
+                                    피드백 남기기
+                                </button>
+                            )}
                     </div>
                 ))}
             </div>
@@ -88,21 +92,25 @@ const ParticipantsTab = ({ participants, isHost, onApprove, onReject, styles, me
                                         신뢰도: {participant.trustScore}점
                                     </div>
                                 </div>
-                                {/* 승인/거절 버튼에 핸들러 함수를 연결합니다. */}
-                                <div className={styles.participantActions}>
-                                    <button
-                                        onClick={() => onApprove(participant)}
-                                        className={styles.approveButton}
-                                    >
-                                        승인
-                                    </button>
-                                    <button
-                                        onClick={() => onReject(participant)}
-                                        className={styles.rejectButton}
-                                    >
-                                        거절
-                                    </button>
-                                </div>
+                                {/* 모임 상태가 'CANCELED'가 아닐 때만 승인/거절 버튼을 보여줍니다. */}
+                                {/* 모임이 모집중(RECRUITING) 또는 모집마감(FULL) 상태일 때만 버튼을 보여줍니다. */}
+                                {showActionButtons && (
+                                    <div className={styles.participantActions}>
+                                        <button
+                                            onClick={() => onApprove(participant)}
+                                            className={styles.approveButton}
+                                        >
+                                            승인
+                                        </button>
+                                        <button
+                                            onClick={() => onReject(participant)}
+                                            className={styles.rejectButton}
+                                        >
+                                            거절
+                                        </button>
+                                    </div>
+                                )}
+
                             </div>
                         ))}
                     </div>

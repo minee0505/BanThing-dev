@@ -1,6 +1,7 @@
 package com.nathing.banthing.service;
 
 import com.nathing.banthing.entity.Meeting;
+import com.nathing.banthing.entity.MeetingParticipant;
 import com.nathing.banthing.repository.MeetingsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,8 @@ public class MeetingSchedulerService {
      *
      * 추가적으로, 참여자가 호스트 1명 뿐인 모임은 자동으로 'CANCELED' 처리하여
      * 불필요한 모임 진행을 방지하는 예외 처리를 추가했습니다.
+     *
+     * [버그 수정] 모임 시작 조건이 전체 참여자 수가 아닌, '승인된' 참여자 수를 기준으로 하도록 수정했습니다.
      */
     @Scheduled(cron = "0 * * * * *")
     @Transactional
@@ -43,18 +46,14 @@ public class MeetingSchedulerService {
         log.info("스케줄러: 시작할 모임을 확인합니다...");
         LocalDateTime now = LocalDateTime.now();
 
-        // [수정] 조회 대상을 'RECRUITING', 'FULL' 두 가지 상태로 확장합니다.
         List<Meeting.MeetingStatus> targetStatuses = Arrays.asList(
                 Meeting.MeetingStatus.RECRUITING,
                 Meeting.MeetingStatus.FULL
         );
 
-        // [수정] Repository의 findByStatusInAndMeetingDateBefore 메서드를 호출하여
-        // 여러 상태를 한 번에 조회합니다.
         List<Meeting> meetingsToStart = meetingsRepository
                 .findByStatusInAndMeetingDateBefore(targetStatuses, now);
 
-        // 처리할 모임이 없으면 로그를 남기고 일찍 종료하여 불필요한 연산을 줄입니다.
         if (meetingsToStart.isEmpty()) {
             log.info("스케줄러: 현재 시작할 모임이 없습니다.");
             return;
@@ -62,22 +61,27 @@ public class MeetingSchedulerService {
 
         for (Meeting meeting : meetingsToStart) {
             try {
-                // [추가] 예외 처리: '모집 중' 상태인데 참여자가 1명(호스트)뿐인 경우,
-                // 모임을 진행하는 대신 'CANCELED' 상태로 변경하여 자동 취소 처리합니다.
-                if (meeting.getParticipants().size() <= 1 && meeting.getStatus() == Meeting.MeetingStatus.RECRUITING) {
-                    meeting.cancelMeeting(); // Meeting 엔티티에 cancelMeeting() 메서드 필요
-                    log.warn("모임 ID {}가 참여자가 없어 취소되었습니다.", meeting.getMeetingId());
+                // 1. 전체 참여자 목록에서 'APPROVED' 상태인 참여자만 필터링하여 수를 계산합니다.
+                long approvedParticipantsCount = meeting.getParticipants().stream()
+                        .filter(participant -> participant.getApplicationStatus() == MeetingParticipant.ApplicationStatus.APPROVED)
+                        .count();
+
+                // 2. '모집 중' 상태이면서 확정된 참여자가 1명(호스트) 이하인 경우, 모임을 'CANCELED'로 변경합니다.
+                if (approvedParticipantsCount <= 1 && meeting.getStatus() == Meeting.MeetingStatus.RECRUITING) {
+                    meeting.cancelMeeting(); // Meeting 엔티티의 cancelMeeting() 메서드 호출
+                    log.warn("모임 ID {}가 확정된 참여자가 없어 취소되었습니다. (확정 인원: {})", meeting.getMeetingId(), approvedParticipantsCount);
                 } else {
-                    // 그 외의 경우, 정상적으로 모임을 시작합니다.
-                    meeting.startMeeting();
-                    log.info("모임 ID {}의 상태가 ONGOING(진행중)으로 업데이트되었습니다.", meeting.getMeetingId());
+                    // 3. 그 외의 경우 (확정 참여자가 2명 이상), 정상적으로 모임을 시작합니다.
+                    meeting.startMeeting(); // Meeting 엔티티의 startMeeting() 메서드 호출
+                    log.info("모임 ID {}의 상태가 ONGOING(진행중)으로 업데이트되었습니다. (확정 인원: {})", meeting.getMeetingId(), approvedParticipantsCount);
                 }
+
             } catch (Exception e) {
-                // 개별 모임 처리 중 에러가 발생하더라도 다른 모임에 영향을 주지 않도록 try-catch로 감쌉니다.
                 log.error("모임 ID {} 처리 실패: {}", meeting.getMeetingId(), e.getMessage());
             }
         }
     }
+
 
     /**
      * 매일 자정에 실행되어, 진행 중(ONGOING)인 모임들 중
