@@ -1,7 +1,7 @@
 -- ============================================
 -- 사용자 데이터 삽입
 -- ============================================
-INSERT INTO users (nickname, provider, provider_id, trust_score, trust_grade, agree, created_at, updated_at) VALUES
+/*INSERT INTO users (nickname, provider, provider_id, trust_score, trust_grade, agree, created_at, updated_at) VALUES
                                                                                                                  ('김코스트', 'kakao', 'kakao_1', 300, 'BASIC', TRUE, NOW(), NOW()),
                                                                                                                  ('이소분', 'kakao', 'kakao_2', 350, 'BASIC', TRUE, NOW(), NOW()),
                                                                                                                  ('박나눔', 'kakao', 'kakao_3', 280, 'BASIC', TRUE, NOW(), NOW()),
@@ -127,4 +127,4 @@ UPDATE meetings SET current_participants = (
     WHERE meeting_participants.meeting_id = meetings.meeting_id AND application_status = 'APPROVED'
 );
 
-COMMIT;
+COMMIT;*/

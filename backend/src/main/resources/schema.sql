@@ -1,5 +1,5 @@
 -- 영구적으로 유지될 마트 초기 데이터 (서울 지역 전체)
-INSERT INTO marts (mart_name, mart_brand, address, latitude, longitude, created_at, updated_at) VALUES
+INSERT IGNORE INTO marts (mart_name, mart_brand, address, latitude, longitude, created_at, updated_at) VALUES
 -- 코스트코 (COSTCO) - 4곳
 ('코스트코 양평점', 'COSTCO', '서울특별시 영등포구 선유로 156', 37.5276272,126.8921542, NOW(), NOW()),
 ('코스트코 양재점', 'COSTCO', '서울특별시 서초구 양재대로 159', 37.4618756,127.0361402, NOW(), NOW()),
