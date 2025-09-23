@@ -38,7 +38,7 @@ spring:
     database-platform: org.hibernate.dialect.MariaDB106Dialect
     hibernate:
       # ddl
-      ddl-auto: create-drop
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true # SQL log
@@ -54,7 +54,7 @@ spring:
             client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
             scope: [ profile_nickname, profile_image ]
-            redirect-uri: 'http://localhost:9000/login/oauth2/code/kakao'
+            redirect-uri: 'http://172.30.1.16:9000/login/oauth2/code/kakao'
         provider:
           kakao:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
@@ -77,7 +77,7 @@ jwt:
   refresh-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
 
 cookie:
-  domain: localhost
+  domain: 172.30.1.16
   secure: false
   http-only: true
   same-site: Lax
@@ -87,8 +87,8 @@ cookie:
   refresh-max-age: ${COOKIE_REFRESH_TOKEN_MAX_AGE}
 
 app:
-  oauth2-success-redirect-url: http://localhost:5173/popup-close
-  oauth2-failure-redirect-url: http://localhost:5173/popup-close?from=oauth2
+  oauth2-success-redirect-url: http://172.30.1.16:5173/popup-close
+  oauth2-failure-redirect-url: http://172.30.1.16:5173/popup-close?from=oauth2
 
 # ===== Google AI (Gemini) 설정 추가 =====
 google:

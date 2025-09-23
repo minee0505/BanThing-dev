@@ -1,4 +1,4 @@
--- ============================================
+/*-- ============================================
 -- 사용자 데이터 삽입
 -- ============================================
 INSERT INTO users (nickname, provider, provider_id, trust_score, trust_grade, agree, created_at, updated_at) VALUES
@@ -127,4 +127,4 @@ UPDATE meetings SET current_participants = (
     WHERE meeting_participants.meeting_id = meetings.meeting_id AND application_status = 'APPROVED'
 );
 
-COMMIT;
+COMMIT;*/

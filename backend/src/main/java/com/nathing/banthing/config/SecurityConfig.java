@@ -26,7 +26,7 @@ public class SecurityConfig {
 
     // 허용할 엔드포인트 목록을 배열로 따로 관리
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/**", // 프로젝트 초기 설정이므로 임시로 모든 엔드포인트 허용, 이후에 조정 필요
+//            "/**", // 프로젝트 초기 설정이므로 임시로 모든 엔드포인트 허용, 이후에 조정 필요
             "/",
             "/health",
             "/h2-console/**",
@@ -95,7 +95,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173", "http://127.0.0.1:5173"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173", "http://127.0.0.1:5173", "http://172.30.1.16:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
