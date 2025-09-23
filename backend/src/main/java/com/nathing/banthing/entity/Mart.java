@@ -15,7 +15,9 @@ import java.util.List;
 
 // 1. 마트 정보 엔터티
 @Entity
-@Table(name = "marts")
+@Table(name = "marts", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_mart_name", columnNames = {"mart_name"})
+})
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Mart {
