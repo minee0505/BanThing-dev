@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { sendMessageToChatbot, getChatbotHistory, isUserAuthenticated } from '../../services/chatbotApi.js';
-import styles from './Chatbot.module.scss';
+import styles from './ChatbotStyles.module.scss';
 import { FaRobot } from "react-icons/fa6";
 import { BsSendPlus } from "react-icons/bs";
 import { IoMdClose } from "react-icons/io";
@@ -8,7 +8,7 @@ import { FaHourglassHalf } from "react-icons/fa";
 import { MdWavingHand } from "react-icons/md";
 import MeetingCard from './MeetingCard';
 
-const Chatbot = () => {
+const ChatbotMain = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
@@ -372,4 +372,4 @@ ${meeting.title} 모임의 자세한 정보를 보시려면 로그인이 필요�
     );
 };
 
-export default Chatbot;
+export default ChatbotMain;
