@@ -63,8 +63,8 @@ cookie:
   refresh-max-age: ${COOKIE_REFRESH_TOKEN_MAX_AGE:604800}
 
 app:
-  oauth2-success-redirect-url: https://banthing.vercel.app/popup-close
-  oauth2-failure-redirect-url: https://banthing.vercel.app/popup-close?from=oauth2
+  oauth2-success-redirect-url: https://banthing.shop/popup-close
+  oauth2-failure-redirect-url: https://banthing.shop/popup-close?from=oauth2
 
 google:
   ai:
