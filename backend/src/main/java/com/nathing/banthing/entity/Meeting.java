@@ -1,0 +1,165 @@
+package com.nathing.banthing.entity;
+
+import com.nathing.banthing.dto.request.MeetingUpdateRequest;
+import com.nathing.banthing.exception.BusinessException;
+import com.nathing.banthing.exception.ErrorCode;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "meetings")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@ToString(exclude = {"hostUser", "mart", "participants", "suggestions", "feedbacks"})
+@SQLDelete(sql = "UPDATE meetings SET deleted_at = NOW() WHERE meeting_id = ?")
+@Where(clause = "deleted_at IS NULL")
+public class Meeting {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "meeting_id")
+    private Long meetingId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_user_id", nullable = false)
+    private User hostUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mart_id", nullable = false)
+    private Mart mart;
+
+    @Column(name = "title", nullable = false, length = 100)
+    private String title;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "meeting_date", nullable = false)
+    private LocalDateTime meetingDate;
+
+    @Column(name = "max_participants", nullable = false)
+    private Integer maxParticipants = 5;
+
+    @Column(name = "current_participants")
+    private Integer currentParticipants = 1;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private MeetingStatus status = MeetingStatus.RECRUITING;
+
+    @Column(name = "thumbnail_image_url", length = 500)
+    private String thumbnailImageUrl;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    // 연관관계 매핑
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MeetingParticipant> participants = new ArrayList<>();
+
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatbotMeetingSuggestion> suggestions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Feedback> feedbacks = new ArrayList<>();
+
+    // 송민재 작성, comments테이블과 연관관계
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
+    public enum MeetingStatus {
+        RECRUITING, FULL, ONGOING, COMPLETED, CANCELLED
+    }
+
+    // 논리적 삭제 여부 확인
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
+    // 비즈니스 메서드
+    public boolean isRecruiting() {
+        return status == MeetingStatus.RECRUITING && currentParticipants < maxParticipants;
+    }
+
+    public boolean isFull() {
+        return currentParticipants >= maxParticipants;
+    }
+
+    //  업데이트 로직을 위한 메서드 추가
+    public void update(MeetingUpdateRequest request, Mart newMart) {
+        this.mart = newMart;
+        this.title = request.getTitle();
+        this.description = request.getDescription();
+        this.meetingDate = request.getMeetingDate();
+        this.thumbnailImageUrl = request.getThumbnailImageUrl();
+    }
+
+    // '모집 완료'는 상태를 FULL로 변경
+    public void closeRecruitment() {
+        if (this.status != MeetingStatus.RECRUITING) {
+            throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
+        }
+        this.status = MeetingStatus.FULL;
+    }
+
+    // '모집 재개'는 상태를 RECRUITING으로 변경
+    public void reopenRecruitment() {
+        if (this.status != MeetingStatus.FULL) {
+            throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
+        }
+        this.status = MeetingStatus.RECRUITING;
+    }
+
+    /**
+     * [수정] '모임 시작'은 RECRUITING 또는 FULL 상태에서 ONGOING으로 변경
+     * 스케줄러가 인원이 차지 않은 모임도 시작시킬 수 있도록 조건을 확장합니다.
+     */
+    public void startMeeting() {
+        if (this.status != MeetingStatus.RECRUITING && this.status != MeetingStatus.FULL) {
+            throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
+        }
+        this.status = MeetingStatus.ONGOING;
+    }
+
+    /**
+     * [수정] '모임 종료'는 이미 완료되거나 취소된 모임이 아니면 완료 가능하도록 수정
+     * 이 메서드는 호스트가 수동으로 모임을 종료하거나, 스케줄러가 자동으로 종료할 때 사용됩니다.
+     */
+    public void completeMeeting() {
+        if (this.status == MeetingStatus.COMPLETED || this.status == MeetingStatus.CANCELLED) {
+            throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
+        }
+        this.status = MeetingStatus.COMPLETED;
+    }
+
+    /**
+     * [추가] '모임 취소'는 RECRUITING 상태에서만 가능
+     * 스케줄러가 참여자가 없는 모임을 자동으로 취소시키기 위해 사용합니다.
+     */
+    public void cancelMeeting() {
+        if (this.status != MeetingStatus.RECRUITING) {
+            throw new BusinessException(ErrorCode.INVALID_MEETING_STATUS);
+        }
+        this.status = MeetingStatus.CANCELLED;
+    }
+}
+

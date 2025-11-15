@@ -1,0 +1,76 @@
+/* MeetingCard.module.scss의 레이아웃 스타일을 그대로 가져와
+  크기가 완전히 동일하도록 수정했습니다.
+*/
+.card {
+  display: flex;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 20px;
+  // 실제 카드와 동일한 높이를 갖도록 min-height를 설정합니다.
+  min-height: 154px;
+}
+
+.thumbnail {
+  flex: 0 0 120px;
+}
+
+.content {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* font-size를 기준으로 높이를 설정하여
+  실제 텍스트와 공간을 동일하게 차지하도록 합니다.
+*/
+.title {
+  height: 1.1rem; // font-size와 동일하게
+  width: 80%;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.infoLine {
+  height: 0.9rem; // font-size와 동일하게
+  width: 90%;
+  border-radius: 4px;
+}
+
+.footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.participants {
+  height: 0.9rem; // font-size와 동일하게
+  width: 50%;
+  border-radius: 4px;
+}
+
+/* 반짝이는 스켈레톤 애니메이션 */
+.thumbnail, .title, .infoLine, .participants {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

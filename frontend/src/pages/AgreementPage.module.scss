@@ -1,0 +1,479 @@
+/* ==============================================
+   약관동의 페이지 전용 스타일
+   반띵(BanThing) - AgreementPage.module.scss
+   App.scss 디자인 시스템 참고하여 작성
+   ============================================== */
+
+/* ===== CSS 변수 정의 (App.scss 참고) ===== */
+.agreementContainer {
+  /* Primary Colors - App.scss와 동일한 라벤더 계열 */
+  --primary-color: #A29BFE;
+  --primary-light: rgba(162, 155, 254, 0.1);
+  --primary-hover: rgba(162, 155, 254, 0.8);
+
+  /* Secondary Colors - App.scss와 동일한 로즈 계열 */
+  --secondary-color: #FD79A8;
+  --secondary-light: rgba(253, 121, 168, 0.1);
+  --secondary-hover: rgba(253, 121, 168, 0.8);
+
+  /* Accent Colors - App.scss와 동일한 선샤인 옐로우 */
+  --accent-color: #FDCB6E;
+  --accent-light: rgba(253, 203, 110, 0.1);
+  --accent-hover: rgba(253, 203, 110, 0.8);
+
+  /* Text & Background - App.scss와 동일 */
+  --text-color: #2D3436;
+  --text-light: rgba(45, 52, 54, 0.7);
+  --text-muted: rgba(45, 52, 54, 0.5);
+  --background-color: #FAFAFA;
+  --white: #FFFFFF;
+
+  /* 에러 컬러 */
+  --error-color: #E74C3C;
+  --error-light: rgba(231, 76, 60, 0.1);
+
+  /* 그림자 - App.scss와 동일 */
+  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --shadow-heavy: 0 8px 16px rgba(0, 0, 0, 0.2);
+
+  /* 레이아웃 - App.scss와 동일 */
+  --border-radius: 8px;
+  --border-radius-large: 12px;
+
+  /* 폰트 - App.scss와 동일 */
+  --font-family: 'Pretendard', 'Apple SD Gothic Neo', -apple-system, sans-serif;
+}
+
+/* ===== 메인 컨테이너 ===== */
+.agreementContainer {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem;
+  font-family: var(--font-family);
+  color: var(--text-color);
+  //background-color: var(--background-color);
+  line-height: 1.6;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@media (min-width: 768px) {
+  .agreementContainer {
+    padding: 3rem 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .agreementContainer {
+    padding: 3rem 3rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .agreementContainer {
+    padding: 2rem 1rem;
+  }
+}
+
+/* ===== 헤더 영역 ===== */
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+  color: var(--text-color);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (min-width: 768px) {
+  .header h1 {
+    font-size: 2.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header h1 {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .header h1 {
+    font-size: 2rem;
+  }
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.projectNotice {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+  padding: 0.5rem 1rem;
+  background-color: var(--accent-light);
+  border-radius: var(--border-radius);
+  display: inline-block;
+  border: 1px solid var(--accent-color);
+}
+
+/* ===== 전체 동의 박스 ===== */
+.allAgreeBox {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 100%);
+  border: 2px solid var(--primary-color);
+  border-radius: var(--border-radius-large);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-light);
+}
+
+.allAgreeBox:hover {
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
+}
+
+.allAgreeBox .checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.75rem;
+}
+
+.allAgreeBox .checkboxLabel input[type="checkbox"] {
+  margin-right: 0.75rem;
+  transform: scale(1.3);
+  accent-color: var(--primary-color);
+  cursor: pointer;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.description {
+  margin: 0.75rem 0 0 2rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 767px) {
+  .description {
+    margin-left: 1.5rem;
+  }
+}
+
+/* ===== 개별 약관 박스 ===== */
+.individualAgreeBox {
+  background-color: var(--white);
+  border: 1px solid #E8E8E8;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-light);
+  transition: all 0.3s ease;
+}
+
+.individualAgreeBox:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-1px);
+}
+
+.individualAgreeBox .checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E8E8E8;
+}
+
+.individualAgreeBox .checkboxLabel input[type="checkbox"] {
+  margin-right: 0.625rem;
+  transform: scale(1.2);
+  accent-color: var(--primary-color);
+  cursor: pointer;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.required {
+  color: var(--secondary-color);
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+/* ===== 약관 내용 ===== */
+.termsContent h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  text-align: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+.scrollableBox {
+  height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  background-color: #f9f9f9;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* 스크롤바 스타일링 - App.scss 스타일 참고 */
+.scrollableBox::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollableBox::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.scrollableBox::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.scrollableBox::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+.scrollableBox h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 1.5rem 0 0.75rem 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.scrollableBox h4:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.scrollableBox p {
+  margin-bottom: 0.75rem;
+  color: var(--text-light);
+}
+
+.scrollableBox p strong {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.scrollableBox ul {
+  margin: 0.5rem 0 0.75rem 1.25rem;
+}
+
+.scrollableBox li {
+  margin-bottom: 0.25rem;
+  color: var(--text-light);
+}
+
+/* 하이라이트 박스 */
+.highlight {
+  background-color: var(--accent-light);
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  border-left: 4px solid var(--accent-color);
+  margin: 1rem 0;
+}
+
+.highlight p {
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.highlight p:last-child {
+  margin-bottom: 0;
+}
+
+/* 경고 박스 */
+.warningBox {
+  background-color: var(--error-light);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.warningBox p {
+  color: var(--error-color);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.warningBox p:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== 에러 메시지 ===== */
+.errorMessage {
+  background-color: var(--error-light);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  color: var(--error-color);
+  padding: 1rem 1.25rem;
+  border-radius: var(--border-radius);
+  margin: 1.5rem 0;
+  text-align: center;
+  font-weight: 500;
+  animation: slideUp 0.3s ease-out;
+}
+
+/* ===== 버튼 컨테이너 ===== */
+.buttonContainer {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid #E8E8E8;
+}
+
+@media (max-width: 767px) {
+  .buttonContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ===== 버튼 스타일 (App.scss 버튼 스타일 참고) ===== */
+.agreeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--border-radius);
+  font-family: var(--font-family);
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-height: 48px;
+}
+
+.agreeButton.enabled {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: var(--white);
+}
+
+.agreeButton.enabled:hover {
+  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--secondary-hover) 100%);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+
+.agreeButton.enabled:active {
+  transform: translateY(-1px);
+}
+
+.agreeButton.disabled {
+  background-color: rgba(162, 155, 254, 0.5);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.agreeButton.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.logoutButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background-color: transparent;
+  color: var(--text-light);
+  border: 2px solid var(--text-light);
+  border-radius: var(--border-radius);
+  font-family: var(--font-family);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-height: 48px;
+}
+
+.logoutButton:hover {
+  background-color: var(--text-light);
+  color: var(--white);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-light);
+}
+
+@media (max-width: 767px) {
+  .agreeButton,
+  .logoutButton {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+}
+
+/* ===== 접근성 향상 ===== */
+.checkboxLabel input[type="checkbox"]:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.agreeButton:focus,
+.logoutButton:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* ===== 애니메이션 (App.scss 참고) ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

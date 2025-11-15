@@ -1,0 +1,866 @@
+// 컬러 변수 (프로젝트 컬러 가이드 준수)
+$primary-color: #A29BFE;     // 라벤더 (Primary 60%)
+$secondary-color: #FD79A8;   // 로즈 (Secondary 30%)
+$accent-color: #FDCB6E;      // 선샤인 옐로우 (Accent 10%)
+$text-color: #2D3436;        // 차콜 그레이
+$background-color: #FAFAFA;  // 라이트 그레이
+$white: #FFFFFF;
+$border-color: rgba($text-color, 0.1);
+$shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.15);
+
+// 상태별 컬러
+$status-recruiting: $primary-color;
+$status-full: $secondary-color;
+$status-ongoing: $accent-color;
+$status-completed: $text-color;
+$status-cancelled: #95A5A6;
+
+// 신뢰도 배지 컬러
+$trust-warning: #E41B17;
+$trust-basic: #00A36C;
+$trust-good: #0080FF;
+
+// 브레이크포인트
+$mobile: 480px;
+$tablet: 768px;
+$desktop: 1024px;
+
+// 애니메이션
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+// 컨테이너
+.container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+
+  @media (max-width: $tablet) {
+    padding: 15px;
+  }
+
+  @media (max-width: $mobile) {
+    padding: 10px;
+  }
+}
+
+// 메인 카드
+.detailCard {
+  background: $white;
+  border-radius: 12px;
+  box-shadow: $shadow-light;
+  overflow: hidden;
+  animation: fadeIn 0.6s ease-out;
+}
+
+// 로딩 상태
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+
+  .loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba($primary-color, 0.3);
+    border-top: 3px solid $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: $primary-color;
+    font-weight: 500;
+    margin: 0;
+  }
+}
+
+// 에러 상태
+.error, .notFound {
+  text-align: center;
+  padding: 4rem 2rem;
+
+  h2 {
+    color: $text-color;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: rgba($text-color, 0.7);
+    margin-bottom: 2rem;
+  }
+}
+
+// 모임 헤더
+.meetingHeader {
+  padding: 2rem;
+  border-bottom: 1px solid $border-color;
+
+  @media (max-width: $mobile) {
+    padding: 1.5rem;
+  }
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+
+  @media (max-width: $mobile) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $text-color;
+  margin: 0;
+  flex: 1;
+
+  @media (max-width: $mobile) {
+    font-size: 1.3rem;
+  }
+}
+
+.statusBadge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.recruiting {
+    background-color: $status-recruiting;
+  }
+
+  &.full {
+    background-color: $status-full;
+  }
+
+  &.ongoing {
+    background-color: $status-ongoing;
+    color: $text-color;
+  }
+
+  &.completed {
+    background-color: $status-completed;
+  }
+
+  &.cancelled {
+    background-color: $status-cancelled;
+  }
+}
+
+.meetingMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  @media (max-width: $mobile) {
+    gap: 1rem;
+    flex-direction: column;
+  }
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba($text-color, 0.8);
+  font-size: 0.95rem;
+
+  svg {
+    color: $primary-color;
+    font-size: 1.1rem;
+  }
+}
+
+// 호스트 정보
+.hostInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba($primary-color, 0.1) 0%, rgba($secondary-color, 0.1) 100%);
+  border-radius: 8px;
+
+  @media (max-width: $mobile) {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+}
+
+.hostAvatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid $white;
+  box-shadow: $shadow-medium;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.defaultAvatar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $white;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.hostDetails {
+  flex: 1;
+}
+
+.hostName {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  span:first-child {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: $text-color;
+  }
+
+  @media (max-width: $mobile) {
+    justify-content: center;
+  }
+}
+
+.hostStats {
+  font-size: 0.9rem;
+  color: rgba($text-color, 0.7);
+}
+
+.hostActions {
+  display: flex;
+  gap: 0.5rem;
+
+  @media (max-width: $mobile) {
+    justify-content: center;
+  }
+}
+
+.editButton, .deleteButton {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editButton {
+  background-color: $primary-color;
+  color: $white;
+
+  &:hover {
+    background-color: #A29BFEFF;
+  }
+}
+
+.deleteButton {
+  background-color: #e74c3c;
+  color: $white;
+
+  &:hover {
+    background-color: #E74C3CFF;
+  }
+}
+
+// 신뢰도 배지
+.trustWarning {
+  background-color: $trust-warning;
+  color: $white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.trustBasic {
+  background-color: $trust-basic;
+  color: $white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.trustGood {
+  background-color: $trust-good;
+  color: $white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.trustWarning .trustBasic {
+
+}
+// 모임 콘텐츠
+.meetingContent {
+  padding: 2rem;
+  border-bottom: 1px solid $border-color;
+
+  @media (max-width: $mobile) {
+    padding: 1.5rem;
+  }
+
+  h3 {
+    margin-bottom: 1.5rem;
+    color: $text-color;
+    font-size: 1.2rem;
+  }
+}
+
+.description {
+  line-height: 1.7;
+  color: rgba($text-color, 0.8);
+
+  p {
+    margin-bottom: 1rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// 탭 메뉴
+.tabMenu {
+  display: flex;
+  border-bottom: 1px solid $border-color;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: rgba($text-color, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  position: relative;
+
+  &:hover {
+    color: $text-color;
+    background-color: rgba($primary-color, 0.05);
+  }
+
+  &.active {
+    color: $primary-color;
+    border-bottom-color: $primary-color;
+    font-weight: 600;
+    background-color: rgba($primary-color, 0.05);
+  }
+
+  @media (max-width: $mobile) {
+    padding: 1rem 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+// 탭 콘텐츠
+.tabContent {
+  padding: 2rem;
+
+  @media (max-width: $mobile) {
+    padding: 1.5rem;
+  }
+}
+
+// 참여자 탭
+.participantsTab {
+  h4 {
+    margin-bottom: 1rem;
+    color: $text-color;
+    font-size: 1.1rem;
+  }
+}
+
+.participantsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.participantItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: $background-color;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba($primary-color, 0.05);
+  }
+}
+
+.participantAvatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.participantInfo {
+  flex: 1;
+}
+
+.participantName {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+
+  span:first-child {
+    font-weight: 600;
+    color: $text-color;
+  }
+}
+
+.hostLabel {
+  background-color: $primary-color;
+  color: $white;
+  padding: 0.1rem 0.4rem;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.pendingLabel {
+  background-color: $accent-color;
+  color: $text-color;
+  padding: 0.1rem 0.4rem;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.participantStats {
+  font-size: 0.85rem;
+  color: rgba($text-color, 0.6);
+}
+
+.participantActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.approveButton, .rejectButton {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.approveButton {
+  //background-color: $trust-good;
+  color: $white;
+  background-color: #27AE60FF;
+  /*&:hover {
+    background-color: #27AE60FF;
+  }*/
+  /*&:hover {
+    background-color: darken($trust-good, 10%);
+  }*/
+}
+
+.rejectButton {
+  background-color: #e74c3c;
+  color: $white;
+
+  &:hover {
+    background-color: #E74C3CFF;
+  }
+}
+
+// 댓글 탭
+.commentsTab {
+}
+
+.commentsList {
+  margin-bottom: 2rem;
+}
+
+.noComments {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: rgba($text-color, 0.6);
+
+  p {
+    margin-bottom: 0.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.commentItem {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $border-color;
+  position: relative;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+}
+.commentMoreButton {
+  position: absolute; // 👈 이 부분을 추가합니다.
+  right: 10px;       // 👈 오른쪽에서 50px만큼 왼쪽으로 이동합니다.
+  top: 40%;           // 👈 수직 중앙 정렬을 위해 추가합니다.
+  transform: translateY(-50%); // 👈 수직 중앙 정렬을 위해 추가합니다.
+
+}
+/*.commentAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $secondary-color 0%, $accent-color 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}*/
+
+.commentAvatar {
+  // 아바타 컨테이너의 기본 스타일
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden; // 원형 밖으로 넘치는 내용 숨기기
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #A29BFE; // 텍스트 아바타용 배경색
+  color: white;
+  font-weight: bold;
+  flex-shrink: 0;
+
+  // 아바타 내부에 이미지가 있을 경우
+  img {
+    width: 100%; // 부모 div의 100% 크기로
+    height: 100%;
+    object-fit: cover; // 비율을 유지하며 부모 요소에 꽉 채우기
+  }
+}
+
+.commentContent {
+  flex: 1;
+}
+
+.commentAuthor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: $text-color;
+}
+
+.commentTime {
+  font-size: 0.75rem;
+  color: rgba($text-color, 0.5);
+  font-weight: normal;
+}
+
+.commentText {
+  line-height: 1.5;
+  color: rgba($text-color, 0.8);
+}
+
+.commentForm {
+  border-top: 1px solid $border-color;
+  padding-top: 1.5rem;
+}
+
+.commentInputWrapper {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.commentInput {
+  flex: 1;
+  padding: 0.8rem;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: $text-color;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 2px rgba($primary-color, 0.1);
+  }
+
+  &::placeholder {
+    color: rgba($text-color, 0.5);
+  }
+}
+
+.commentSubmit {
+  padding: 0.8rem 1.5rem;
+  background-color: $primary-color;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background-color: #A29BFEFF;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    background-color: rgba($primary-color, 0.5);
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+// 액션 버튼
+.actionButtons {
+  padding: 2rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  border-top: 1px solid $border-color;
+
+  @media (max-width: $mobile) {
+    padding: 1.5rem;
+    flex-direction: column;
+  }
+}
+
+.joinButton, .leaveButton, .backButton, .completeButton, .pendingButton {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-medium;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  @media (max-width: $mobile) {
+    min-width: 100%;
+  }
+}
+
+.joinButton {
+  background-color: $accent-color;
+  color: $text-color;
+
+  &:hover:not(:disabled) {
+    background-color: #FDCB6EFF;
+  }
+}
+
+.pendingButton {
+  background-color: #95A5A6;
+  color: $white;
+  cursor: not-allowed;
+  pointer-events: none;
+
+  &:hover {
+    transform: none;
+    box-shadow: none;
+    background-color: #95A5A6;
+  }
+}
+
+.completeButton {
+  background-color: $secondary-color;
+  color: $white;
+
+  &:hover:not(:disabled) {
+    background-color: #FD79A8FF;
+  }
+}
+
+.leaveButton {
+  background-color: #e74c3c;
+  color: $white;
+
+  &:hover {
+    background-color: #E74C3CFF;
+  }
+}
+
+.backButton {
+  background-color: transparent;
+  color: $primary-color;
+  border: 2px solid $primary-color;
+
+  &:hover {
+    background-color: $primary-color;
+    color: $white;
+  }
+}
+
+// 반응형 디자인
+@media (max-width: $tablet) {
+  .container {
+    max-width: 100%;
+  }
+
+  .hostInfo {
+    padding: 1rem;
+  }
+
+  .meetingMeta {
+    gap: 0.8rem;
+  }
+
+  .tabButton {
+    padding: 0.8rem 1rem;
+  }
+
+  .participantItem {
+    padding: 0.8rem;
+  }
+
+  .commentInputWrapper {
+    flex-direction: column;
+    gap: 0.8rem;
+
+    .commentSubmit {
+      align-self: flex-end;
+    }
+  }
+}
+
+@media (max-width: $mobile) {
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .hostAvatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .participantAvatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .commentAvatar {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
+  }
+
+  .metaItem {
+    font-size: 0.9rem;
+
+    svg {
+      font-size: 1rem;
+    }
+  }
+
+  .statusBadge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
