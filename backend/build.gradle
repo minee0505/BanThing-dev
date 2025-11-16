@@ -16,6 +16,7 @@ java {
 
 bootJar {
     mainClass = 'com.nathing.banthing.BackendApplication'
+    archiveFileName = 'app.jar'
 }
 
 configurations {

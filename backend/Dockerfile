@@ -22,7 +22,7 @@ FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 # 7. 빌드된 .jar 파일만 복사
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY --from=builder /app/build/libs/app.jar app.jar
 
 # 8. Render가 사용할 포트 설정 (9000번)
 EXPOSE 9000
