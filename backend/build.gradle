@@ -14,6 +14,10 @@ java {
 	}
 }
 
+bootJar {
+    mainClass = 'com.nathing.banthing.BackendApplication'
+}
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
