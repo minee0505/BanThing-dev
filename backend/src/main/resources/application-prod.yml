@@ -57,7 +57,7 @@ cookie:
   domain: .banthing.shop
   secure: true
   http-only: true
-  same-site: None
+  same-site: Lax
   access-token-name: ACCESS_TOKEN
   refresh-token-name: REFRESH_TOKEN
   access-max-age: ${COOKIE_ACCESS_TOKEN_MAX_AGE:900}
