@@ -108,7 +108,7 @@ const loadKakaoMapScript = () => {
 
         const script = document.createElement('script');
         script.id = 'kakao-maps-sdk';
-        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoMapKey}&autoload=false`;
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoMapKey}&autoload=false`;
         script.async = true;
         script.onload = () => resolve();
         script.onerror = () => reject(new Error("Failed to load Kakao map script."));
