@@ -29,3 +29,4 @@ EXPOSE 9000
 
 # 9. 앱 실행 (Dockerfile이 이 명령어를 실행함)
 ENTRYPOINT ["java", "-Xmx256m", "-jar", "app.jar"]
+CMD ["app.jar"]
