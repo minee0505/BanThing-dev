@@ -5,6 +5,10 @@
       "destination": "https://api.banthing.shop/api/:path*"
     },
     {
+      "source": "/oauth2/:path*",
+      "destination": "https://api.banthing.shop/oauth2/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
