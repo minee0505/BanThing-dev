@@ -1,14 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/oauth2/:path*",
-      "destination": "https://api.banthing.shop/oauth2/:path*"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "https://api.banthing.shop/api/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

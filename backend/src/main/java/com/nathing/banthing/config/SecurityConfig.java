@@ -99,7 +99,7 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
                 "https://banthing.shop",
-                "https://*.banthing.shop"
+                "https://www.banthing.shop"
 
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
