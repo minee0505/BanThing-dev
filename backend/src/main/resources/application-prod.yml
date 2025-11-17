@@ -55,6 +55,7 @@ jwt:
 
 cookie:
   domain: .banthing.shop
+  path: /
   secure: true
   http-only: true
   same-site: Lax
